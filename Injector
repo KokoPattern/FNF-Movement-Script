@@ -23,7 +23,7 @@ OffsetX.Value = 0
 local OffsetY = Instance.new("NumberValue")
 OffsetY.Value = 15
 
-local CURRENT_VERSION = "9.0"
+local CURRENT_VERSION = "9.1"
 local CONFIG_FILE = "FNFMovement_SaveData.json"
 
 local CurrentTheme = {
@@ -81,6 +81,21 @@ local ValidTimeEvents = {
     "Parry",
     "Heavy Hit"
 }
+
+-- Robust Player Search Function
+local function FindPlayer(targetString)
+    if not targetString or targetString == "" then return nil end
+    local search = string.lower(string.match(targetString, "^%s*(.-)%s*$"))
+    if search == "" then return nil end
+    for _, player in pairs(Players:GetPlayers()) do
+        local pName = string.lower(player.Name)
+        local pDisp = string.lower(player.DisplayName)
+        if string.sub(pName, 1, string.len(search)) == search or string.sub(pDisp, 1, string.len(search)) == search then
+            return player
+        end
+    end
+    return nil
+end
 
 local function CreateTween(instance, duration, properties, easingStyle, easingDirection)
     local style = easingStyle or Enum.EasingStyle.Quad
@@ -237,7 +252,7 @@ local function SendNotification(titleText, messageText, duration)
 end
 
 -- ==========================================
--- AUTO UPDATE & CREDITS SCREEN FLOW
+-- STARTUP, UPDATE & CREDITS SEQUENCE
 -- ==========================================
 local IsNewUpdate = false
 local function CheckForUpdates()
@@ -291,11 +306,90 @@ local function Setup3DGUI()
     OffsetX.Value = 0
     OffsetY.Value = 15
     TweenService:Create(OffsetY, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Value = 4.5}):Play()
-    task.delay(0.5, function() GuiState = "shown" end)
-    MobileToggle.Text = "X"
+    task.delay(0.5, function() GuiState = "shown"; MobileToggle.Text = "X" end)
 end
 
-if IsNewUpdate then
+local function SpawnCreditsScreen(SequenceContainer, blur, existingPopup)
+    local Popup = existingPopup
+    if not Popup then
+        Popup = Instance.new("Frame")
+        Popup.Size = UDim2.new(0, 420, 0, 320)
+        Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
+        Popup.BackgroundColor3 = CurrentTheme.Background
+        Popup.BorderSizePixel = 0
+        Popup.Parent = SequenceContainer
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 12)
+        corner.Parent = Popup
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = CurrentTheme.Primary
+        stroke.Thickness = 2
+        stroke.Parent = Popup
+    end
+
+    local Title = Popup:FindFirstChild("TitleLabel")
+    if not Title then
+        Title = Instance.new("TextLabel")
+        Title.Name = "TitleLabel"
+        Title.Size = UDim2.new(1, 0, 0, 40)
+        Title.Position = UDim2.new(0, 0, 0, 10)
+        Title.BackgroundTransparency = 1
+        Title.Font = Enum.Font.GothamBold
+        Title.TextSize = 22
+        Title.TextColor3 = CurrentTheme.Primary
+        Title.Parent = Popup
+    end
+    Title.Text = "CREDITS"
+    
+    local Desc = Popup:FindFirstChild("DescLabel")
+    if not Desc then
+        Desc = Instance.new("TextLabel")
+        Desc.Name = "DescLabel"
+        Desc.Size = UDim2.new(1, -40, 1, -120)
+        Desc.Position = UDim2.new(0, 20, 0, 60)
+        Desc.BackgroundTransparency = 1
+        Desc.Font = Enum.Font.Gotham
+        Desc.TextSize = 14
+        Desc.TextColor3 = Color3.new(1,1,1)
+        Desc.TextWrapped = true
+        Desc.TextYAlignment = Enum.TextYAlignment.Top
+        Desc.Parent = Popup
+    end
+    Desc.TextXAlignment = Enum.TextXAlignment.Center
+    Desc.Text = "Kaze - Scripter and Owner of the Script\nKrozm - UI builder\nB-micro - Source and idea, and contribute to time events\nThaGuy - Contribute to time events\nKhal - Tester\nZoneLaiter - Partner Scripting system"
+    
+    local ProceedBtn = Popup:FindFirstChild("ProceedBtn")
+    if not ProceedBtn then
+        ProceedBtn = Instance.new("TextButton")
+        ProceedBtn.Name = "ProceedBtn"
+        ProceedBtn.Size = UDim2.new(0, 150, 0, 45)
+        ProceedBtn.Position = UDim2.new(0.5, -75, 1, -60)
+        ProceedBtn.BackgroundColor3 = CurrentTheme.Primary
+        ProceedBtn.Font = Enum.Font.GothamBold
+        ProceedBtn.TextSize = 16
+        ProceedBtn.TextColor3 = Color3.new(0,0,0)
+        ProceedBtn.Text = "PROCEED"
+        ProceedBtn.Parent = Popup
+        local pCorner = Instance.new("UICorner")
+        pCorner.CornerRadius = UDim.new(0, 8)
+        pCorner.Parent = ProceedBtn
+    end
+
+    Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
+    CreateTween(Popup, 0.8, {Position = UDim2.new(0.5, -210, 0.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+    
+    local finalConn
+    finalConn = ProceedBtn.MouseButton1Click:Connect(function()
+        finalConn:Disconnect()
+        CreateTween(Popup, 0.5, {Position = UDim2.new(0.5, -210, 1.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.In).Completed:Wait()
+        SequenceContainer:Destroy()
+        blur:Destroy()
+        Setup3DGUI()
+    end)
+end
+
+local function RunStartupSequence()
     local blur = Instance.new("BlurEffect")
     blur.Size = 24
     blur.Parent = Lighting
@@ -306,83 +400,74 @@ if IsNewUpdate then
     SequenceContainer.ZIndex = 9999
     SequenceContainer.Parent = ScreenGui
     
-    local Popup = Instance.new("Frame")
-    Popup.Size = UDim2.new(0, 420, 0, 320)
-    Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
-    Popup.BackgroundColor3 = CurrentTheme.Background
-    Popup.BorderSizePixel = 0
-    Popup.Parent = SequenceContainer
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = Popup
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = CurrentTheme.Primary
-    stroke.Thickness = 2
-    stroke.Parent = Popup
-    
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 0, 40)
-    Title.Position = UDim2.new(0, 0, 0, 10)
-    Title.BackgroundTransparency = 1
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 22
-    Title.TextColor3 = CurrentTheme.Primary
-    Title.Text = "SCRIPT JUST UPDATED!"
-    Title.Parent = Popup
-    
-    local Desc = Instance.new("TextLabel")
-    Desc.Size = UDim2.new(1, -40, 1, -120)
-    Desc.Position = UDim2.new(0, 20, 0, 60)
-    Desc.BackgroundTransparency = 1
-    Desc.Font = Enum.Font.Gotham
-    Desc.TextSize = 14
-    Desc.TextColor3 = Color3.new(1,1,1)
-    Desc.TextWrapped = true
-    Desc.TextXAlignment = Enum.TextXAlignment.Left
-    Desc.TextYAlignment = Enum.TextYAlignment.Top
-    Desc.Text = "NEW FEATURES IN V9.0:\n\n• Invisible Partner System (No Chat Spam!)\n• Partner ESP / Highlight Integration\n• Complete YouTube / Audio URL Engine Fix\n• Liquid UI Resizing Fixes\n• Fluid Initialization Animations"
-    Desc.Parent = Popup
-    
-    local ProceedBtn = Instance.new("TextButton")
-    ProceedBtn.Size = UDim2.new(0, 150, 0, 45)
-    ProceedBtn.Position = UDim2.new(0.5, -75, 1, -60)
-    ProceedBtn.BackgroundColor3 = CurrentTheme.Primary
-    ProceedBtn.Font = Enum.Font.GothamBold
-    ProceedBtn.TextSize = 16
-    ProceedBtn.TextColor3 = Color3.new(0,0,0)
-    ProceedBtn.Text = "PROCEED"
-    ProceedBtn.Parent = Popup
-    local pCorner = Instance.new("UICorner")
-    pCorner.CornerRadius = UDim.new(0, 8)
-    pCorner.Parent = ProceedBtn
-    
-    CreateTween(Popup, 0.8, {Position = UDim2.new(0.5, -210, 0.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
-    
-    ProceedBtn.MouseButton1Click:Connect(function()
-        local hideTween = CreateTween(Popup, 0.5, {Position = UDim2.new(0.5, -210, 1.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.In)
-        hideTween.Completed:Wait()
-        
-        Title.Text = "CREDITS"
-        Desc.Text = "Kaze - Scripter and Owner of the Script\nKrozm - UI builder\nB-micro - Source and idea, and contribute to time events\nThaGuy - Contribute to time events\nKhal - Tester\nZoneLaiter - Partner Scripting system"
-        Desc.TextXAlignment = Enum.TextXAlignment.Center
-        
+    if IsNewUpdate then
+        local Popup = Instance.new("Frame")
+        Popup.Size = UDim2.new(0, 420, 0, 320)
         Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
+        Popup.BackgroundColor3 = CurrentTheme.Background
+        Popup.BorderSizePixel = 0
+        Popup.Parent = SequenceContainer
+        
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 12)
+        corner.Parent = Popup
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = CurrentTheme.Primary
+        stroke.Thickness = 2
+        stroke.Parent = Popup
+        
+        local Title = Instance.new("TextLabel")
+        Title.Name = "TitleLabel"
+        Title.Size = UDim2.new(1, 0, 0, 40)
+        Title.Position = UDim2.new(0, 0, 0, 10)
+        Title.BackgroundTransparency = 1
+        Title.Font = Enum.Font.GothamBold
+        Title.TextSize = 22
+        Title.TextColor3 = CurrentTheme.Primary
+        Title.Text = "SCRIPT JUST UPDATED!"
+        Title.Parent = Popup
+        
+        local Desc = Instance.new("TextLabel")
+        Desc.Name = "DescLabel"
+        Desc.Size = UDim2.new(1, -40, 1, -120)
+        Desc.Position = UDim2.new(0, 20, 0, 60)
+        Desc.BackgroundTransparency = 1
+        Desc.Font = Enum.Font.Gotham
+        Desc.TextSize = 14
+        Desc.TextColor3 = Color3.new(1,1,1)
+        Desc.TextWrapped = true
+        Desc.TextXAlignment = Enum.TextXAlignment.Left
+        Desc.TextYAlignment = Enum.TextYAlignment.Top
+        Desc.Text = "NEW FEATURES IN V9.1:\n\n• Flawless Player Search Algorithm\n• Hardcoded Credits & Update Sequences\n• Invisible Partner Whispering\n• UI Resizing Tweaks & Stabilizations"
+        Desc.Parent = Popup
+        
+        local ProceedBtn = Instance.new("TextButton")
+        ProceedBtn.Name = "ProceedBtn"
+        ProceedBtn.Size = UDim2.new(0, 150, 0, 45)
+        ProceedBtn.Position = UDim2.new(0.5, -75, 1, -60)
+        ProceedBtn.BackgroundColor3 = CurrentTheme.Primary
+        ProceedBtn.Font = Enum.Font.GothamBold
+        ProceedBtn.TextSize = 16
+        ProceedBtn.TextColor3 = Color3.new(0,0,0)
+        ProceedBtn.Text = "PROCEED"
+        ProceedBtn.Parent = Popup
+        local pCorner = Instance.new("UICorner")
+        pCorner.CornerRadius = UDim.new(0, 8)
+        pCorner.Parent = ProceedBtn
+        
         CreateTween(Popup, 0.8, {Position = UDim2.new(0.5, -210, 0.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
         
-        local finalConn
-        finalConn = ProceedBtn.MouseButton1Click:Connect(function()
-            finalConn:Disconnect()
+        local conn
+        conn = ProceedBtn.MouseButton1Click:Connect(function()
+            conn:Disconnect()
             CreateTween(Popup, 0.5, {Position = UDim2.new(0.5, -210, 1.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.In).Completed:Wait()
-            SequenceContainer:Destroy()
-            blur:Destroy()
-            Setup3DGUI()
+            SpawnCreditsScreen(SequenceContainer, blur, Popup)
         end)
-    end)
-else
-    Setup3DGUI()
+    else
+        SpawnCreditsScreen(SequenceContainer, blur)
+    end
 end
-
+RunStartupSequence()
 
 -- ==========================================
 -- INVISIBLE PARTNER NETWORKING
@@ -600,20 +685,13 @@ local function TrackTargetHighlight()
 end
 
 local function AssignTarget(targetUsername)
-    local found = nil
-    for _, player in pairs(Players:GetPlayers()) do
-        if string.sub(string.lower(player.Name), 1, string.len(targetUsername)) == string.lower(targetUsername) or 
-           string.sub(string.lower(player.DisplayName), 1, string.len(targetUsername)) == string.lower(targetUsername) then
-            found = player
-            break
-        end
-    end
+    local found = FindPlayer(targetUsername)
     if found then
         UIConfig.CurrentTarget = found
         TrackTargetHighlight()
         SendNotification("TARGET LOCKED", "Movement systems aligned to " .. found.Name, 4)
     else
-        SendNotification("TARGET ERROR", "Could not locate player.", 3)
+        SendNotification("TARGET ERROR", "Could not locate player. Check spelling.", 3)
     end
 end
 
@@ -1671,19 +1749,17 @@ CreateTextInput(PartnerTab, "Partner Username:", "Enter player name...", 2, func
 end)
 CreateButton(PartnerTab, "SEND PARTNER REQUEST", 3, function()
     if partnerTarget == "" then SendNotification("PARTNER ERROR", "Please enter a valid username.", 3) return end
-    local found = nil
-    for _, player in pairs(Players:GetPlayers()) do
-        if string.sub(string.lower(player.Name), 1, string.len(partnerTarget)) == string.lower(partnerTarget) or 
-           string.sub(string.lower(player.DisplayName), 1, string.len(partnerTarget)) == string.lower(partnerTarget) then
-            found = player
-            break
-        end
-    end
+    
+    local found = FindPlayer(partnerTarget)
     if found then
+        if found == LocalPlayer then
+            SendNotification("PARTNER ERROR", "You cannot partner with yourself.", 3)
+            return
+        end
         BroadcastPartnerMessage("FNF_REQ", found.Name)
         SendNotification("REQUEST SENT", "Silently sent request to " .. found.Name, 4)
     else
-        SendNotification("PARTNER ERROR", "Player not found in server.", 3)
+        SendNotification("PARTNER ERROR", "Player not found. Check spelling.", 3)
     end
 end)
 CreateToggle(PartnerTab, "HIGHLIGHT PARTNER", 4, true, function(state)
