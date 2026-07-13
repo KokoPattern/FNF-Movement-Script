@@ -23,7 +23,7 @@ OffsetX.Value = 0
 local OffsetY = Instance.new("NumberValue")
 OffsetY.Value = 15
 
-local CURRENT_VERSION = "8.0"
+local CURRENT_VERSION = "9.0"
 local CONFIG_FILE = "FNFMovement_SaveData.json"
 
 local CurrentTheme = {
@@ -57,7 +57,9 @@ local UIConfig = {
 local PartnerSystem = {
     ActivePartner = nil,
     IsLeader = false,
-    IsPartnered = false
+    IsPartnered = false,
+    HighlightEnabled = true,
+    HighlightFX = nil
 }
 
 local LoadedAnimations = {}
@@ -122,18 +124,6 @@ local function StopAnimation(animId)
     end
 end
 
-local function UnloadGUI()
-    if CameraPart then CameraPart:Destroy() end
-    local gui = CoreGui:FindFirstChild("FNFMovementInjector") or LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("FNFMovementInjector")
-    if gui then gui:Destroy() end
-    if UIConfig.AudioPlayer then UIConfig.AudioPlayer:Destroy() end
-    if UIConfig.TargetHighlight then UIConfig.TargetHighlight:Destroy() end
-    local tag = workspace:FindFirstChild("TargetTagFX")
-    if tag then tag:Destroy() end
-    for _, anim in pairs(LoadedAnimations) do anim:Stop() end
-    LoadedAnimations = {}
-end
-
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "FNFMovementInjector"
 ScreenGui.ResetOnSpawn = false
@@ -142,97 +132,30 @@ ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 pcall(function() ScreenGui.Parent = CoreGui end)
 if not ScreenGui.Parent then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
--- ==========================================
--- AUTO UPDATE / DATASAVE SYSTEM
--- ==========================================
-local IsNewUpdate = false
-local function CheckForUpdates()
-    local savedVersion = "0.0"
-    pcall(function()
-        if isfile and readfile and isfile(CONFIG_FILE) then
-            local data = HttpService:JSONDecode(readfile(CONFIG_FILE))
-            savedVersion = data.Version or "0.0"
-        end
-    end)
-    
-    if savedVersion ~= CURRENT_VERSION then
-        IsNewUpdate = true
-        pcall(function()
-            if writefile then
-                writefile(CONFIG_FILE, HttpService:JSONEncode({Version = CURRENT_VERSION}))
-            end
-        end)
-    end
+local function UnloadGUI()
+    if CameraPart then CameraPart:Destroy() end
+    if ScreenGui then ScreenGui:Destroy() end
+    if UIConfig.AudioPlayer then UIConfig.AudioPlayer:Destroy() end
+    if UIConfig.TargetHighlight then UIConfig.TargetHighlight:Destroy() end
+    if PartnerSystem.HighlightFX then PartnerSystem.HighlightFX:Destroy() end
+    local tag = workspace:FindFirstChild("TargetTagFX")
+    if tag then tag:Destroy() end
+    for _, anim in pairs(LoadedAnimations) do anim:Stop() end
+    LoadedAnimations = {}
 end
-CheckForUpdates()
 
-if IsNewUpdate then
-    local blur = Instance.new("BlurEffect")
-    blur.Size = 24
-    blur.Parent = Lighting
-    
-    local UpdateFrame = Instance.new("Frame")
-    UpdateFrame.Size = UDim2.new(1, 0, 1, 0)
-    UpdateFrame.BackgroundColor3 = Color3.new(0,0,0)
-    UpdateFrame.BackgroundTransparency = 0.3
-    UpdateFrame.ZIndex = 9999
-    UpdateFrame.Parent = ScreenGui
-    
-    local Popup = Instance.new("Frame")
-    Popup.Size = UDim2.new(0, 400, 0, 300)
-    Popup.Position = UDim2.new(0.5, -200, 0.5, -150)
-    Popup.BackgroundColor3 = CurrentTheme.Background
-    Popup.BorderSizePixel = 0
-    Popup.Parent = UpdateFrame
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 12)
-    corner.Parent = Popup
-    local stroke = Instance.new("UIStroke")
-    stroke.Color = CurrentTheme.Primary
-    stroke.Thickness = 2
-    stroke.Parent = Popup
-    
-    local Title = Instance.new("TextLabel")
-    Title.Size = UDim2.new(1, 0, 0, 40)
-    Title.BackgroundTransparency = 1
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 20
-    Title.TextColor3 = CurrentTheme.Primary
-    Title.Text = "SCRIPT JUST UPDATED!"
-    Title.Parent = Popup
-    
-    local Desc = Instance.new("TextLabel")
-    Desc.Size = UDim2.new(1, -40, 1, -120)
-    Desc.Position = UDim2.new(0, 20, 0, 50)
-    Desc.BackgroundTransparency = 1
-    Desc.Font = Enum.Font.Gotham
-    Desc.TextSize = 14
-    Desc.TextColor3 = Color3.new(1,1,1)
-    Desc.TextWrapped = true
-    Desc.TextXAlignment = Enum.TextXAlignment.Left
-    Desc.TextYAlignment = Enum.TextYAlignment.Top
-    Desc.Text = "NEW FEATURES IN V8.0:\n\n• Resizable UI (Drag bottom right)\n• Time Events UI Bug Fixes\n• Partnering System Added (Sync with friends!)\n• Audio/YouTube Link Fixes\n• Unload GUI feature\n• Purged lag-heavy combo actions"
-    Desc.Parent = Popup
-    
-    local ProceedBtn = Instance.new("TextButton")
-    ProceedBtn.Size = UDim2.new(0, 150, 0, 45)
-    ProceedBtn.Position = UDim2.new(0.5, -75, 1, -60)
-    ProceedBtn.BackgroundColor3 = CurrentTheme.Primary
-    ProceedBtn.Font = Enum.Font.GothamBold
-    ProceedBtn.TextSize = 16
-    ProceedBtn.TextColor3 = Color3.new(0,0,0)
-    ProceedBtn.Text = "PROCEED"
-    ProceedBtn.Parent = Popup
-    local pCorner = Instance.new("UICorner")
-    pCorner.CornerRadius = UDim.new(0, 8)
-    pCorner.Parent = ProceedBtn
-    
-    ProceedBtn.MouseButton1Click:Connect(function()
-        UpdateFrame:Destroy()
-        blur:Destroy()
-    end)
-end
+-- ==========================================
+-- UI CONSTRUCTORS
+-- ==========================================
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 480, 0, 550) 
+MainFrame.Position = UDim2.new(0, 0, 0, 0)
+MainFrame.BackgroundColor3 = CurrentTheme.Background
+MainFrame.BorderSizePixel = 0
+MainFrame.ClipsDescendants = true
+MainFrame.Visible = false
+table.insert(DynamicUIElements.Backgrounds, MainFrame)
 
 local MobileToggle = Instance.new("TextButton")
 MobileToggle.Name = "MobileToggleMenu"
@@ -243,8 +166,8 @@ MobileToggle.Text = "☰"
 MobileToggle.TextColor3 = CurrentTheme.Primary
 MobileToggle.Font = Enum.Font.GothamBold
 MobileToggle.TextSize = 24
+MobileToggle.Visible = false
 MobileToggle.Parent = ScreenGui
-
 local MobileToggleCorner = Instance.new("UICorner")
 MobileToggleCorner.CornerRadius = UDim.new(0, 8)
 MobileToggleCorner.Parent = MobileToggle
@@ -252,10 +175,6 @@ local MobileToggleStroke = Instance.new("UIStroke")
 MobileToggleStroke.Color = CurrentTheme.Primary
 MobileToggleStroke.Thickness = 2
 MobileToggleStroke.Parent = MobileToggle
-
-table.insert(DynamicUIElements.Panels, MobileToggle)
-table.insert(DynamicUIElements.PrimaryText, MobileToggle)
-table.insert(DynamicUIElements.Borders, MobileToggleStroke)
 
 local NotificationContainer = Instance.new("Frame")
 NotificationContainer.Name = "NotificationContainer"
@@ -310,7 +229,7 @@ local function SendNotification(titleText, messageText, duration)
     
     task.delay(duration or 4, function()
         if notifFrame and notifFrame.Parent then
-            local fadeOut = CreateTween(notifFrame, 0.4, {Position = UDim2.new(1, 350, 1, -90), BackgroundTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+            CreateTween(notifFrame, 0.4, {Position = UDim2.new(1, 350, 1, -90), BackgroundTransparency = 1}, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
             task.wait(0.4)
             if notifFrame and notifFrame.Parent then notifFrame:Destroy() end
         end
@@ -318,11 +237,158 @@ local function SendNotification(titleText, messageText, duration)
 end
 
 -- ==========================================
--- PARTNER NETWORKING SYSTEM
+-- AUTO UPDATE & CREDITS SCREEN FLOW
 -- ==========================================
+local IsNewUpdate = false
+local function CheckForUpdates()
+    local savedVersion = "0.0"
+    pcall(function()
+        if isfile and readfile and isfile(CONFIG_FILE) then
+            local data = HttpService:JSONDecode(readfile(CONFIG_FILE))
+            savedVersion = data.Version or "0.0"
+        end
+    end)
+    
+    if savedVersion ~= CURRENT_VERSION then
+        IsNewUpdate = true
+        pcall(function()
+            if writefile then writefile(CONFIG_FILE, HttpService:JSONEncode({Version = CURRENT_VERSION})) end
+        end)
+    end
+end
+CheckForUpdates()
 
+local function Setup3DGUI()
+    if GuiState == "showing" or GuiState == "shown" then return end
+    GuiState = "showing"
+    if not CameraPart then
+        CameraPart = Instance.new("Part")
+        CameraPart.Name = "FNF3DCameraPart"
+        CameraPart.CanCollide = false
+        CameraPart.Anchored = true
+        CameraPart.CastShadow = false
+        CameraPart.Material = Enum.Material.Air
+        CameraPart.Color = Color3.new(0, 0, 0)
+        CameraPart.Size = Vector3.new(10, 5.5, 0.2)
+        CameraPart.Transparency = 1
+        CameraPart.Parent = workspace
+        
+        local Surface = Instance.new("SurfaceGui")
+        Surface.Name = "Main3DInterface"
+        Surface.Face = Enum.NormalId.Back
+        Surface.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        Surface.LightInfluence = 0
+        Surface.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+        Surface.PixelsPerStud = 100
+        Surface.AlwaysOnTop = true
+        Surface.Adornee = CameraPart
+        Surface.Parent = ScreenGui
+        MainFrame.Parent = Surface
+    end
+    
+    MainFrame.Visible = true
+    MobileToggle.Visible = true
+    OffsetX.Value = 0
+    OffsetY.Value = 15
+    TweenService:Create(OffsetY, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Value = 4.5}):Play()
+    task.delay(0.5, function() GuiState = "shown" end)
+    MobileToggle.Text = "X"
+end
+
+if IsNewUpdate then
+    local blur = Instance.new("BlurEffect")
+    blur.Size = 24
+    blur.Parent = Lighting
+    
+    local SequenceContainer = Instance.new("Frame")
+    SequenceContainer.Size = UDim2.new(1, 0, 1, 0)
+    SequenceContainer.BackgroundTransparency = 1
+    SequenceContainer.ZIndex = 9999
+    SequenceContainer.Parent = ScreenGui
+    
+    local Popup = Instance.new("Frame")
+    Popup.Size = UDim2.new(0, 420, 0, 320)
+    Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
+    Popup.BackgroundColor3 = CurrentTheme.Background
+    Popup.BorderSizePixel = 0
+    Popup.Parent = SequenceContainer
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 12)
+    corner.Parent = Popup
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = CurrentTheme.Primary
+    stroke.Thickness = 2
+    stroke.Parent = Popup
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 40)
+    Title.Position = UDim2.new(0, 0, 0, 10)
+    Title.BackgroundTransparency = 1
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 22
+    Title.TextColor3 = CurrentTheme.Primary
+    Title.Text = "SCRIPT JUST UPDATED!"
+    Title.Parent = Popup
+    
+    local Desc = Instance.new("TextLabel")
+    Desc.Size = UDim2.new(1, -40, 1, -120)
+    Desc.Position = UDim2.new(0, 20, 0, 60)
+    Desc.BackgroundTransparency = 1
+    Desc.Font = Enum.Font.Gotham
+    Desc.TextSize = 14
+    Desc.TextColor3 = Color3.new(1,1,1)
+    Desc.TextWrapped = true
+    Desc.TextXAlignment = Enum.TextXAlignment.Left
+    Desc.TextYAlignment = Enum.TextYAlignment.Top
+    Desc.Text = "NEW FEATURES IN V9.0:\n\n• Invisible Partner System (No Chat Spam!)\n• Partner ESP / Highlight Integration\n• Complete YouTube / Audio URL Engine Fix\n• Liquid UI Resizing Fixes\n• Fluid Initialization Animations"
+    Desc.Parent = Popup
+    
+    local ProceedBtn = Instance.new("TextButton")
+    ProceedBtn.Size = UDim2.new(0, 150, 0, 45)
+    ProceedBtn.Position = UDim2.new(0.5, -75, 1, -60)
+    ProceedBtn.BackgroundColor3 = CurrentTheme.Primary
+    ProceedBtn.Font = Enum.Font.GothamBold
+    ProceedBtn.TextSize = 16
+    ProceedBtn.TextColor3 = Color3.new(0,0,0)
+    ProceedBtn.Text = "PROCEED"
+    ProceedBtn.Parent = Popup
+    local pCorner = Instance.new("UICorner")
+    pCorner.CornerRadius = UDim.new(0, 8)
+    pCorner.Parent = ProceedBtn
+    
+    CreateTween(Popup, 0.8, {Position = UDim2.new(0.5, -210, 0.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+    
+    ProceedBtn.MouseButton1Click:Connect(function()
+        local hideTween = CreateTween(Popup, 0.5, {Position = UDim2.new(0.5, -210, 1.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.In)
+        hideTween.Completed:Wait()
+        
+        Title.Text = "CREDITS"
+        Desc.Text = "Kaze - Scripter and Owner of the Script\nKrozm - UI builder\nB-micro - Source and idea, and contribute to time events\nThaGuy - Contribute to time events\nKhal - Tester\nZoneLaiter - Partner Scripting system"
+        Desc.TextXAlignment = Enum.TextXAlignment.Center
+        
+        Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
+        CreateTween(Popup, 0.8, {Position = UDim2.new(0.5, -210, 0.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+        
+        local finalConn
+        finalConn = ProceedBtn.MouseButton1Click:Connect(function()
+            finalConn:Disconnect()
+            CreateTween(Popup, 0.5, {Position = UDim2.new(0.5, -210, 1.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.In).Completed:Wait()
+            SequenceContainer:Destroy()
+            blur:Destroy()
+            Setup3DGUI()
+        end)
+    end)
+else
+    Setup3DGUI()
+end
+
+
+-- ==========================================
+-- INVISIBLE PARTNER NETWORKING
+-- ==========================================
 local function BroadcastPartnerMessage(messageCode, targetName)
-    local finalMsg = "["..messageCode.."]:"..LocalPlayer.Name..":"..targetName
+    local finalMsg = "/w " .. targetName .. " ["..messageCode.."]"
     pcall(function()
         if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
             TextChatService.TextChannels.RBXGeneral:SendAsync(finalMsg)
@@ -330,6 +396,35 @@ local function BroadcastPartnerMessage(messageCode, targetName)
             ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(finalMsg, "All")
         end
     end)
+end
+
+-- Silence Incoming Script Whispers
+pcall(function()
+    if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+        TextChatService.OnIncomingMessage = function(message)
+            if string.match(message.Text, "%[FNF_") then
+                local props = Instance.new("TextChatMessageProperties")
+                props.IsVisible = false
+                return props
+            end
+        end
+    end
+end)
+
+local function UpdatePartnerHighlight()
+    if PartnerSystem.HighlightFX then 
+        PartnerSystem.HighlightFX:Destroy() 
+        PartnerSystem.HighlightFX = nil 
+    end
+    if PartnerSystem.IsPartnered and PartnerSystem.ActivePartner and PartnerSystem.HighlightEnabled then
+        if PartnerSystem.ActivePartner.Character then
+            PartnerSystem.HighlightFX = Instance.new("Highlight")
+            PartnerSystem.HighlightFX.FillColor = CurrentTheme.Accent
+            PartnerSystem.HighlightFX.OutlineColor = CurrentTheme.Text
+            PartnerSystem.HighlightFX.FillTransparency = 0.5
+            PartnerSystem.HighlightFX.Parent = PartnerSystem.ActivePartner.Character
+        end
+    end
 end
 
 local function HandleIncomingPartnerRequest(senderName)
@@ -365,7 +460,7 @@ local function HandleIncomingPartnerRequest(senderName)
     desc.TextSize = 14
     desc.TextColor3 = Color3.new(1,1,1)
     desc.TextWrapped = true
-    desc.Text = senderName .. " wants to sync movement with you as the LEADER."
+    desc.Text = senderName .. " wants to be your Movement Leader."
     desc.Parent = reqPopup
     
     local acceptBtn = Instance.new("TextButton")
@@ -399,6 +494,7 @@ local function HandleIncomingPartnerRequest(senderName)
         if targetPlyr then PartnerSystem.ActivePartner = targetPlyr end
         BroadcastPartnerMessage("FNF_ACCEPT", senderName)
         SendNotification("PARTNERED", "You are now following " .. senderName, 4)
+        UpdatePartnerHighlight()
         reqPopup:Destroy()
     end)
     
@@ -407,27 +503,28 @@ local function HandleIncomingPartnerRequest(senderName)
         reqPopup:Destroy()
     end)
     
-    task.delay(10, function()
+    task.delay(15, function()
         if reqPopup.Parent then reqPopup:Destroy() end
     end)
 end
 
 local function ListenForPartnerMessages()
-    local function parseMsg(msg)
-        if string.match(msg, "%[FNF_REQ%]") then
-            local sender, target = string.match(msg, "%[FNF_REQ%]:(.+):(.+)")
-            if target == LocalPlayer.Name then HandleIncomingPartnerRequest(sender) end
-        elseif string.match(msg, "%[FNF_ACCEPT%]") then
-            local sender, target = string.match(msg, "%[FNF_ACCEPT%]:(.+):(.+)")
-            if target == LocalPlayer.Name then
+    local function parseMsg(msgText)
+        if string.match(msgText, "%[FNF_REQ%]") then
+            local sender = string.match(msgText, "From: (.+)") or string.match(msgText, "^%[?([^:]+)%]?") 
+            if sender and sender ~= LocalPlayer.Name then HandleIncomingPartnerRequest(sender) end
+        elseif string.match(msgText, "%[FNF_ACCEPT%]") then
+            local sender = string.match(msgText, "From: (.+)") or string.match(msgText, "^%[?([^:]+)%]?") 
+            if sender and sender ~= LocalPlayer.Name then
                 PartnerSystem.IsPartnered = true
                 PartnerSystem.IsLeader = true
                 PartnerSystem.ActivePartner = Players:FindFirstChild(sender)
                 SendNotification("PARTNER ACCEPTED", sender .. " is now following your movement!", 4)
+                UpdatePartnerHighlight()
             end
-        elseif string.match(msg, "%[FNF_DECLINE%]") then
-            local sender, target = string.match(msg, "%[FNF_DECLINE%]:(.+):(.+)")
-            if target == LocalPlayer.Name then
+        elseif string.match(msgText, "%[FNF_DECLINE%]") then
+            local sender = string.match(msgText, "From: (.+)") or string.match(msgText, "^%[?([^:]+)%]?") 
+            if sender and sender ~= LocalPlayer.Name then
                 SendNotification("PARTNER DECLINED", sender .. " declined your request.", 4)
             end
         end
@@ -436,26 +533,71 @@ local function ListenForPartnerMessages()
     pcall(function()
         if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
             TextChatService.MessageReceived:Connect(function(textChatMessage)
-                parseMsg(textChatMessage.Text)
+                if string.match(textChatMessage.Text, "%[FNF_") then
+                    parseMsg(textChatMessage.Text)
+                end
             end)
         else
             ReplicatedStorage.DefaultChatSystemChatEvents.OnMessageDoneFiltering.OnClientEvent:Connect(function(msgData)
-                parseMsg(msgData.Message)
+                if string.match(msgData.Message, "%[FNF_") then
+                    parseMsg(msgData.Message)
+                end
             end)
         end
     end)
 end
 task.spawn(ListenForPartnerMessages)
 
-RunService.RenderStepped:Connect(function()
-    if PartnerSystem.IsPartnered and not PartnerSystem.IsLeader and PartnerSystem.ActivePartner then
-        if PartnerSystem.ActivePartner.Character and PartnerSystem.ActivePartner.Character:FindFirstChild("HumanoidRootPart") and RootPart then
-            local pRoot = PartnerSystem.ActivePartner.Character.HumanoidRootPart
-            RootPart.CFrame = RootPart.CFrame:Lerp(pRoot.CFrame * CFrame.new(4, 0, 0), 0.2)
-        end
-    end
-end)
 
+local function TrackTargetHighlight()
+    if UIConfig.TargetHighlight then
+        UIConfig.TargetHighlight:Destroy()
+        UIConfig.TargetHighlight = nil
+    end
+    local existingTag = workspace:FindFirstChild("TargetTagFX")
+    if existingTag then existingTag:Destroy() end
+    if not UIConfig.CurrentTarget or not UIConfig.CurrentTarget.Character then return end
+    
+    UIConfig.TargetHighlight = Instance.new("Highlight")
+    UIConfig.TargetHighlight.Name = "EngagedTarget"
+    UIConfig.TargetHighlight.FillColor = CurrentTheme.Primary
+    UIConfig.TargetHighlight.OutlineColor = CurrentTheme.Secondary
+    UIConfig.TargetHighlight.FillTransparency = 0.6
+    UIConfig.TargetHighlight.OutlineTransparency = 0
+    UIConfig.TargetHighlight.Adornee = UIConfig.CurrentTarget.Character
+    UIConfig.TargetHighlight.Parent = UIConfig.CurrentTarget.Character
+    
+    local bbGui = Instance.new("BillboardGui")
+    bbGui.Name = "TargetTagFX"
+    bbGui.Size = UDim2.new(0, 200, 0, 50)
+    bbGui.StudsOffset = Vector3.new(0, 4, 0)
+    bbGui.AlwaysOnTop = true
+    bbGui.Adornee = UIConfig.CurrentTarget.Character:FindFirstChild("Head") or UIConfig.CurrentTarget.Character:FindFirstChild("HumanoidRootPart")
+    bbGui.Parent = workspace
+    
+    local tagLabel = Instance.new("TextLabel")
+    tagLabel.Size = UDim2.new(1, 0, 1, 0)
+    tagLabel.BackgroundTransparency = 1
+    tagLabel.Font = Enum.Font.GothamBold
+    tagLabel.TextSize = 16
+    tagLabel.TextColor3 = CurrentTheme.Primary
+    tagLabel.TextStrokeTransparency = 0
+    tagLabel.Text = "TARGET ACQUIRED"
+    tagLabel.Parent = bbGui
+    table.insert(DynamicUIElements.PrimaryText, tagLabel)
+    
+    task.spawn(function()
+        while UIConfig.CurrentTarget and UIConfig.CurrentTarget.Character and bbGui.Parent do
+            local scale = 1 + math.sin(os.clock() * 5) * 0.1
+            tagLabel.UIScale = Instance.new("UIScale")
+            tagLabel.UIScale.Scale = scale
+            tagLabel.UIScale.Parent = tagLabel
+            RunService.RenderStepped:Wait()
+            if tagLabel and tagLabel:FindFirstChild("UIScale") then tagLabel.UIScale:Destroy() end
+        end
+        if bbGui then bbGui:Destroy() end
+    end)
+end
 
 local function AssignTarget(targetUsername)
     local found = nil
@@ -468,6 +610,7 @@ local function AssignTarget(targetUsername)
     end
     if found then
         UIConfig.CurrentTarget = found
+        TrackTargetHighlight()
         SendNotification("TARGET LOCKED", "Movement systems aligned to " .. found.Name, 4)
     else
         SendNotification("TARGET ERROR", "Could not locate player.", 3)
@@ -495,12 +638,19 @@ local function GlobalColorUpdate(color)
     for _, elem in pairs(DynamicUIElements.Panels) do
         if elem and elem.Parent then elem.BackgroundColor3 = CurrentTheme.Panel end
     end
+    if UIConfig.TargetHighlight then
+        UIConfig.TargetHighlight.FillColor = CurrentTheme.Primary
+        UIConfig.TargetHighlight.OutlineColor = CurrentTheme.Primary
+    end
 end
 
-local function ParseYouTubeLink(inputString)
+local function ParseAudioInput(inputString)
+    if string.match(inputString, "youtube%.com") or string.match(inputString, "youtu%.be") then
+        return nil, "yt_error"
+    end
     local cleanId = string.match(inputString, "%d+")
-    if cleanId then return "rbxassetid://" .. cleanId, false end
-    return nil, false
+    if cleanId then return "rbxassetid://" .. cleanId, "audio" end
+    return nil, "invalid"
 end
 
 local function GetOrientedCFrame(offsetVector)
@@ -557,26 +707,6 @@ local CombatActions = {
     ["Parry"] = function() if UIConfig.CustomAnimIDs.Parry ~= "0" then PlayAnimation(UIConfig.CustomAnimIDs.Parry, 1, false) end end,
     ["Heavy Hit"] = function() if UIConfig.CustomAnimIDs.HeavyHit ~= "0" then PlayAnimation(UIConfig.CustomAnimIDs.HeavyHit, 1, false) end end
 }
-
-local SurfaceGui = Instance.new("SurfaceGui")
-SurfaceGui.Name = "Main3DInterface"
-SurfaceGui.Face = Enum.NormalId.Back
-SurfaceGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-SurfaceGui.LightInfluence = 0
-SurfaceGui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
-SurfaceGui.PixelsPerStud = 100
-SurfaceGui.AlwaysOnTop = true
-SurfaceGui.Parent = ScreenGui
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 480, 0, 550) 
-MainFrame.Position = UDim2.new(0, 0, 0, 0)
-MainFrame.BackgroundColor3 = CurrentTheme.Background
-MainFrame.BorderSizePixel = 0
-MainFrame.ClipsDescendants = true
-MainFrame.Parent = SurfaceGui
-table.insert(DynamicUIElements.Backgrounds, MainFrame)
 
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 12)
@@ -903,7 +1033,7 @@ local function CreateTextInput(parent, labelText, placeholderText, layoutOrder, 
     corner.Parent = inputFrame
     
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0, 150, 1, 0)
+    label.Size = UDim2.new(0, 130, 1, 0)
     label.Position = UDim2.new(0, 15, 0, 0)
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.GothamBold
@@ -914,18 +1044,26 @@ local function CreateTextInput(parent, labelText, placeholderText, layoutOrder, 
     label.Parent = inputFrame
     
     local textBox = Instance.new("TextBox")
-    textBox.Size = UDim2.new(1, -180, 0, 34)
-    textBox.Position = UDim2.new(0, 165, 0.5, -17)
+    textBox.Size = UDim2.new(1, -160, 0, 34)
+    textBox.Position = UDim2.new(0, 145, 0.5, -17)
     textBox.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
     textBox.BorderSizePixel = 0
     textBox.Font = Enum.Font.Gotham
-    textBox.TextSize = 14
+    textBox.TextSize = 13
     textBox.TextColor3 = Color3.new(1, 1, 1)
     textBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 120)
     textBox.PlaceholderText = placeholderText
     textBox.Text = ""
     textBox.ClearTextOnFocus = false
+    textBox.ClipsDescendants = true
+    textBox.TextXAlignment = Enum.TextXAlignment.Left
     textBox.Parent = inputFrame
+    
+    local padding = Instance.new("UIPadding")
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+    padding.Parent = textBox
+    
     local boxCorner = Instance.new("UICorner")
     boxCorner.CornerRadius = UDim.new(0, 6)
     boxCorner.Parent = textBox
@@ -954,7 +1092,7 @@ TEWindow.Position = UDim2.new(0, 500, 0, 0)
 TEWindow.BackgroundColor3 = CurrentTheme.Background
 TEWindow.BorderSizePixel = 0
 TEWindow.Visible = false
-TEWindow.Parent = SurfaceGui
+TEWindow.Parent = ScreenGui
 table.insert(DynamicUIElements.Backgrounds, TEWindow)
 
 local TECorner = Instance.new("UICorner")
@@ -1058,20 +1196,20 @@ DelayLabel.TextColor3 = CurrentTheme.DarkText
 DelayLabel.Text = "DELAY (s)"
 DelayLabel.Parent = SequenceHeaderFrame
 
-local SequenceContainer = Instance.new("ScrollingFrame")
-SequenceContainer.Size = UDim2.new(1, 0, 1, -120)
-SequenceContainer.Position = UDim2.new(0, 0, 0, 25)
-SequenceContainer.BackgroundTransparency = 1
-SequenceContainer.BorderSizePixel = 0
-SequenceContainer.ScrollBarThickness = 6
-SequenceContainer.ScrollBarImageColor3 = CurrentTheme.Primary
-SequenceContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
-SequenceContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
-SequenceContainer.Parent = TEContent
+local SequenceContainerWindow = Instance.new("ScrollingFrame")
+SequenceContainerWindow.Size = UDim2.new(1, 0, 1, -120)
+SequenceContainerWindow.Position = UDim2.new(0, 0, 0, 25)
+SequenceContainerWindow.BackgroundTransparency = 1
+SequenceContainerWindow.BorderSizePixel = 0
+SequenceContainerWindow.ScrollBarThickness = 6
+SequenceContainerWindow.ScrollBarImageColor3 = CurrentTheme.Primary
+SequenceContainerWindow.CanvasSize = UDim2.new(0, 0, 0, 0)
+SequenceContainerWindow.AutomaticCanvasSize = Enum.AutomaticSize.Y
+SequenceContainerWindow.Parent = TEContent
 local scLayout = Instance.new("UIListLayout")
 scLayout.SortOrder = Enum.SortOrder.LayoutOrder
 scLayout.Padding = UDim.new(0, 5)
-scLayout.Parent = SequenceContainer
+scLayout.Parent = SequenceContainerWindow
 
 local SuggestionDropdown = Instance.new("ScrollingFrame")
 SuggestionDropdown.Size = UDim2.new(0, 210, 0, 120)
@@ -1080,7 +1218,7 @@ SuggestionDropdown.BorderSizePixel = 0
 SuggestionDropdown.ZIndex = 500
 SuggestionDropdown.Visible = false
 SuggestionDropdown.ScrollBarThickness = 4
-SuggestionDropdown.Parent = TEWindow 
+SuggestionDropdown.Parent = ScreenGui 
 local sdCorner = Instance.new("UICorner")
 sdCorner.CornerRadius = UDim.new(0, 6)
 sdCorner.Parent = SuggestionDropdown
@@ -1100,8 +1238,8 @@ local ActiveNameBox = nil
 
 local function UpdateDropdownPosition()
     if SuggestionDropdown.Visible and ActiveNameBox then
-        local targetX = ActiveNameBox.AbsolutePosition.X - TEWindow.AbsolutePosition.X
-        local targetY = ActiveNameBox.AbsolutePosition.Y - TEWindow.AbsolutePosition.Y + ActiveNameBox.AbsoluteSize.Y + 2
+        local targetX = ActiveNameBox.AbsolutePosition.X
+        local targetY = ActiveNameBox.AbsolutePosition.Y + ActiveNameBox.AbsoluteSize.Y + 2
         SuggestionDropdown.Position = UDim2.new(0, targetX, 0, targetY)
     end
 end
@@ -1146,7 +1284,7 @@ local function AddSequenceStep()
     row.BackgroundColor3 = CurrentTheme.Panel
     row.BorderSizePixel = 0
     row.LayoutOrder = stepCount
-    row.Parent = SequenceContainer
+    row.Parent = SequenceContainerWindow
     table.insert(DynamicUIElements.Panels, row)
     local rCorner = Instance.new("UICorner")
     rCorner.CornerRadius = UDim.new(0, 6)
@@ -1507,9 +1645,11 @@ HueFrame.InputEnded:Connect(function(input)
 end)
 
 CreateSectionHeader(MediaTab, "AUDIO / YOUTUBE PLAYER", 1)
-CreateTextInput(MediaTab, "Enter Link or ID:", "Paste link or Audio ID...", 2, function(text)
-    local parsedId = ParseYouTubeLink(text)
-    if parsedId then
+CreateTextInput(MediaTab, "Enter Link or ID:", "Paste URL or ID...", 2, function(text)
+    local parsedId, status = ParseAudioInput(text)
+    if status == "yt_error" then
+        SendNotification("MEDIA PARSE ERROR", "Roblox removed YouTube link compatibility. Please paste a standard Roblox Audio ID instead.", 5)
+    elseif status == "audio" and parsedId then
         if UIConfig.AudioPlayer then UIConfig.AudioPlayer:Destroy() end
         UIConfig.AudioPlayer = Instance.new("Sound")
         UIConfig.AudioPlayer.SoundId = parsedId
@@ -1517,7 +1657,7 @@ CreateTextInput(MediaTab, "Enter Link or ID:", "Paste link or Audio ID...", 2, f
         UIConfig.AudioPlayer:Play()
         SendNotification("MEDIA PLAYER", "Now playing Audio ID: " .. string.match(parsedId, "rbxassetid://(.*)"), 4)
     else
-        SendNotification("MEDIA PARSE ERROR", "Could not extract a valid ID. Make sure it's a valid link or numbers.", 4)
+        SendNotification("MEDIA PARSE ERROR", "Could not extract a valid Asset ID.", 4)
     end
 end)
 CreateButton(MediaTab, "PLAY / RESUME AUDIO", 3, function() if UIConfig.AudioPlayer then UIConfig.AudioPlayer:Resume() end end)
@@ -1541,19 +1681,23 @@ CreateButton(PartnerTab, "SEND PARTNER REQUEST", 3, function()
     end
     if found then
         BroadcastPartnerMessage("FNF_REQ", found.Name)
-        SendNotification("REQUEST SENT", "Awaiting response from " .. found.Name, 4)
+        SendNotification("REQUEST SENT", "Silently sent request to " .. found.Name, 4)
     else
         SendNotification("PARTNER ERROR", "Player not found in server.", 3)
     end
 end)
-CreateButton(PartnerTab, "DISCONNECT PARTNER", 4, function()
+CreateToggle(PartnerTab, "HIGHLIGHT PARTNER", 4, true, function(state)
+    PartnerSystem.HighlightEnabled = state
+    UpdatePartnerHighlight()
+end)
+CreateButton(PartnerTab, "DISCONNECT PARTNER", 5, function()
     PartnerSystem.IsPartnered = false
     PartnerSystem.ActivePartner = nil
+    if PartnerSystem.HighlightFX then PartnerSystem.HighlightFX:Destroy(); PartnerSystem.HighlightFX = nil end
     SendNotification("PARTNER SYSTEM", "Successfully unlinked all movement.", 3)
 end)
 
 CreateSectionHeader(ExtraTab, "UTILITY & VISUAL FX", 1)
-
 CreateToggle(ExtraTab, "CHARACTER INVISIBILITY", 2, false, function(state)
     local targetTrans = state and 1 or 0
     for _, part in pairs(Character:GetDescendants()) do
@@ -1561,7 +1705,6 @@ CreateToggle(ExtraTab, "CHARACTER INVISIBILITY", 2, false, function(state)
         elseif part:IsA("Decal") then part.Transparency = targetTrans end
     end
 end)
-
 CreateToggle(ExtraTab, "AURA FX", 3, false, function(state)
     if state then
         if not Character:FindFirstChild("AuraEffect") then
@@ -1580,7 +1723,6 @@ CreateToggle(ExtraTab, "AURA FX", 3, false, function(state)
         if Character:FindFirstChild("AuraEffect") then Character.AuraEffect:Destroy() end
     end
 end)
-
 CreateToggle(ExtraTab, "REMOVE CLIENT LIGHTING", 4, false, function(state)
     if state then
         Lighting.Ambient = Color3.new(1, 1, 1)
@@ -1592,7 +1734,6 @@ CreateToggle(ExtraTab, "REMOVE CLIENT LIGHTING", 4, false, function(state)
         Lighting.GlobalShadows = true
     end
 end)
-
 CreateButton(ExtraTab, "REFRESH UI Z-INDEX", 5, function() ScreenGui.DisplayOrder = ScreenGui.DisplayOrder + 1 end)
 CreateButton(ExtraTab, "REBOOT INJECTOR MODULE", 6, function()
     if GuiState == "shown" then MobileToggle.MouseButton1Click:Fire() end
@@ -1613,60 +1754,37 @@ CreateSectionHeader(ConfigTab, "SYSTEM CONFIGURATION", 1)
 CreateButton(ConfigTab, "DUMP CACHED ANIMATIONS", 2, function() LoadedAnimations = {} end)
 CreateButton(ConfigTab, "UNLOAD GUI", 3, function() UnloadGUI() end)
 
-local function Build3DEnvironment()
-    CameraPart = Instance.new("Part")
-    CameraPart.Name = "FNF3DCameraPart"
-    CameraPart.Parent = Camera
-    CameraPart.CanCollide = false
-    CameraPart.Anchored = true
-    CameraPart.CastShadow = false
-    CameraPart.Material = Enum.Material.Air
-    CameraPart.Color = Color3.new(0, 0, 0)
-    CameraPart.Size = Vector3.new(10, 5.5, 0.2)
-    CameraPart.Transparency = 1
-    SurfaceGui.Adornee = CameraPart
-end
-
-local function Show3DGUI()
-    if GuiState == "showing" or GuiState == "shown" then return end
-    GuiState = "showing"
-    if not CameraPart then Build3DEnvironment() end
-    CameraPart.Parent = workspace
-    SurfaceGui.Enabled = true
-    OffsetX.Value = 0
-    OffsetY.Value = 15
-    TweenService:Create(OffsetY, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Value = 4.5}):Play()
-    task.delay(0.5, function() GuiState = "shown" end)
-    MobileToggle.Text = "X"
-end
-
-local function Hide3DGUI()
-    if GuiState == "hiding" or GuiState == "hidden" then return end
-    GuiState = "hiding"
-    TweenService:Create(OffsetY, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Value = 15}):Play()
-    task.delay(0.5, function()
-        if CameraPart then CameraPart:Destroy(); CameraPart = nil end
-        SurfaceGui.Enabled = false
-        GuiState = "hidden"
-    end)
-    MobileToggle.Text = "☰"
-end
-
 UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
     if input.KeyCode == Enum.KeyCode.E then
-        if GuiState == "hidden" then Show3DGUI() elseif GuiState == "shown" then Hide3DGUI() end
+        if GuiState == "hidden" then
+            GuiState = "showing"
+            MainFrame.Visible = true
+            TweenService:Create(OffsetY, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Value = 4.5}):Play()
+            task.delay(0.5, function() GuiState = "shown"; MobileToggle.Text = "X" end)
+        elseif GuiState == "shown" then
+            GuiState = "hiding"
+            TweenService:Create(OffsetY, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Value = 15}):Play()
+            task.delay(0.5, function() GuiState = "hidden"; MainFrame.Visible = false; MobileToggle.Text = "☰" end)
+        end
     end
 end)
 
 MobileToggle.MouseButton1Click:Connect(function()
-    if GuiState == "hidden" then Show3DGUI() elseif GuiState == "shown" then Hide3DGUI() end
+    if GuiState == "hidden" then
+        GuiState = "showing"
+        MainFrame.Visible = true
+        TweenService:Create(OffsetY, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Value = 4.5}):Play()
+        task.delay(0.5, function() GuiState = "shown"; MobileToggle.Text = "X" end)
+    elseif GuiState == "shown" then
+        GuiState = "hiding"
+        TweenService:Create(OffsetY, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Value = 15}):Play()
+        task.delay(0.5, function() GuiState = "hidden"; MainFrame.Visible = false; MobileToggle.Text = "☰" end)
+    end
 end)
 
 RunService.RenderStepped:Connect(function()
-    if not CameraPart then return end
-    CameraPart.CFrame = Camera.CFrame * CFrame.new(OffsetX.Value, OffsetY.Value, -12.5)
+    if CameraPart then CameraPart.CFrame = Camera.CFrame * CFrame.new(OffsetX.Value, OffsetY.Value, -12.5) end
 end)
 
 GlobalColorUpdate(Color3.fromRGB(0, 255, 127))
-Show3DGUI()
