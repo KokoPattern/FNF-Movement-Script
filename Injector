@@ -23,7 +23,7 @@ OffsetX.Value = 0
 local OffsetY = Instance.new("NumberValue")
 OffsetY.Value = 15
 
-local CURRENT_VERSION = "10.5"
+local CURRENT_VERSION = "11.0"
 local CONFIG_FILE = "FNFMovement_SaveData.json"
 
 local CurrentTheme = {
@@ -82,19 +82,17 @@ local ValidTimeEvents = {
     "Heavy Hit"
 }
 
--- FLawless Player Search Algorithm
+-- FLAWLESS PLAYER SEARCH ALGORITHM
 local function FindPlayer(targetString)
     if not targetString or targetString == "" then return nil end
     local search = string.lower(string.match(targetString, "^%s*(.-)%s*$"))
     if search == "" then return nil end
     
-    -- Pass 1: Exact Match
     for _, player in pairs(Players:GetPlayers()) do
         if string.lower(player.Name) == search or string.lower(player.DisplayName) == search then
             return player
         end
     end
-    -- Pass 2: Partial Match
     for _, player in pairs(Players:GetPlayers()) do
         if string.find(string.lower(player.Name), search, 1, true) or string.find(string.lower(player.DisplayName), search, 1, true) then
             return player
@@ -258,7 +256,7 @@ local function SendNotification(titleText, messageText, duration)
 end
 
 -- ==========================================
--- STARTUP, UPDATE & CREDITS SEQUENCE
+-- STARTUP, UPDATE, CREDITS & WARNING SEQUENCE
 -- ==========================================
 local IsNewUpdate = false
 local function CheckForUpdates()
@@ -315,6 +313,31 @@ local function Setup3DGUI()
     task.delay(0.5, function() GuiState = "shown"; MobileToggle.Text = "X" end)
 end
 
+local function SpawnWarningScreen(SequenceContainer, blur, Popup)
+    local Title = Popup:FindFirstChild("TitleLabel")
+    Title.Text = "⚠️ WARNING"
+    Title.TextColor3 = Color3.fromRGB(255, 65, 65)
+    
+    local Desc = Popup:FindFirstChild("DescLabel")
+    Desc.TextXAlignment = Enum.TextXAlignment.Center
+    Desc.Text = "This script has the chance of lagging you extremely or crashing PLEASE proceed with caution\n\nSupportive executors same screen\nThis script supports all executors, no executors is left out"
+    
+    local ProceedBtn = Popup:FindFirstChild("ProceedBtn")
+    ProceedBtn.BackgroundColor3 = Color3.fromRGB(255, 65, 65)
+    
+    Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
+    CreateTween(Popup, 0.8, {Position = UDim2.new(0.5, -210, 0.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+    
+    local finalConn
+    finalConn = ProceedBtn.MouseButton1Click:Connect(function()
+        finalConn:Disconnect()
+        CreateTween(Popup, 0.5, {Position = UDim2.new(0.5, -210, 1.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.In).Completed:Wait()
+        SequenceContainer:Destroy()
+        blur:Destroy()
+        Setup3DGUI()
+    end)
+end
+
 local function SpawnCreditsScreen(SequenceContainer, blur, existingPopup)
     local Popup = existingPopup
     if not Popup then
@@ -347,6 +370,7 @@ local function SpawnCreditsScreen(SequenceContainer, blur, existingPopup)
         Title.Parent = Popup
     end
     Title.Text = "CREDITS"
+    Title.TextColor3 = CurrentTheme.Primary
     
     local Desc = Popup:FindFirstChild("DescLabel")
     if not Desc then
@@ -381,17 +405,16 @@ local function SpawnCreditsScreen(SequenceContainer, blur, existingPopup)
         pCorner.CornerRadius = UDim.new(0, 8)
         pCorner.Parent = ProceedBtn
     end
+    ProceedBtn.BackgroundColor3 = CurrentTheme.Primary
 
     Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
     CreateTween(Popup, 0.8, {Position = UDim2.new(0.5, -210, 0.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
     
-    local finalConn
-    finalConn = ProceedBtn.MouseButton1Click:Connect(function()
-        finalConn:Disconnect()
+    local conn
+    conn = ProceedBtn.MouseButton1Click:Connect(function()
+        conn:Disconnect()
         CreateTween(Popup, 0.5, {Position = UDim2.new(0.5, -210, 1.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.In).Completed:Wait()
-        SequenceContainer:Destroy()
-        blur:Destroy()
-        Setup3DGUI()
+        SpawnWarningScreen(SequenceContainer, blur, Popup)
     end)
 end
 
@@ -444,7 +467,7 @@ local function RunStartupSequence()
         Desc.TextWrapped = true
         Desc.TextXAlignment = Enum.TextXAlignment.Left
         Desc.TextYAlignment = Enum.TextYAlignment.Top
-        Desc.Text = "NEW FEATURES IN V10.0:\n\n• Flawless Player Search Algorithm\n• Math Fix for Accurate Color Picking\n• Brand New Partner Events Engine\n• Seamless UI Animations & Expansions"
+        Desc.Text = "NEW FEATURES IN V11.0:\n\n• Invisible Whisper Remote Patch (No Red Errors!)\n• Smooth 3-Screen Startup Sequence\n• True FE Local Replication for Partners\n• Flawless Player Search Integration"
         Desc.Parent = Popup
         
         local ProceedBtn = Instance.new("TextButton")
@@ -476,21 +499,31 @@ end
 RunStartupSequence()
 
 -- ==========================================
--- INVISIBLE PARTNER NETWORKING
+-- INVISIBLE PARTNER NETWORKING (ERROR PATCHED)
 -- ==========================================
-local function BroadcastPartnerMessage(messageCode, targetName, extraData)
-    local finalMsg = "/w " .. targetName .. " ["..messageCode.."]"
+local function BroadcastPartnerMessage(messageCode, targetPlayer, extraData)
+    if not targetPlayer then return end
+    local finalMsg = "["..messageCode.."]"
     if extraData then finalMsg = finalMsg .. ":" .. extraData end
+    
     pcall(function()
         if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-            TextChatService.TextChannels.RBXGeneral:SendAsync(finalMsg)
+            local w1 = "RBXWhisper:" .. LocalPlayer.UserId .. "_" .. targetPlayer.UserId
+            local w2 = "RBXWhisper:" .. targetPlayer.UserId .. "_" .. LocalPlayer.UserId
+            local channel = TextChatService.TextChannels:FindFirstChild(w1) or TextChatService.TextChannels:FindFirstChild(w2)
+            
+            if channel then
+                channel:SendAsync(finalMsg)
+            else
+                TextChatService.TextChannels.RBXGeneral:SendAsync("/w " .. targetPlayer.Name .. " " .. finalMsg)
+            end
         else
-            ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(finalMsg, "All")
+            -- V11 Fix: Firing to the "To [Username]" channel bypasses the /w parsing error entirely
+            ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(finalMsg, "To " .. targetPlayer.Name)
         end
     end)
 end
 
--- Silence Incoming Script Whispers
 pcall(function()
     if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
         TextChatService.OnIncomingMessage = function(message)
@@ -519,10 +552,10 @@ local function UpdatePartnerHighlight()
     end
 end
 
--- Declaration needed to toggle UI properly on partner connect/disconnect
 local TogglePartnerEventsButtonUI
 
-local function HandleIncomingPartnerRequest(senderName)
+local function HandleIncomingPartnerRequest(senderPlayerObj)
+    local senderName = senderPlayerObj.Name
     local reqPopup = Instance.new("Frame")
     reqPopup.Size = UDim2.new(0, 300, 0, 150)
     reqPopup.Position = UDim2.new(0.5, -150, 0.1, 0)
@@ -585,9 +618,8 @@ local function HandleIncomingPartnerRequest(senderName)
     acceptBtn.MouseButton1Click:Connect(function()
         PartnerSystem.IsPartnered = true
         PartnerSystem.IsLeader = false
-        local targetPlyr = Players:FindFirstChild(senderName)
-        if targetPlyr then PartnerSystem.ActivePartner = targetPlyr end
-        BroadcastPartnerMessage("FNF_ACCEPT", senderName)
+        PartnerSystem.ActivePartner = senderPlayerObj
+        BroadcastPartnerMessage("FNF_ACCEPT", senderPlayerObj)
         SendNotification("PARTNERED", "You are now following " .. senderName, 4)
         SendNotification("PARTNER SYNC", "Partnering sync is now usable in time events", 6)
         UpdatePartnerHighlight()
@@ -596,7 +628,7 @@ local function HandleIncomingPartnerRequest(senderName)
     end)
     
     decBtn.MouseButton1Click:Connect(function()
-        BroadcastPartnerMessage("FNF_DECLINE", senderName)
+        BroadcastPartnerMessage("FNF_DECLINE", senderPlayerObj)
         reqPopup:Destroy()
     end)
     
@@ -653,24 +685,27 @@ local CombatActions = {
 
 local function ListenForPartnerMessages()
     local function parseMsg(msgText)
-        local sender = string.match(msgText, "From: (.+)") or string.match(msgText, "^%[?([^:]+)%]?") 
-        if not sender or sender == LocalPlayer.Name then return end
+        local senderName = string.match(msgText, "From: (.+)") or string.match(msgText, "^%[?([^:]+)%]?") 
+        if not senderName or senderName == LocalPlayer.Name then return end
+        
+        local senderPlayerObj = Players:FindFirstChild(senderName)
+        if not senderPlayerObj then return end
 
         if string.match(msgText, "%[FNF_REQ%]") then
-            HandleIncomingPartnerRequest(sender)
+            HandleIncomingPartnerRequest(senderPlayerObj)
         elseif string.match(msgText, "%[FNF_ACCEPT%]") then
             PartnerSystem.IsPartnered = true
             PartnerSystem.IsLeader = true
-            PartnerSystem.ActivePartner = Players:FindFirstChild(sender)
-            SendNotification("PARTNER ACCEPTED", sender .. " is now following your movement!", 4)
+            PartnerSystem.ActivePartner = senderPlayerObj
+            SendNotification("PARTNER ACCEPTED", senderName .. " is now following your movement!", 4)
             SendNotification("PARTNER SYNC", "Partnering sync is now usable in time events", 6)
             UpdatePartnerHighlight()
             TogglePartnerEventsButtonUI(true)
         elseif string.match(msgText, "%[FNF_DECLINE%]") then
-            SendNotification("PARTNER DECLINED", sender .. " declined your request.", 4)
+            SendNotification("PARTNER DECLINED", senderName .. " declined your request.", 4)
         elseif string.match(msgText, "%[FNF_ACT%]:(.+)") then
             local actionName = string.match(msgText, "%[FNF_ACT%]:(.+)")
-            if PartnerSystem.ActivePartner and sender == PartnerSystem.ActivePartner.Name then
+            if PartnerSystem.ActivePartner and senderName == PartnerSystem.ActivePartner.Name then
                 if CombatActions[actionName] then CombatActions[actionName]() end
             end
         end
@@ -1918,7 +1953,7 @@ PEPlaySeqBtn.MouseButton1Click:Connect(function()
             local evName = row.NameInput.Text
             local delStr = tonumber(row.DelayInput.Text) or 0
             
-            BroadcastPartnerMessage("FNF_ACT", PartnerSystem.ActivePartner.Name, evName)
+            BroadcastPartnerMessage("FNF_ACT", PartnerSystem.ActivePartner, evName)
             if delStr > 0 then task.wait(delStr) end
         end
         PartnerSequenceIsPlaying = false
@@ -1932,7 +1967,6 @@ PEClearSeqBtn.MouseButton1Click:Connect(function()
     PartnerSequenceRows = {}
 end)
 
--- This function dynamically slides the TE UI to reveal the new partner button
 TogglePartnerEventsButtonUI = function(show)
     if show then
         PartnerEventsBtn.Visible = true
@@ -2109,10 +2143,7 @@ end
 
 local function UpdateHue(input)
     local relY = math.clamp(input.Position.Y - HueFrame.AbsolutePosition.Y, 0, HueFrame.AbsoluteSize.Y)
-    
-    -- FIXED MATH: Align exact visual gradient bounds with absolute hue representation
     CurrentHue = relY / HueFrame.AbsoluteSize.Y
-    
     HueKnob.Position = UDim2.new(0.5, 0, relY / HueFrame.AbsoluteSize.Y, 0)
     SatValFrame.BackgroundColor3 = Color3.fromHSV(CurrentHue, 1, 1)
     UpdateColorOutput()
@@ -2180,7 +2211,7 @@ CreateButton(PartnerTab, "SEND PARTNER REQUEST", 3, function()
             SendNotification("PARTNER ERROR", "You cannot partner with yourself.", 3)
             return
         end
-        BroadcastPartnerMessage("FNF_REQ", found.Name)
+        BroadcastPartnerMessage("FNF_REQ", found)
         SendNotification("REQUEST SENT", "Silently sent request to " .. found.Name, 4)
     else
         SendNotification("PARTNER ERROR", "Player not found. Check spelling.", 3)
