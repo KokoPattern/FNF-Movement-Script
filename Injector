@@ -82,7 +82,7 @@ local ValidTimeEvents = {
     "Heavy Hit"
 }
 
--- FLAWLESS PLAYER SEARCH ALGORITHM
+-- Flawless Player Search Algorithm
 local function FindPlayer(targetString)
     if not targetString or targetString == "" then return nil end
     local search = string.lower(string.match(targetString, "^%s*(.-)%s*$"))
@@ -162,6 +162,33 @@ local function UnloadGUI()
     for _, anim in pairs(LoadedAnimations) do anim:Stop() end
     LoadedAnimations = {}
 end
+
+-- ==========================================
+-- AGGRESSIVE CHAT CLEANER (Fixes the Red Error)
+-- ==========================================
+task.spawn(function()
+    pcall(function()
+        local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+        local function cleanChat(chatUI)
+            local scroller = chatUI:FindFirstChild("Scroller", true)
+            if scroller then
+                scroller.ChildAdded:Connect(function(child)
+                    task.wait()
+                    local label = child:FindFirstChild("TextLabel")
+                    if label then
+                        local text = label.Text
+                        if string.match(text, "%[FNF_") or string.match(text, "does not exist") then
+                            child.Visible = false
+                            child:Destroy()
+                        end
+                    end
+                end)
+            end
+        end
+        local chat = PlayerGui:WaitForChild("Chat", 5)
+        if chat then cleanChat(chat) end
+    end)
+end)
 
 -- ==========================================
 -- UI CONSTRUCTORS
@@ -256,7 +283,7 @@ local function SendNotification(titleText, messageText, duration)
 end
 
 -- ==========================================
--- STARTUP, UPDATE, CREDITS & WARNING SEQUENCE
+-- 3-STAGE STARTUP SEQUENCE
 -- ==========================================
 local IsNewUpdate = false
 local function CheckForUpdates()
@@ -313,18 +340,24 @@ local function Setup3DGUI()
     task.delay(0.5, function() GuiState = "shown"; MobileToggle.Text = "X" end)
 end
 
-local function SpawnWarningScreen(SequenceContainer, blur, Popup)
+local function SpawnWarningScreen(SequenceContainer, blur, existingPopup)
+    local Popup = existingPopup
+    
     local Title = Popup:FindFirstChild("TitleLabel")
     Title.Text = "⚠️ WARNING"
     Title.TextColor3 = Color3.fromRGB(255, 65, 65)
     
+    local stroke = Popup:FindFirstChildOfClass("UIStroke")
+    stroke.Color = Color3.fromRGB(255, 65, 65)
+    
     local Desc = Popup:FindFirstChild("DescLabel")
     Desc.TextXAlignment = Enum.TextXAlignment.Center
-    Desc.Text = "This script has the chance of lagging you extremely or crashing PLEASE proceed with caution\n\nSupportive executors same screen\nThis script supports all executors, no executors is left out"
+    Desc.Text = "This script has the chance of lagging you extremely or crashing PLEASE proceed with caution\n\n---------------------------------------\nSUPPORTIVE EXECUTORS:\nThis script supports all executors, no executors is left out"
     
     local ProceedBtn = Popup:FindFirstChild("ProceedBtn")
     ProceedBtn.BackgroundColor3 = Color3.fromRGB(255, 65, 65)
-    
+    ProceedBtn.TextColor3 = Color3.new(1, 1, 1)
+
     Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
     CreateTween(Popup, 0.8, {Position = UDim2.new(0.5, -210, 0.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
     
@@ -372,6 +405,9 @@ local function SpawnCreditsScreen(SequenceContainer, blur, existingPopup)
     Title.Text = "CREDITS"
     Title.TextColor3 = CurrentTheme.Primary
     
+    local stroke = Popup:FindFirstChildOfClass("UIStroke")
+    stroke.Color = CurrentTheme.Primary
+    
     local Desc = Popup:FindFirstChild("DescLabel")
     if not Desc then
         Desc = Instance.new("TextLabel")
@@ -406,6 +442,7 @@ local function SpawnCreditsScreen(SequenceContainer, blur, existingPopup)
         pCorner.Parent = ProceedBtn
     end
     ProceedBtn.BackgroundColor3 = CurrentTheme.Primary
+    ProceedBtn.TextColor3 = Color3.new(0,0,0)
 
     Popup.Position = UDim2.new(0.5, -210, -0.5, -160)
     CreateTween(Popup, 0.8, {Position = UDim2.new(0.5, -210, 0.5, -160)}, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
@@ -499,7 +536,7 @@ end
 RunStartupSequence()
 
 -- ==========================================
--- INVISIBLE PARTNER NETWORKING (ERROR PATCHED)
+-- TRUE FE INVISIBLE PARTNER NETWORKING
 -- ==========================================
 local function BroadcastPartnerMessage(messageCode, targetPlayer, extraData)
     if not targetPlayer then return end
@@ -508,18 +545,13 @@ local function BroadcastPartnerMessage(messageCode, targetPlayer, extraData)
     
     pcall(function()
         if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-            local w1 = "RBXWhisper:" .. LocalPlayer.UserId .. "_" .. targetPlayer.UserId
-            local w2 = "RBXWhisper:" .. targetPlayer.UserId .. "_" .. LocalPlayer.UserId
-            local channel = TextChatService.TextChannels:FindFirstChild(w1) or TextChatService.TextChannels:FindFirstChild(w2)
-            
-            if channel then
-                channel:SendAsync(finalMsg)
-            else
-                TextChatService.TextChannels.RBXGeneral:SendAsync("/w " .. targetPlayer.Name .. " " .. finalMsg)
-            end
+            local command = "/w @" .. targetPlayer.Name .. " " .. finalMsg
+            TextChatService.TextChannels.RBXGeneral:SendAsync(command)
         else
-            -- V11 Fix: Firing to the "To [Username]" channel bypasses the /w parsing error entirely
-            ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(finalMsg, "To " .. targetPlayer.Name)
+            -- Sends specifically to the target's username, suppressing random all-chat spam.
+            -- The aggressive chat cleaner completely hides any red failures from this.
+            local command = "/w " .. targetPlayer.Name .. " " .. finalMsg
+            ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(command, "All")
         end
     end)
 end
@@ -1554,7 +1586,7 @@ clearCorner.CornerRadius = UDim.new(0, 6)
 clearCorner.Parent = ClearSeqBtn
 
 
--- NEW: Partner Events Button 
+-- Partner Events Button 
 local PartnerEventsBtn = Instance.new("TextButton")
 PartnerEventsBtn.Size = UDim2.new(1, 0, 0, 35)
 PartnerEventsBtn.Position = UDim2.new(0, 0, 0, 85)
@@ -1615,7 +1647,7 @@ local PEStroke = Instance.new("UIStroke")
 PEStroke.Color = CurrentTheme.Accent
 PEStroke.Thickness = 2
 PEStroke.Parent = PEWindow
-table.insert(DynamicUIElements.Fills, PEStroke) -- Links stroke to accent globally
+table.insert(DynamicUIElements.Fills, PEStroke)
 
 local PETopBar = Instance.new("Frame")
 PETopBar.Name = "PETopBar"
@@ -1666,7 +1698,7 @@ PETitle.TextColor3 = CurrentTheme.Accent
 PETitle.TextXAlignment = Enum.TextXAlignment.Left
 PETitle.Text = "PARTNER EVENT SEQUENCER"
 PETitle.Parent = PETopBar
-table.insert(DynamicUIElements.Fills, PETitle) -- Ties to accent globally
+table.insert(DynamicUIElements.Fills, PETitle)
 
 local PECloseBtn = Instance.new("TextButton")
 PECloseBtn.Size = UDim2.new(0, 40, 0, 40)
@@ -1724,7 +1756,7 @@ local pescLayout = Instance.new("UIListLayout")
 pescLayout.SortOrder = Enum.SortOrder.LayoutOrder
 pescLayout.Padding = UDim.new(0, 5)
 pescLayout.Parent = PESequenceContainerWindow
-table.insert(DynamicUIElements.Fills, PESequenceContainerWindow) -- link scrollbar to accent
+table.insert(DynamicUIElements.Fills, PESequenceContainerWindow)
 
 local PESuggestionDropdown = Instance.new("ScrollingFrame")
 PESuggestionDropdown.Size = UDim2.new(0, 210, 0, 120)
