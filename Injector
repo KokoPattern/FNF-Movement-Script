@@ -23,7 +23,7 @@ OffsetX.Value = 0
 local OffsetY = Instance.new("NumberValue")
 OffsetY.Value = 15
 
-local CURRENT_VERSION = "9.1"
+local CURRENT_VERSION = "10.5"
 local CONFIG_FILE = "FNFMovement_SaveData.json"
 
 local CurrentTheme = {
@@ -82,15 +82,21 @@ local ValidTimeEvents = {
     "Heavy Hit"
 }
 
--- Robust Player Search Function
+-- FLawless Player Search Algorithm
 local function FindPlayer(targetString)
     if not targetString or targetString == "" then return nil end
     local search = string.lower(string.match(targetString, "^%s*(.-)%s*$"))
     if search == "" then return nil end
+    
+    -- Pass 1: Exact Match
     for _, player in pairs(Players:GetPlayers()) do
-        local pName = string.lower(player.Name)
-        local pDisp = string.lower(player.DisplayName)
-        if string.sub(pName, 1, string.len(search)) == search or string.sub(pDisp, 1, string.len(search)) == search then
+        if string.lower(player.Name) == search or string.lower(player.DisplayName) == search then
+            return player
+        end
+    end
+    -- Pass 2: Partial Match
+    for _, player in pairs(Players:GetPlayers()) do
+        if string.find(string.lower(player.Name), search, 1, true) or string.find(string.lower(player.DisplayName), search, 1, true) then
             return player
         end
     end
@@ -438,7 +444,7 @@ local function RunStartupSequence()
         Desc.TextWrapped = true
         Desc.TextXAlignment = Enum.TextXAlignment.Left
         Desc.TextYAlignment = Enum.TextYAlignment.Top
-        Desc.Text = "NEW FEATURES IN V9.1:\n\n• Flawless Player Search Algorithm\n• Hardcoded Credits & Update Sequences\n• Invisible Partner Whispering\n• UI Resizing Tweaks & Stabilizations"
+        Desc.Text = "NEW FEATURES IN V10.0:\n\n• Flawless Player Search Algorithm\n• Math Fix for Accurate Color Picking\n• Brand New Partner Events Engine\n• Seamless UI Animations & Expansions"
         Desc.Parent = Popup
         
         local ProceedBtn = Instance.new("TextButton")
@@ -472,8 +478,9 @@ RunStartupSequence()
 -- ==========================================
 -- INVISIBLE PARTNER NETWORKING
 -- ==========================================
-local function BroadcastPartnerMessage(messageCode, targetName)
+local function BroadcastPartnerMessage(messageCode, targetName, extraData)
     local finalMsg = "/w " .. targetName .. " ["..messageCode.."]"
+    if extraData then finalMsg = finalMsg .. ":" .. extraData end
     pcall(function()
         if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
             TextChatService.TextChannels.RBXGeneral:SendAsync(finalMsg)
@@ -511,6 +518,9 @@ local function UpdatePartnerHighlight()
         end
     end
 end
+
+-- Declaration needed to toggle UI properly on partner connect/disconnect
+local TogglePartnerEventsButtonUI
 
 local function HandleIncomingPartnerRequest(senderName)
     local reqPopup = Instance.new("Frame")
@@ -579,7 +589,9 @@ local function HandleIncomingPartnerRequest(senderName)
         if targetPlyr then PartnerSystem.ActivePartner = targetPlyr end
         BroadcastPartnerMessage("FNF_ACCEPT", senderName)
         SendNotification("PARTNERED", "You are now following " .. senderName, 4)
+        SendNotification("PARTNER SYNC", "Partnering sync is now usable in time events", 6)
         UpdatePartnerHighlight()
+        TogglePartnerEventsButtonUI(true)
         reqPopup:Destroy()
     end)
     
@@ -593,24 +605,73 @@ local function HandleIncomingPartnerRequest(senderName)
     end)
 end
 
+local CombatActions = {
+    ["Dash"] = function()
+        local targetPos
+        if UIConfig.CurrentTarget and UIConfig.CurrentTarget.Character then targetPos = UIConfig.CurrentTarget.Character.HumanoidRootPart.Position else targetPos = RootPart.Position + (RootPart.CFrame.LookVector * 40) end
+        local distance = (RootPart.Position - targetPos).Magnitude
+        local duration = math.clamp(distance / UIConfig.MovementSpeed, 0.2, 1.5)
+        local targetCFrame = CFrame.lookAt(targetPos, targetPos + (targetPos - RootPart.Position))
+        if UIConfig.CurrentTarget then targetCFrame = CFrame.lookAt(targetPos - (CFrame.lookAt(RootPart.Position, targetPos).LookVector * 4), targetPos) end
+        local bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(100000, 100000, 100000)
+        bv.Velocity = Vector3.new(0, 0, 0)
+        bv.Parent = RootPart
+        CreateTween(RootPart, duration, {CFrame = targetCFrame}, Enum.EasingStyle.Quart, Enum.EasingDirection.Out).Completed:Connect(function() if bv then bv:Destroy() end end)
+    end,
+    ["Dodge Left"] = function()
+        local targetCFrame = GetOrientedCFrame(Vector3.new(-15, 0, 0))
+        local bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(100000, 0, 100000)
+        bv.Velocity = (targetCFrame.Position - RootPart.Position).Unit * UIConfig.MovementSpeed
+        bv.Parent = RootPart
+        CreateTween(RootPart, 0.4, {CFrame = targetCFrame}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        task.delay(0.4, function() if bv then bv:Destroy() end end)
+    end,
+    ["Dodge Right"] = function()
+        local targetCFrame = GetOrientedCFrame(Vector3.new(15, 0, 0))
+        local bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(100000, 0, 100000)
+        bv.Velocity = (targetCFrame.Position - RootPart.Position).Unit * UIConfig.MovementSpeed
+        bv.Parent = RootPart
+        CreateTween(RootPart, 0.4, {CFrame = targetCFrame}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        task.delay(0.4, function() if bv then bv:Destroy() end end)
+    end,
+    ["Backstep"] = function()
+        local targetCFrame = GetOrientedCFrame(Vector3.new(0, 0, 20))
+        local bv = Instance.new("BodyVelocity")
+        bv.MaxForce = Vector3.new(100000, 0, 100000)
+        bv.Velocity = (targetCFrame.Position - RootPart.Position).Unit * UIConfig.MovementSpeed
+        bv.Parent = RootPart
+        CreateTween(RootPart, 0.4, {CFrame = targetCFrame}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        task.delay(0.4, function() if bv then bv:Destroy() end end)
+    end,
+    ["Taunt"] = function() if UIConfig.CustomAnimIDs.Taunt ~= "0" then PlayAnimation(UIConfig.CustomAnimIDs.Taunt, 1, false) end end,
+    ["Parry"] = function() if UIConfig.CustomAnimIDs.Parry ~= "0" then PlayAnimation(UIConfig.CustomAnimIDs.Parry, 1, false) end end,
+    ["Heavy Hit"] = function() if UIConfig.CustomAnimIDs.HeavyHit ~= "0" then PlayAnimation(UIConfig.CustomAnimIDs.HeavyHit, 1, false) end end
+}
+
 local function ListenForPartnerMessages()
     local function parseMsg(msgText)
+        local sender = string.match(msgText, "From: (.+)") or string.match(msgText, "^%[?([^:]+)%]?") 
+        if not sender or sender == LocalPlayer.Name then return end
+
         if string.match(msgText, "%[FNF_REQ%]") then
-            local sender = string.match(msgText, "From: (.+)") or string.match(msgText, "^%[?([^:]+)%]?") 
-            if sender and sender ~= LocalPlayer.Name then HandleIncomingPartnerRequest(sender) end
+            HandleIncomingPartnerRequest(sender)
         elseif string.match(msgText, "%[FNF_ACCEPT%]") then
-            local sender = string.match(msgText, "From: (.+)") or string.match(msgText, "^%[?([^:]+)%]?") 
-            if sender and sender ~= LocalPlayer.Name then
-                PartnerSystem.IsPartnered = true
-                PartnerSystem.IsLeader = true
-                PartnerSystem.ActivePartner = Players:FindFirstChild(sender)
-                SendNotification("PARTNER ACCEPTED", sender .. " is now following your movement!", 4)
-                UpdatePartnerHighlight()
-            end
+            PartnerSystem.IsPartnered = true
+            PartnerSystem.IsLeader = true
+            PartnerSystem.ActivePartner = Players:FindFirstChild(sender)
+            SendNotification("PARTNER ACCEPTED", sender .. " is now following your movement!", 4)
+            SendNotification("PARTNER SYNC", "Partnering sync is now usable in time events", 6)
+            UpdatePartnerHighlight()
+            TogglePartnerEventsButtonUI(true)
         elseif string.match(msgText, "%[FNF_DECLINE%]") then
-            local sender = string.match(msgText, "From: (.+)") or string.match(msgText, "^%[?([^:]+)%]?") 
-            if sender and sender ~= LocalPlayer.Name then
-                SendNotification("PARTNER DECLINED", sender .. " declined your request.", 4)
+            SendNotification("PARTNER DECLINED", sender .. " declined your request.", 4)
+        elseif string.match(msgText, "%[FNF_ACT%]:(.+)") then
+            local actionName = string.match(msgText, "%[FNF_ACT%]:(.+)")
+            if PartnerSystem.ActivePartner and sender == PartnerSystem.ActivePartner.Name then
+                if CombatActions[actionName] then CombatActions[actionName]() end
             end
         end
     end
@@ -731,7 +792,7 @@ local function ParseAudioInput(inputString)
     return nil, "invalid"
 end
 
-local function GetOrientedCFrame(offsetVector)
+function GetOrientedCFrame(offsetVector)
     if UIConfig.CurrentTarget and UIConfig.CurrentTarget.Character and UIConfig.CurrentTarget.Character:FindFirstChild("HumanoidRootPart") then
         local targetRoot = UIConfig.CurrentTarget.Character.HumanoidRootPart
         return CFrame.lookAt(RootPart.Position, targetRoot.Position) * CFrame.new(offsetVector)
@@ -740,51 +801,6 @@ local function GetOrientedCFrame(offsetVector)
     end
 end
 
-local CombatActions = {
-    ["Dash"] = function()
-        local targetPos
-        if UIConfig.CurrentTarget and UIConfig.CurrentTarget.Character then targetPos = UIConfig.CurrentTarget.Character.HumanoidRootPart.Position else targetPos = RootPart.Position + (RootPart.CFrame.LookVector * 40) end
-        local distance = (RootPart.Position - targetPos).Magnitude
-        local duration = math.clamp(distance / UIConfig.MovementSpeed, 0.2, 1.5)
-        local targetCFrame = CFrame.lookAt(targetPos, targetPos + (targetPos - RootPart.Position))
-        if UIConfig.CurrentTarget then targetCFrame = CFrame.lookAt(targetPos - (CFrame.lookAt(RootPart.Position, targetPos).LookVector * 4), targetPos) end
-        local bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(100000, 100000, 100000)
-        bv.Velocity = Vector3.new(0, 0, 0)
-        bv.Parent = RootPart
-        CreateTween(RootPart, duration, {CFrame = targetCFrame}, Enum.EasingStyle.Quart, Enum.EasingDirection.Out).Completed:Connect(function() if bv then bv:Destroy() end end)
-    end,
-    ["Dodge Left"] = function()
-        local targetCFrame = GetOrientedCFrame(Vector3.new(-15, 0, 0))
-        local bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(100000, 0, 100000)
-        bv.Velocity = (targetCFrame.Position - RootPart.Position).Unit * UIConfig.MovementSpeed
-        bv.Parent = RootPart
-        CreateTween(RootPart, 0.4, {CFrame = targetCFrame}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        task.delay(0.4, function() if bv then bv:Destroy() end end)
-    end,
-    ["Dodge Right"] = function()
-        local targetCFrame = GetOrientedCFrame(Vector3.new(15, 0, 0))
-        local bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(100000, 0, 100000)
-        bv.Velocity = (targetCFrame.Position - RootPart.Position).Unit * UIConfig.MovementSpeed
-        bv.Parent = RootPart
-        CreateTween(RootPart, 0.4, {CFrame = targetCFrame}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        task.delay(0.4, function() if bv then bv:Destroy() end end)
-    end,
-    ["Backstep"] = function()
-        local targetCFrame = GetOrientedCFrame(Vector3.new(0, 0, 20))
-        local bv = Instance.new("BodyVelocity")
-        bv.MaxForce = Vector3.new(100000, 0, 100000)
-        bv.Velocity = (targetCFrame.Position - RootPart.Position).Unit * UIConfig.MovementSpeed
-        bv.Parent = RootPart
-        CreateTween(RootPart, 0.4, {CFrame = targetCFrame}, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        task.delay(0.4, function() if bv then bv:Destroy() end end)
-    end,
-    ["Taunt"] = function() if UIConfig.CustomAnimIDs.Taunt ~= "0" then PlayAnimation(UIConfig.CustomAnimIDs.Taunt, 1, false) end end,
-    ["Parry"] = function() if UIConfig.CustomAnimIDs.Parry ~= "0" then PlayAnimation(UIConfig.CustomAnimIDs.Parry, 1, false) end end,
-    ["Heavy Hit"] = function() if UIConfig.CustomAnimIDs.HeavyHit ~= "0" then PlayAnimation(UIConfig.CustomAnimIDs.HeavyHit, 1, false) end end
-}
 
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 12)
@@ -1502,6 +1518,24 @@ local clearCorner = Instance.new("UICorner")
 clearCorner.CornerRadius = UDim.new(0, 6)
 clearCorner.Parent = ClearSeqBtn
 
+
+-- NEW: Partner Events Button 
+local PartnerEventsBtn = Instance.new("TextButton")
+PartnerEventsBtn.Size = UDim2.new(1, 0, 0, 35)
+PartnerEventsBtn.Position = UDim2.new(0, 0, 0, 85)
+PartnerEventsBtn.BackgroundColor3 = CurrentTheme.Accent
+PartnerEventsBtn.Font = Enum.Font.GothamBold
+PartnerEventsBtn.TextSize = 13
+PartnerEventsBtn.TextColor3 = Color3.new(1, 1, 1)
+PartnerEventsBtn.Text = "⚔ PARTNER EVENTS"
+PartnerEventsBtn.Visible = false
+PartnerEventsBtn.Parent = TEControlContainer
+local peCorner = Instance.new("UICorner")
+peCorner.CornerRadius = UDim.new(0, 6)
+peCorner.Parent = PartnerEventsBtn
+table.insert(DynamicUIElements.Fills, PartnerEventsBtn)
+
+
 PlaySeqBtn.MouseButton1Click:Connect(function()
     if SequenceIsPlaying then return end
     SequenceIsPlaying = true
@@ -1524,6 +1558,393 @@ ClearSeqBtn.MouseButton1Click:Connect(function()
     for _, row in ipairs(SequenceRows) do row.Frame:Destroy() end
     SequenceRows = {}
 end)
+
+-- ==========================================
+-- PARTNER EVENTS SEPARATE UI WINDOW
+-- ==========================================
+local PEWindow = Instance.new("Frame")
+PEWindow.Name = "PartnerEventsWindow"
+PEWindow.Size = UDim2.new(0, 380, 0, 480)
+PEWindow.Position = UDim2.new(0, 500, 0, 50)
+PEWindow.BackgroundColor3 = CurrentTheme.Background
+PEWindow.BorderSizePixel = 0
+PEWindow.Visible = false
+PEWindow.Parent = ScreenGui
+table.insert(DynamicUIElements.Backgrounds, PEWindow)
+
+local PECorner = Instance.new("UICorner")
+PECorner.CornerRadius = UDim.new(0, 12)
+PECorner.Parent = PEWindow
+
+local PEStroke = Instance.new("UIStroke")
+PEStroke.Color = CurrentTheme.Accent
+PEStroke.Thickness = 2
+PEStroke.Parent = PEWindow
+table.insert(DynamicUIElements.Fills, PEStroke) -- Links stroke to accent globally
+
+local PETopBar = Instance.new("Frame")
+PETopBar.Name = "PETopBar"
+PETopBar.Size = UDim2.new(1, 0, 0, 40)
+PETopBar.BackgroundColor3 = CurrentTheme.Panel
+PETopBar.BorderSizePixel = 0
+PETopBar.Active = true
+PETopBar.Parent = PEWindow
+table.insert(DynamicUIElements.Panels, PETopBar)
+
+local peDragging = false
+local peDragStart, peStartPos
+PETopBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        peDragging = true
+        peDragStart = UserInputService:GetMouseLocation()
+        peStartPos = PEWindow.Position
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if peDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = UserInputService:GetMouseLocation() - peDragStart
+        PEWindow.Position = UDim2.new(peStartPos.X.Scale, peStartPos.X.Offset + (delta.X * 0.5), peStartPos.Y.Scale, peStartPos.Y.Offset + (delta.Y * 0.5))
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then peDragging = false end
+end)
+
+local PETopCorner = Instance.new("UICorner")
+PETopCorner.CornerRadius = UDim.new(0, 12)
+PETopCorner.Parent = PETopBar
+local PETopFix = Instance.new("Frame")
+PETopFix.Size = UDim2.new(1, 0, 0, 10)
+PETopFix.Position = UDim2.new(0, 0, 1, -10)
+PETopFix.BackgroundColor3 = CurrentTheme.Panel
+PETopFix.BorderSizePixel = 0
+PETopFix.Parent = PETopBar
+table.insert(DynamicUIElements.Panels, PETopFix)
+
+local PETitle = Instance.new("TextLabel")
+PETitle.Size = UDim2.new(1, -40, 1, 0)
+PETitle.Position = UDim2.new(0, 15, 0, 0)
+PETitle.BackgroundTransparency = 1
+PETitle.Font = Enum.Font.GothamBold
+PETitle.TextSize = 14
+PETitle.TextColor3 = CurrentTheme.Accent
+PETitle.TextXAlignment = Enum.TextXAlignment.Left
+PETitle.Text = "PARTNER EVENT SEQUENCER"
+PETitle.Parent = PETopBar
+table.insert(DynamicUIElements.Fills, PETitle) -- Ties to accent globally
+
+local PECloseBtn = Instance.new("TextButton")
+PECloseBtn.Size = UDim2.new(0, 40, 0, 40)
+PECloseBtn.Position = UDim2.new(1, -40, 0, 0)
+PECloseBtn.BackgroundTransparency = 1
+PECloseBtn.Font = Enum.Font.GothamBold
+PECloseBtn.TextSize = 16
+PECloseBtn.TextColor3 = Color3.fromRGB(231, 76, 60)
+PECloseBtn.Text = "X"
+PECloseBtn.Parent = PETopBar
+PECloseBtn.MouseButton1Click:Connect(function() PEWindow.Visible = false end)
+PartnerEventsBtn.MouseButton1Click:Connect(function() PEWindow.Visible = not PEWindow.Visible end)
+
+local PEContent = Instance.new("Frame")
+PEContent.Size = UDim2.new(1, -20, 1, -55)
+PEContent.Position = UDim2.new(0, 10, 0, 45)
+PEContent.BackgroundTransparency = 1
+PEContent.Parent = PEWindow
+
+local PESequenceHeaderFrame = Instance.new("Frame")
+PESequenceHeaderFrame.Size = UDim2.new(1, 0, 0, 20)
+PESequenceHeaderFrame.BackgroundTransparency = 1
+PESequenceHeaderFrame.Parent = PEContent
+
+local PEEventLabel = Instance.new("TextLabel")
+PEEventLabel.Size = UDim2.new(0.6, 0, 1, 0)
+PEEventLabel.BackgroundTransparency = 1
+PEEventLabel.Font = Enum.Font.GothamBold
+PEEventLabel.TextSize = 12
+PEEventLabel.TextColor3 = CurrentTheme.DarkText
+PEEventLabel.Text = "PARTNER ACTION"
+PEEventLabel.Parent = PESequenceHeaderFrame
+
+local PEDelayLabel = Instance.new("TextLabel")
+PEDelayLabel.Size = UDim2.new(0.3, 0, 1, 0)
+PEDelayLabel.Position = UDim2.new(0.6, 0, 0, 0)
+PEDelayLabel.BackgroundTransparency = 1
+PEDelayLabel.Font = Enum.Font.GothamBold
+PEDelayLabel.TextSize = 12
+PEDelayLabel.TextColor3 = CurrentTheme.DarkText
+PEDelayLabel.Text = "DELAY (s)"
+PEDelayLabel.Parent = PESequenceHeaderFrame
+
+local PESequenceContainerWindow = Instance.new("ScrollingFrame")
+PESequenceContainerWindow.Size = UDim2.new(1, 0, 1, -120)
+PESequenceContainerWindow.Position = UDim2.new(0, 0, 0, 25)
+PESequenceContainerWindow.BackgroundTransparency = 1
+PESequenceContainerWindow.BorderSizePixel = 0
+PESequenceContainerWindow.ScrollBarThickness = 6
+PESequenceContainerWindow.ScrollBarImageColor3 = CurrentTheme.Accent
+PESequenceContainerWindow.CanvasSize = UDim2.new(0, 0, 0, 0)
+PESequenceContainerWindow.AutomaticCanvasSize = Enum.AutomaticSize.Y
+PESequenceContainerWindow.Parent = PEContent
+local pescLayout = Instance.new("UIListLayout")
+pescLayout.SortOrder = Enum.SortOrder.LayoutOrder
+pescLayout.Padding = UDim.new(0, 5)
+pescLayout.Parent = PESequenceContainerWindow
+table.insert(DynamicUIElements.Fills, PESequenceContainerWindow) -- link scrollbar to accent
+
+local PESuggestionDropdown = Instance.new("ScrollingFrame")
+PESuggestionDropdown.Size = UDim2.new(0, 210, 0, 120)
+PESuggestionDropdown.BackgroundColor3 = Color3.fromRGB(10, 12, 16)
+PESuggestionDropdown.BorderSizePixel = 0
+PESuggestionDropdown.ZIndex = 600
+PESuggestionDropdown.Visible = false
+PESuggestionDropdown.ScrollBarThickness = 4
+PESuggestionDropdown.Parent = ScreenGui 
+local pesdCorner = Instance.new("UICorner")
+pesdCorner.CornerRadius = UDim.new(0, 6)
+pesdCorner.Parent = PESuggestionDropdown
+local pesdStroke = Instance.new("UIStroke")
+pesdStroke.Color = CurrentTheme.Accent
+pesdStroke.Thickness = 1
+pesdStroke.Parent = PESuggestionDropdown
+table.insert(DynamicUIElements.Fills, pesdStroke)
+local pesdLayout = Instance.new("UIListLayout")
+pesdLayout.SortOrder = Enum.SortOrder.LayoutOrder
+pesdLayout.Parent = PESuggestionDropdown
+
+local PartnerSequenceRows = {}
+local PartnerSequenceIsPlaying = false
+local peStepCount = 0
+local PEActiveNameBox = nil
+
+local function PEUpdateDropdownPosition()
+    if PESuggestionDropdown.Visible and PEActiveNameBox then
+        local targetX = PEActiveNameBox.AbsolutePosition.X
+        local targetY = PEActiveNameBox.AbsolutePosition.Y + PEActiveNameBox.AbsoluteSize.Y + 2
+        PESuggestionDropdown.Position = UDim2.new(0, targetX, 0, targetY)
+    end
+end
+RunService.RenderStepped:Connect(PEUpdateDropdownPosition)
+
+local function PEUpdateSuggestions(nameBox)
+    for _, child in pairs(PESuggestionDropdown:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+    local filter = string.lower(nameBox.Text)
+    local count = 0
+    for _, eventName in ipairs(ValidTimeEvents) do
+        if filter == "" or string.find(string.lower(eventName), filter, 1, true) then
+            count = count + 1
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, 0, 0, 30)
+            btn.BackgroundColor3 = CurrentTheme.Panel
+            btn.BorderSizePixel = 0
+            btn.Font = Enum.Font.Gotham
+            btn.TextSize = 13
+            btn.TextColor3 = Color3.new(1, 1, 1)
+            btn.Text = eventName
+            btn.ZIndex = 601
+            btn.Parent = PESuggestionDropdown
+            
+            btn.MouseButton1Click:Connect(function()
+                nameBox.Text = eventName
+                PESuggestionDropdown.Visible = false
+                PEActiveNameBox = nil
+            end)
+            btn.MouseEnter:Connect(function() CreateTween(btn, 0.1, {BackgroundColor3 = CurrentTheme.Accent}) end)
+            btn.MouseLeave:Connect(function() CreateTween(btn, 0.1, {BackgroundColor3 = CurrentTheme.Panel}) end)
+        end
+    end
+    PESuggestionDropdown.CanvasSize = UDim2.new(0, 0, 0, count * 30)
+end
+
+local function AddPartnerSequenceStep()
+    peStepCount = peStepCount + 1
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, -10, 0, 35)
+    row.BackgroundColor3 = CurrentTheme.Panel
+    row.BorderSizePixel = 0
+    row.LayoutOrder = peStepCount
+    row.Parent = PESequenceContainerWindow
+    table.insert(DynamicUIElements.Panels, row)
+    local rCorner = Instance.new("UICorner")
+    rCorner.CornerRadius = UDim.new(0, 6)
+    rCorner.Parent = row
+    
+    local nameBox = Instance.new("TextBox")
+    nameBox.Size = UDim2.new(0.6, -10, 1, -10)
+    nameBox.Position = UDim2.new(0, 5, 0, 5)
+    nameBox.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+    nameBox.BorderSizePixel = 0
+    nameBox.Font = Enum.Font.Gotham
+    nameBox.TextSize = 13
+    nameBox.TextColor3 = Color3.new(1, 1, 1)
+    nameBox.PlaceholderText = "e.g. Dash"
+    nameBox.Text = ""
+    nameBox.ClearTextOnFocus = false
+    nameBox.Parent = row
+    local nbCorner = Instance.new("UICorner")
+    nbCorner.CornerRadius = UDim.new(0, 4)
+    nbCorner.Parent = nameBox
+    
+    local delayBox = Instance.new("TextBox")
+    delayBox.Size = UDim2.new(0.25, -10, 1, -10)
+    delayBox.Position = UDim2.new(0.6, 0, 0, 5)
+    delayBox.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+    delayBox.BorderSizePixel = 0
+    delayBox.Font = Enum.Font.Gotham
+    delayBox.TextSize = 13
+    delayBox.TextColor3 = Color3.new(1, 1, 1)
+    delayBox.PlaceholderText = "0.5"
+    delayBox.Text = ""
+    delayBox.Parent = row
+    local dbCorner = Instance.new("UICorner")
+    dbCorner.CornerRadius = UDim.new(0, 4)
+    dbCorner.Parent = delayBox
+    
+    local delBtn = Instance.new("TextButton")
+    delBtn.Size = UDim2.new(0.15, -5, 1, -10)
+    delBtn.Position = UDim2.new(0.85, 0, 0, 5)
+    delBtn.BackgroundColor3 = Color3.fromRGB(192, 57, 43)
+    delBtn.Font = Enum.Font.GothamBold
+    delBtn.TextSize = 14
+    delBtn.TextColor3 = Color3.new(1, 1, 1)
+    delBtn.Text = "🗑"
+    delBtn.Parent = row
+    local delCorner = Instance.new("UICorner")
+    delCorner.CornerRadius = UDim.new(0, 4)
+    delCorner.Parent = delBtn
+    
+    nameBox.Focused:Connect(function()
+        PEActiveNameBox = nameBox
+        PESuggestionDropdown.Visible = true
+        PEUpdateSuggestions(nameBox)
+    end)
+    
+    nameBox:GetPropertyChangedSignal("Text"):Connect(function()
+        if nameBox:IsFocused() then PEUpdateSuggestions(nameBox) end
+    end)
+    
+    nameBox.FocusLost:Connect(function()
+        task.delay(0.2, function()
+            if PEActiveNameBox == nameBox then
+                PESuggestionDropdown.Visible = false
+                PEActiveNameBox = nil
+            end
+        end)
+    end)
+    
+    local rowData = {Frame = row, NameInput = nameBox, DelayInput = delayBox}
+    table.insert(PartnerSequenceRows, rowData)
+    
+    delBtn.MouseButton1Click:Connect(function()
+        if PEActiveNameBox == nameBox then PESuggestionDropdown.Visible = false; PEActiveNameBox = nil end
+        row:Destroy()
+        for i, r in ipairs(PartnerSequenceRows) do
+            if r.Frame == row then table.remove(PartnerSequenceRows, i); break end
+        end
+    end)
+end
+
+local PEControlContainer = Instance.new("Frame")
+PEControlContainer.Size = UDim2.new(1, 0, 0, 85)
+PEControlContainer.Position = UDim2.new(0, 0, 1, -85)
+PEControlContainer.BackgroundTransparency = 1
+PEControlContainer.Parent = PEContent
+
+local PEAddStepBtn = Instance.new("TextButton")
+PEAddStepBtn.Size = UDim2.new(1, 0, 0, 35)
+PEAddStepBtn.Position = UDim2.new(0, 0, 0, 5)
+PEAddStepBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+PEAddStepBtn.Font = Enum.Font.GothamBold
+PEAddStepBtn.TextSize = 13
+PEAddStepBtn.TextColor3 = Color3.new(1, 1, 1)
+PEAddStepBtn.Text = "+ ADD STEP"
+PEAddStepBtn.Parent = PEControlContainer
+local peAddCorner = Instance.new("UICorner")
+peAddCorner.CornerRadius = UDim.new(0, 6)
+peAddCorner.Parent = PEAddStepBtn
+PEAddStepBtn.MouseButton1Click:Connect(function() task.spawn(AddPartnerSequenceStep) end)
+
+local PEPlaySeqBtn = Instance.new("TextButton")
+PEPlaySeqBtn.Size = UDim2.new(0.48, 0, 0, 35)
+PEPlaySeqBtn.Position = UDim2.new(0, 0, 0, 45)
+PEPlaySeqBtn.BackgroundColor3 = CurrentTheme.Accent
+PEPlaySeqBtn.Font = Enum.Font.GothamBold
+PEPlaySeqBtn.TextSize = 13
+PEPlaySeqBtn.TextColor3 = Color3.new(1, 1, 1)
+PEPlaySeqBtn.Text = "▶ RUN ON PARTNER"
+PEPlaySeqBtn.Parent = PEControlContainer
+local pePlayCorner = Instance.new("UICorner")
+pePlayCorner.CornerRadius = UDim.new(0, 6)
+pePlayCorner.Parent = PEPlaySeqBtn
+table.insert(DynamicUIElements.Fills, PEPlaySeqBtn)
+
+local PEStopSeqBtn = Instance.new("TextButton")
+PEStopSeqBtn.Size = UDim2.new(0.24, 0, 0, 35)
+PEStopSeqBtn.Position = UDim2.new(0.5, 0, 0, 45)
+PEStopSeqBtn.BackgroundColor3 = Color3.fromRGB(231, 76, 60)
+PEStopSeqBtn.Font = Enum.Font.GothamBold
+PEStopSeqBtn.TextSize = 13
+PEStopSeqBtn.TextColor3 = Color3.new(1, 1, 1)
+PEStopSeqBtn.Text = "■ STOP"
+PEStopSeqBtn.Parent = PEControlContainer
+local peStopCorner = Instance.new("UICorner")
+peStopCorner.CornerRadius = UDim.new(0, 6)
+peStopCorner.Parent = PEStopSeqBtn
+
+local PEClearSeqBtn = Instance.new("TextButton")
+PEClearSeqBtn.Size = UDim2.new(0.24, 0, 0, 35)
+PEClearSeqBtn.Position = UDim2.new(0.76, 0, 0, 45)
+PEClearSeqBtn.BackgroundColor3 = Color3.fromRGB(80, 40, 90)
+PEClearSeqBtn.Font = Enum.Font.GothamBold
+PEClearSeqBtn.TextSize = 13
+PEClearSeqBtn.TextColor3 = Color3.new(1, 1, 1)
+PEClearSeqBtn.Text = "🗑 CLEAR"
+PEClearSeqBtn.Parent = PEControlContainer
+local peClearCorner = Instance.new("UICorner")
+peClearCorner.CornerRadius = UDim.new(0, 6)
+peClearCorner.Parent = PEClearSeqBtn
+
+PEPlaySeqBtn.MouseButton1Click:Connect(function()
+    if PartnerSequenceIsPlaying then return end
+    if not PartnerSystem.IsPartnered or not PartnerSystem.ActivePartner then 
+        SendNotification("PARTNER ERROR", "You must have an active partner to execute this.", 3)
+        return
+    end
+    PartnerSequenceIsPlaying = true
+    task.spawn(function()
+        for _, row in ipairs(PartnerSequenceRows) do
+            if not PartnerSequenceIsPlaying then break end
+            local evName = row.NameInput.Text
+            local delStr = tonumber(row.DelayInput.Text) or 0
+            
+            BroadcastPartnerMessage("FNF_ACT", PartnerSystem.ActivePartner.Name, evName)
+            if delStr > 0 then task.wait(delStr) end
+        end
+        PartnerSequenceIsPlaying = false
+    end)
+end)
+
+PEStopSeqBtn.MouseButton1Click:Connect(function() PartnerSequenceIsPlaying = false end)
+PEClearSeqBtn.MouseButton1Click:Connect(function()
+    PartnerSequenceIsPlaying = false
+    for _, row in ipairs(PartnerSequenceRows) do row.Frame:Destroy() end
+    PartnerSequenceRows = {}
+end)
+
+-- This function dynamically slides the TE UI to reveal the new partner button
+TogglePartnerEventsButtonUI = function(show)
+    if show then
+        PartnerEventsBtn.Visible = true
+        CreateTween(TEControlContainer, 0.4, {Size = UDim2.new(1, 0, 0, 125), Position = UDim2.new(0, 0, 1, -125)}, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        CreateTween(SequenceContainerWindow, 0.4, {Size = UDim2.new(1, 0, 1, -160)}, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    else
+        PEWindow.Visible = false
+        CreateTween(TEControlContainer, 0.4, {Size = UDim2.new(1, 0, 0, 85), Position = UDim2.new(0, 0, 1, -85)}, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        CreateTween(SequenceContainerWindow, 0.4, {Size = UDim2.new(1, 0, 1, -120)}, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        task.delay(0.4, function() PartnerEventsBtn.Visible = false end)
+    end
+end
 
 -- ==========================================
 -- MAIN UI TABS & SECTIONS
@@ -1688,7 +2109,10 @@ end
 
 local function UpdateHue(input)
     local relY = math.clamp(input.Position.Y - HueFrame.AbsolutePosition.Y, 0, HueFrame.AbsoluteSize.Y)
-    CurrentHue = 1 - (relY / HueFrame.AbsoluteSize.Y)
+    
+    -- FIXED MATH: Align exact visual gradient bounds with absolute hue representation
+    CurrentHue = relY / HueFrame.AbsoluteSize.Y
+    
     HueKnob.Position = UDim2.new(0.5, 0, relY / HueFrame.AbsoluteSize.Y, 0)
     SatValFrame.BackgroundColor3 = Color3.fromHSV(CurrentHue, 1, 1)
     UpdateColorOutput()
@@ -1770,6 +2194,7 @@ CreateButton(PartnerTab, "DISCONNECT PARTNER", 5, function()
     PartnerSystem.IsPartnered = false
     PartnerSystem.ActivePartner = nil
     if PartnerSystem.HighlightFX then PartnerSystem.HighlightFX:Destroy(); PartnerSystem.HighlightFX = nil end
+    TogglePartnerEventsButtonUI(false)
     SendNotification("PARTNER SYSTEM", "Successfully unlinked all movement.", 3)
 end)
 
