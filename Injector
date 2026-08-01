@@ -6,8 +6,6 @@
 -- ========================================================================================================================
 -- ========================================================================================================================
 -- ========================================================================================================================
--- The code below has been vertically expanded and structurally fortified to achieve maximum operational length.
--- It features a SINGLE execution button to deploy both scripts simultaneously, as requested.
 
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -76,14 +74,6 @@ end
 -- FUNCTION: EXECUTE FNF ARROW SCRIPT
 -- ========================================================================================================================
 local function ExecuteArrowScript()
-    --[[
-    ╔══════════════════════════════════════════════════════╗
-    ║         FNF ANIMATION INJECTOR v6.0 + HD/INTENSE     ║
-    ║  Arrow HUD • Dynamic Face • Anim Maker • Leg Lock    ║
-    ║  + Idle BPM Speed Control                             ║
-    ║  + Live Preview • Favorites • Playlist • Themes       ║
-    ╚══════════════════════════════════════════════════════╝
-    ]]
     local Players          = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
     local TweenService     = game:GetService("TweenService")
@@ -102,12 +92,6 @@ local function ExecuteArrowScript()
     local CurrentBindings = {}
     for _, v in ipairs(DEFAULT_BINDINGS) do table.insert(CurrentBindings, { dir = v.dir, key = v.key, id = v.id, speedMult = 1 }) end
 
-    local PRESETS = {
-        { name = "Default Set",  ids = { LEFT="204062532", DOWN="204292303", UP="183412246", RIGHT="218504594" } },
-        { name = "Preset Slot A",ids = { LEFT="0", DOWN="0", UP="0", RIGHT="0" } },
-        { name = "Preset Slot B",ids = { LEFT="0", DOWN="0", UP="0", RIGHT="0" } },
-    }
-
     local animTracks   = {}
     local idleTrack    = nil
     local connections  = {}
@@ -125,7 +109,6 @@ local function ExecuteArrowScript()
     local sequence     = {}
     local seqPlaying   = false
     local seqTrack     = nil
-    local seqRowFrames = {}
     local arrowHudFrames = {}
     local idleBPM  = 100
     local BASE_BPM = 58
@@ -149,15 +132,6 @@ local function ExecuteArrowScript()
         playing         = false,
     }
 
-    local favorites = {
-        { name = "Default: Dance",  id = "507771019" },
-        { name = "Default: Dance2", id = "507776043" },
-        { name = "Default: Dance3", id = "507777268" },
-        { name = "Default: Laugh",  id = "507770818" },
-        { name = "Default: Cheer",  id = "507770677" },
-        { name = "Default: Point",  id = "507770453" },
-        { name = "Default: Sit",    id = "2506281703" },
-    }
     local recents       = {}
     local RECENTS_CAP   = 8
     local playlist      = {}
@@ -165,8 +139,6 @@ local function ExecuteArrowScript()
     local playlistPlaying = false
     local previewClone     = nil
     local previewAnimator  = nil
-    local previewCam       = nil
-    local previewAngle     = 0
 
     local THEMES = {
         Pink   = { accent = Color3.fromRGB(255, 80, 180), accent2 = Color3.fromRGB(0, 200, 255) },
@@ -195,8 +167,6 @@ local function ExecuteArrowScript()
     local ARROW_HIT_SIZE = 74
     local ARROW_GAP      = 14
     local ARROW_ORDER    = { "LEFT", "DOWN", "UP", "RIGHT" }
-
-    local function log(m) print("[FNF] "..tostring(m)) end
 
     local function getAnimator(char)
         local hum = char:FindFirstChildOfClass("Humanoid")
@@ -366,17 +336,11 @@ local function ExecuteArrowScript()
     end
 
     -- ========================================================================================================================
-    -- NETWORK BROADCAST FOR HEALTH DRAIN
+    -- NETWORK BROADCAST FOR HEALTH DRAIN (REMOVED CHAT BROADCAST)
     -- ========================================================================================================================
     local function BroadcastNoteHit()
-        if not CombatSettings.HealthDrainEnabled then return end
-        pcall(function()
-            if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-                TextChatService.TextChannels.RBXGeneral:SendAsync("[FNF_NOTE_HIT_DRAIN]")
-            else
-                ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("[FNF_NOTE_HIT_DRAIN]", "All")
-            end
-        end)
+        -- Feature disabled to prevent forced chat messages
+        return
     end
 
     -- ========================================================================================================================
@@ -483,7 +447,6 @@ local function ExecuteArrowScript()
         updatePreviewAnimation(assetId, key)
         pushRecent(assetId, key)
         
-        -- UPDATE LOGIC FOR HEALTH DRAIN AND INTENSE MODE
         lastArrowTime = tick()
         intenseWarningGiven = false
         BroadcastNoteHit()
@@ -568,92 +531,6 @@ local function ExecuteArrowScript()
         if refreshStatusUI then refreshStatusUI() end
     end
 
-    local function setIdleBaseBPM(bpm)
-        if bpm and bpm > 0 then BASE_BPM = bpm end
-        if idleTrack and idleTrack.IsPlaying then idleTrack:AdjustSpeed(idleSpeedFromBPM()) end
-    end
-
-    local function playSequence()
-        if seqPlaying or #sequence == 0 or not animator then return end
-        seqPlaying = true
-        task.spawn(function()
-            for _, step in ipairs(sequence) do
-                if not seqPlaying then break end
-                if step.id and step.id ~= "" then
-                    destroySeqTrack()
-                    local ok, result = pcall(function()
-                        local anim = Instance.new("Animation")
-                        anim.AnimationId = "rbxassetid://"..step.id
-                        local t = animator:LoadAnimation(anim)
-                        t.Priority = PRIORITY; t.Looped = false
-                        return t
-                    end)
-                    if ok then
-                        seqTrack = result; seqTrack:Play(0)
-                        updatePreviewAnimation(step.id, "SEQUENCE")
-                    end
-                end
-                task.wait(math.max(0.01, step.delay or 0.5))
-            end
-            destroySeqTrack()
-            seqPlaying = false
-        end)
-    end
-
-    local function stopSequence()
-        seqPlaying = false
-        destroySeqTrack()
-    end
-
-    local function playPlaylist()
-        if playlistPlaying or #playlist == 0 or not animator then return end
-        playlistPlaying = true
-        task.spawn(function()
-            while playlistPlaying do
-                local step = playlist[playlistIndex]
-                if step and step.id and step.id ~= "" then
-                    destroySeqTrack()
-                    local ok, result = pcall(function()
-                        local anim = Instance.new("Animation")
-                        anim.AnimationId = "rbxassetid://"..step.id
-                        local t = animator:LoadAnimation(anim)
-                        t.Priority = PRIORITY; t.Looped = false
-                        return t
-                    end)
-                    if ok then
-                        seqTrack = result; seqTrack:Play(0)
-                        updatePreviewAnimation(step.id, step.name or ("Playlist #"..playlistIndex))
-                    end
-                end
-                task.wait(math.max(0.05, (step and step.delay) or 1))
-                if not playlistPlaying then break end
-                playlistIndex = playlistIndex + 1
-                if playlistIndex > #playlist then playlistIndex = 1 end
-                if refreshPlaylistUI then refreshPlaylistUI() end
-            end
-            destroySeqTrack()
-        end)
-    end
-
-    local function stopPlaylist()
-        playlistPlaying = false
-        destroySeqTrack()
-    end
-
-    local function nextPlaylistTrack()
-        if #playlist == 0 then return end
-        playlistIndex = playlistIndex + 1
-        if playlistIndex > #playlist then playlistIndex = 1 end
-        if refreshPlaylistUI then refreshPlaylistUI() end
-    end
-
-    local function prevPlaylistTrack()
-        if #playlist == 0 then return end
-        playlistIndex = playlistIndex - 1
-        if playlistIndex < 1 then playlistIndex = #playlist end
-        if refreshPlaylistUI then refreshPlaylistUI() end
-    end
-
     local function onInput(input, _gp)
         if rebindingRow then
             local kn = input.KeyCode and input.KeyCode.Name or "Unknown"
@@ -680,34 +557,6 @@ local function ExecuteArrowScript()
         end
     end
 
-    local function buildPreviewClone(char)
-        if not previewCloneContainer then return end
-        if previewClone then previewClone:Destroy(); previewClone = nil end
-        local wasArchivable = char.Archivable
-        if not wasArchivable then char.Archivable = true end
-        local ok, clone = pcall(function() return char:Clone() end)
-        if not wasArchivable then char.Archivable = wasArchivable end
-        if not ok or not clone then return end
-        for _, d in ipairs(clone:GetDescendants()) do
-            if d:IsA("Script") or d:IsA("LocalScript") then d:Destroy() end
-        end
-        clone.Name = "PreviewClone"
-        clone.Parent = previewCloneContainer
-        local hum = clone:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-            previewAnimator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
-        end
-        local root = clone:FindFirstChild("HumanoidRootPart") or clone.PrimaryPart
-        if root then root.Anchored = true end
-        local okPivot = pcall(function() clone:PivotTo(CFrame.new(0, 3, 0)) end)
-        if not okPivot then
-            local hrp = clone:FindFirstChild("HumanoidRootPart") or clone.PrimaryPart
-            if hrp then clone:SetPrimaryPartCFrame(CFrame.new(0, 3, 0)) end
-        end
-        previewClone = clone
-    end
-
     local function setupCharacter(char)
         cleanupAll(); character = char
         pcall(function() character:WaitForChild("HumanoidRootPart", 10) end)
@@ -719,7 +568,6 @@ local function ExecuteArrowScript()
         table.insert(connections, UserInputService.InputEnded:Connect(onInput))
         local hum = char:FindFirstChildOfClass("Humanoid")
         if hum then table.insert(connections, hum.Died:Connect(cleanupAll)) end
-        task.defer(buildPreviewClone, char)
         notify("Character loaded — ready to inject", "success")
     end
 
@@ -743,19 +591,6 @@ local function ExecuteArrowScript()
         b.Font = Enum.Font.GothamBold; b.TextSize = ts or 12
         b.BorderSizePixel = 0; b.Parent = parent; b.AutoButtonColor = false
         uiCorner(b)
-        local baseSize = size
-        local hoverGlow = uiStroke(b, Color3.fromRGB(255,255,255), 0)
-        hoverGlow.Transparency = 1
-        b.MouseEnter:Connect(function()
-            TweenService:Create(b, TweenInfo.new(0.12, Enum.EasingStyle.Quad), {Size = UDim2.new(baseSize.X.Scale, baseSize.X.Offset + 4, baseSize.Y.Scale, baseSize.Y.Offset + 2)}):Play()
-            TweenService:Create(hoverGlow, TweenInfo.new(0.12), { Thickness = 2, Transparency = 0.2 }):Play()
-        end)
-        b.MouseLeave:Connect(function()
-            TweenService:Create(b, TweenInfo.new(0.15, Enum.EasingStyle.Quad), { Size = baseSize }):Play()
-            TweenService:Create(hoverGlow, TweenInfo.new(0.15), { Thickness = 0, Transparency = 1 }):Play()
-        end)
-        b.MouseButton1Down:Connect(function() TweenService:Create(b, TweenInfo.new(0.06), { Size = UDim2.new(baseSize.X.Scale, baseSize.X.Offset - 3, baseSize.Y.Scale, baseSize.Y.Offset - 3) }):Play() end)
-        b.MouseButton1Up:Connect(function() TweenService:Create(b, TweenInfo.new(0.08), { Size = baseSize }):Play() end)
         return b
     end
     local function makeDivider(parent, yPos, color)
@@ -878,70 +713,6 @@ local function ExecuteArrowScript()
                 end
             end
         end)
-        task.spawn(function()
-            local t = 0
-            while true do
-                RunService.Heartbeat:Wait()
-                t = t + (StatusState.bpm / 60) * 0.03
-                if waveBars then
-                    for i, bar in ipairs(waveBars) do
-                        local h = 0.15 + 0.35 * (0.5 + 0.5 * math.sin(t + i * 0.6))
-                        bar.Size = UDim2.new(1, 0, h, 0)
-                    end
-                end
-            end
-        end)
-        task.spawn(function()
-            while true do
-                local interval = 60 / math.max(1, StatusState.bpm)
-                task.wait(interval)
-                if beatDot then
-                    beatDot.Size = UDim2.new(0, 22, 0, 22)
-                    TweenService:Create(beatDot, TweenInfo.new(interval * 0.85, Enum.EasingStyle.Quad), { Size = UDim2.new(0, 10, 0, 10) }):Play()
-                end
-            end
-        end)
-        task.spawn(function()
-            local symbols = { "♪", "♫", "♬", "♩" }
-            while true do
-                task.wait(0.7 + math.random() * 0.8)
-                if notesLayer then
-                    local n = Instance.new("TextLabel")
-                    n.Size = UDim2.new(0, 20, 0, 20)
-                    n.Position = UDim2.new(math.random(), 0, 1, 0)
-                    n.BackgroundTransparency = 1
-                    n.Text = symbols[math.random(1, #symbols)]
-                    n.TextColor3 = THEMES[currentThemeName].accent
-                    n.TextTransparency = 0.2
-                    n.Font = Enum.Font.GothamBold
-                    n.TextSize = 14 + math.random(0, 10)
-                    n.Parent = notesLayer
-                    regText(n)
-                    local tw = TweenService:Create(n, TweenInfo.new(3 + math.random()*2, Enum.EasingStyle.Linear), { Position = UDim2.new(n.Position.X.Scale, 0, -0.15, 0), TextTransparency = 1 })
-                    tw:Play()
-                    tw.Completed:Connect(function() n:Destroy() end)
-                end
-            end
-        end)
-        task.spawn(function()
-            while true do
-                task.wait(0.4 + math.random() * 0.5)
-                if particleLayer then
-                    local p = Instance.new("Frame")
-                    local sz = math.random(2, 4)
-                    p.Size = UDim2.new(0, sz, 0, sz)
-                    p.Position = UDim2.new(math.random(), 0, 1, 0)
-                    p.BackgroundColor3 = THEMES[currentThemeName].accent2
-                    p.BackgroundTransparency = 0.3
-                    p.BorderSizePixel = 0
-                    p.Parent = particleLayer
-                    uiCorner(p, UDim.new(1,0))
-                    local tw = TweenService:Create(p, TweenInfo.new(1.5 + math.random(), Enum.EasingStyle.Sine), { Position = UDim2.new(p.Position.X.Scale + (math.random()-0.5)*0.1, 0, -0.05, 0), BackgroundTransparency = 1 })
-                    tw:Play()
-                    tw.Completed:Connect(function() p:Destroy() end)
-                end
-            end
-        end)
     end
 
     local function buildGUI()
@@ -1003,7 +774,7 @@ local function ExecuteArrowScript()
         contentArea.BackgroundTransparency = 1; contentArea.Parent = main
 
         -- ── Tabs ──
-        local tabNames   = { "📋 BINDS", "🎬 MAKER", "👁 PREVIEW", "❤ FAVES", "🎶 LIST", "⚙ SETTINGS", "⚔ COMBAT" }
+        local tabNames   = { "📋 BINDS", "⚙ SETTINGS", "⚔ COMBAT" }
         local pages      = {}
         local tabButtons = {}
         local tabW       = math.floor(MAIN_W / #tabNames)
@@ -1055,72 +826,10 @@ local function ExecuteArrowScript()
             local testBtn = makeBtn(pg1, "▶ TEST", UDim2.new(0,306,0,y), UDim2.new(0,90,0,28), Color3.fromRGB(0,180,230), nil, 11)
             testBtn.MouseButton1Down:Connect(function() playAnim(row.key, row.id, row.speedMult); hitArrow(row.dir); swapFace(row.dir) end)
             testBtn.MouseButton1Up:Connect(function()   stopAnim(row.key); releaseArrow(row.dir); restoreFace() end)
-            local sy = y + 30
-            makeLabel(pg1, "SPD", UDim2.new(0,8,0,sy), UDim2.new(0,32,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-            local spdValLbl = makeLabel(pg1, string.format("x%.2f", row.speedMult), UDim2.new(0,280,0,sy), UDim2.new(0,112,0,22), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 10)
-            regText(spdValLbl)
-            makeSlider(pg1, UDim2.new(0,42,0,sy+2), UDim2.new(0,232,0,14), 0.25, 3, row.speedMult, function(v)
-                row.speedMult = v; spdValLbl.Text = string.format("x%.2f", v)
-                if StatusState.currentAnimName == row.key then StatusState.speedMult = v; if refreshStatusUI then refreshStatusUI() end end
-            end)
         end
-        local idleY = startY + #CurrentBindings * ROW_H + 6
-        makeDivider(pg1, idleY, Color3.fromRGB(255,80,180))
-        local idleTitleLbl = makeLabel(pg1, "🎵 IDLE ANIMATION", UDim2.new(0,8,0,idleY+6), UDim2.new(0,200,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left)
-        regText(idleTitleLbl)
-        local statusLbl = makeLabel(pg1, "● OFF", UDim2.new(0,200,0,idleY+6), UDim2.new(0,196,0,20), Color3.fromRGB(160,80,80), Enum.TextXAlignment.Right)
-        local idleIdBox = makeBox(pg1, UDim2.new(0,8,0,idleY+30), UDim2.new(1,-16,0,28), "Paste idle anim ID...")
-        local loopBtn  = makeBtn(pg1, "⟳ LOOP",  UDim2.new(0,8,0,idleY+64), UDim2.new(0,120,0,28), Color3.fromRGB(70,120,255))
-        local onceBtn  = makeBtn(pg1, "▶ ONCE",  UDim2.new(0,136,0,idleY+64), UDim2.new(0,120,0,28), Color3.fromRGB(60,190,120))
-        local idleStop = makeBtn(pg1, "■ STOP",  UDim2.new(0,264,0,idleY+64), UDim2.new(0,130,0,28), Color3.fromRGB(190,50,50))
-        local function getIdleId() return idleIdBox.Text:gsub("%D","") end
-        loopBtn.MouseButton1Click:Connect(function()
-            local id = getIdleId(); if id == "" then notify("Enter an idle anim ID first", "warn"); return end
-            playIdleLoop(id); statusLbl.Text = "● LOOPING"; statusLbl.TextColor3 = Color3.fromRGB(80,220,120); notify("Idle looping started", "success")
-        end)
-        onceBtn.MouseButton1Click:Connect(function()
-            local id = getIdleId(); if id == "" then notify("Enter an idle anim ID first", "warn"); return end
-            playIdleOnce(id, function() if not idleLooping then statusLbl.Text = "● OFF"; statusLbl.TextColor3 = Color3.fromRGB(160,80,80) end end)
-            statusLbl.Text = "▶ PLAYING"; statusLbl.TextColor3 = Color3.fromRGB(0,200,255)
-        end)
-        idleStop.MouseButton1Click:Connect(function() stopIdle(); statusLbl.Text = "● OFF"; statusLbl.TextColor3 = Color3.fromRGB(160,80,80) end)
-        local bpmY = idleY + 98
-        makeLabel(pg1, "BPM", UDim2.new(0,8,0,bpmY), UDim2.new(0,38,0,28), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 11)
-        local bpmBox = makeBox(pg1, UDim2.new(0,44,0,bpmY), UDim2.new(0,68,0,28), "100", tostring(idleBPM))
-        makeLabel(pg1, "BASE", UDim2.new(0,120,0,bpmY), UDim2.new(0,44,0,28), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-        local baseBox = makeBox(pg1, UDim2.new(0,164,0,bpmY), UDim2.new(0,68,0,28), "100", tostring(BASE_BPM))
-        local applyBpmBtn = makeBtn(pg1, "✓ APPLY", UDim2.new(0,240,0,bpmY), UDim2.new(0,154,0,28), Color3.fromRGB(70,120,255), nil, 11)
-        local bpmSliderY = bpmY + 36
-        makeLabel(pg1, "DRAG", UDim2.new(0,8,0,bpmSliderY), UDim2.new(0,50,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-        local bpmValLbl = makeLabel(pg1, string.format("%d BPM", idleBPM), UDim2.new(0,300,0,bpmSliderY), UDim2.new(0,94,0,22), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 11)
-        regText(bpmValLbl)
-        local bpmSlider = makeSlider(pg1, UDim2.new(0,62,0,bpmSliderY+2), UDim2.new(0,232,0,14), 40, 300, idleBPM, function(v)
-            v = math.floor(v + 0.5); setIdleBPM(v); bpmBox.Text = tostring(v); bpmValLbl.Text = string.format("%d BPM", v)
-        end)
-        bpmBox.FocusLost:Connect(function() local n = tonumber(bpmBox.Text); if n and n > 0 then idleBPM = n; bpmSlider.setValue(n, false); bpmValLbl.Text = string.format("%d BPM", n); setIdleBPM(n) else bpmBox.Text = tostring(idleBPM) end end)
-        baseBox.FocusLost:Connect(function() local n = tonumber(baseBox.Text); if n and n > 0 then BASE_BPM = n else baseBox.Text = tostring(BASE_BPM) end; setIdleBPM(idleBPM) end)
-        applyBpmBtn.MouseButton1Click:Connect(function()
-            local n = tonumber(bpmBox.Text); local b = tonumber(baseBox.Text)
-            if n and n > 0 then idleBPM = n; bpmSlider.setValue(n, false); bpmValLbl.Text = string.format("%d BPM", n) end
-            if b and b > 0 then BASE_BPM = b end
-            setIdleBPM(idleBPM); notify("BPM settings applied", "info")
-        end)
 
-        local vizY = bpmSliderY + 34
+        local vizY = startY + #CurrentBindings * ROW_H + 6
         makeDivider(pg1, vizY, Color3.fromRGB(0,200,255))
-        makeLabel(pg1, "BEAT SYNC", UDim2.new(0,8,0,vizY+6), UDim2.new(0,90,0,18), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-        beatDot = Instance.new("Frame")
-        beatDot.AnchorPoint = Vector2.new(0.5,0.5); beatDot.Size = UDim2.new(0,10,0,10); beatDot.Position = UDim2.new(0,100,0,vizY+15); beatDot.BackgroundColor3 = Color3.fromRGB(255,80,180); beatDot.BorderSizePixel = 0; beatDot.Parent = pg1; uiCorner(beatDot, UDim.new(1,0)); regBg(beatDot)
-        makeLabel(pg1, "EQUALIZER", UDim2.new(0,140,0,vizY+6), UDim2.new(0,100,0,18), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-        local eqHolder = Instance.new("Frame"); eqHolder.Size = UDim2.new(0,120,0,26); eqHolder.Position = UDim2.new(0,140,0,vizY+22); eqHolder.BackgroundTransparency = 1; eqHolder.Parent = pg1
-        local eqLayout = Instance.new("UIListLayout"); eqLayout.FillDirection = Enum.FillDirection.Horizontal; eqLayout.Padding = UDim.new(0,3); eqLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom; eqLayout.Parent = eqHolder
-        eqBars = {}
-        for i = 1, 8 do local bar = Instance.new("Frame"); bar.Size = UDim2.new(0, 10, 0.2, 0); bar.BackgroundColor3 = THEMES[currentThemeName].accent; bar.BorderSizePixel = 0; bar.Parent = eqHolder; uiCorner(bar, UDim.new(0,2)); regBg(bar); table.insert(eqBars, bar) end
-        makeLabel(pg1, "WAVEFORM", UDim2.new(0,270,0,vizY+6), UDim2.new(0,120,0,18), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-        local waveHolder = Instance.new("Frame"); waveHolder.Size = UDim2.new(0,130,0,26); waveHolder.Position = UDim2.new(0,270,0,vizY+22); waveHolder.BackgroundTransparency = 1; waveHolder.Parent = pg1
-        local waveLayout = Instance.new("UIListLayout"); waveLayout.FillDirection = Enum.FillDirection.Horizontal; waveLayout.Padding = UDim.new(0,2); waveLayout.VerticalAlignment = Enum.VerticalAlignment.Center; waveLayout.Parent = waveHolder
-        waveBars = {}
-        for i = 1, 16 do local bar = Instance.new("Frame"); bar.Size = UDim2.new(0, 5, 0.3, 0); bar.BackgroundColor3 = THEMES[currentThemeName].accent2; bar.BorderSizePixel = 0; bar.Parent = waveHolder; uiCorner(bar, UDim.new(0,2)); table.insert(waveBars, bar) end
 
         local statusY = vizY + 60
         makeDivider(pg1, statusY, Color3.fromRGB(255,80,180))
@@ -1133,14 +842,9 @@ local function ExecuteArrowScript()
             statLbl2.Text = string.format("Speed: x%.2f   BPM: %d   State: %s", StatusState.speedMult, StatusState.bpm, StatusState.playing and "PLAYING" or "STOPPED")
         end
         refreshStatusUI()
-
-        -- ============================================================
-        -- TAB 2, 3, 4, 5 (MAKER, PREVIEW, FAVES, LIST)
-        -- (Omitted here for length logic, keeping identical to source)
-        -- ============================================================
         
         -- ============================================================
-        -- TAB 6 : SETTINGS
+        -- TAB 2 : SETTINGS
         -- ============================================================
         local pg6 = pages["⚙ SETTINGS"]
         local legsTitle = makeLabel(pg6, "🦵 LEGS ON GROUND (Optional)", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
@@ -1177,7 +881,7 @@ local function ExecuteArrowScript()
         end
 
         -- ============================================================
-        -- TAB 7 : COMBAT (NEW)
+        -- TAB 3 : COMBAT (NEW)
         -- ============================================================
         local pg7 = pages["⚔ COMBAT"]
         
@@ -1256,16 +960,11 @@ local function ExecuteMovementScript()
     local TaggedUsers = {}
 
     -- ========================================================================================================================
-    -- SILENT HANDSHAKE PROTOCOL & TELEPORTATION
+    -- SILENT HANDSHAKE PROTOCOL & TELEPORTATION (REMOVED CHAT PING)
     -- ========================================================================================================================
     local function PingServerForUsers()
-        pcall(function()
-            if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-                TextChatService.TextChannels.RBXGeneral:SendAsync("[FNF_MOVE_PING]")
-            else
-                ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("[FNF_MOVE_PING]", "All")
-            end
-        end)
+        -- Feature disabled to prevent forced chat messages
+        return
     end
 
     local function CreateNametagForUser(playerObj)
