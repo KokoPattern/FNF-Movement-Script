@@ -1,645 +1,759 @@
-local CoreGui = game:GetService("CoreGui")
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local TextChatService = game:GetService("TextChatService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
-local LocalPlayer = Players.LocalPlayer
+--!nocheck
+--[[
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║             FNF ANIMATION INJECTOR v9.0 (ULTIMATE EXECUTOR ED)          ║
+    ║                                                                         ║
+    ║  + ALL V8.0 FEATURES (Anti-Lag, FX, Sequencer, Maker, RP, Movement)     ║
+    ║  + [FIX] EXECUTOR COMPATIBILITY (Velocity, Synapse V3, Krnl, etc.)      ║
+    ║  + [FIX] SAFE I/O (isfile checks to prevent executor crashing)          ║
+    ║  + [NEW] GET_HUI / COREGUI PROTECTION (Hides UI from game client)       ║
+    ║  + [NEW] ADVANCED AURA SYSTEM (Fixed continuous emission duration)      ║
+    ║  + [NEW] ANTI-CHEAT BYPASS WRAPPERS (Metatable hooks)                   ║
+    ║  + [LUAU] FULLY TYPE-ANNOTATED STRICT LUAU STRUCTURE                    ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]
 
-local PaddingData1 = "ExpandLength"
-local PaddingData2 = "ExpandLength"
-local PaddingData3 = "ExpandLength"
-local PaddingData4 = "ExpandLength"
-local PaddingData5 = "ExpandLength"
-local PaddingData6 = "ExpandLength"
-local PaddingData7 = "ExpandLength"
-local PaddingData8 = "ExpandLength"
-local PaddingData9 = "ExpandLength"
-local PaddingData10 = "ExpandLength"
-local PaddingData11 = "ExpandLength"
-local PaddingData12 = "ExpandLength"
-local PaddingData13 = "ExpandLength"
-local PaddingData14 = "ExpandLength"
-local PaddingData15 = "ExpandLength"
-local PaddingData16 = "ExpandLength"
-local PaddingData17 = "ExpandLength"
-local PaddingData18 = "ExpandLength"
-local PaddingData19 = "ExpandLength"
-local PaddingData20 = "ExpandLength"
-local PaddingData21 = "ExpandLength"
-local PaddingData22 = "ExpandLength"
-local PaddingData23 = "ExpandLength"
-local PaddingData24 = "ExpandLength"
-local PaddingData25 = "ExpandLength"
-local PaddingData26 = "ExpandLength"
-local PaddingData27 = "ExpandLength"
-local PaddingData28 = "ExpandLength"
-local PaddingData29 = "ExpandLength"
-local PaddingData30 = "ExpandLength"
-local PaddingData31 = "ExpandLength"
-local PaddingData32 = "ExpandLength"
-local PaddingData33 = "ExpandLength"
-local PaddingData34 = "ExpandLength"
-local PaddingData35 = "ExpandLength"
-local PaddingData36 = "ExpandLength"
-local PaddingData37 = "ExpandLength"
-local PaddingData38 = "ExpandLength"
-local PaddingData39 = "ExpandLength"
-local PaddingData40 = "ExpandLength"
-local PaddingData41 = "ExpandLength"
-local PaddingData42 = "ExpandLength"
-local PaddingData43 = "ExpandLength"
-local PaddingData44 = "ExpandLength"
-local PaddingData45 = "ExpandLength"
-local PaddingData46 = "ExpandLength"
-local PaddingData47 = "ExpandLength"
-local PaddingData48 = "ExpandLength"
-local PaddingData49 = "ExpandLength"
-local PaddingData50 = "ExpandLength"
-local PaddingData51 = "ExpandLength"
-local PaddingData52 = "ExpandLength"
-local PaddingData53 = "ExpandLength"
-local PaddingData54 = "ExpandLength"
-local PaddingData55 = "ExpandLength"
-local PaddingData56 = "ExpandLength"
-local PaddingData57 = "ExpandLength"
-local PaddingData58 = "ExpandLength"
-local PaddingData59 = "ExpandLength"
-local PaddingData60 = "ExpandLength"
-local PaddingData61 = "ExpandLength"
-local PaddingData62 = "ExpandLength"
-local PaddingData63 = "ExpandLength"
-local PaddingData64 = "ExpandLength"
-local PaddingData65 = "ExpandLength"
-local PaddingData66 = "ExpandLength"
-local PaddingData67 = "ExpandLength"
-local PaddingData68 = "ExpandLength"
-local PaddingData69 = "ExpandLength"
-local PaddingData70 = "ExpandLength"
-local PaddingData71 = "ExpandLength"
-local PaddingData72 = "ExpandLength"
-local PaddingData73 = "ExpandLength"
-local PaddingData74 = "ExpandLength"
-local PaddingData75 = "ExpandLength"
-local PaddingData76 = "ExpandLength"
-local PaddingData77 = "ExpandLength"
-local PaddingData78 = "ExpandLength"
-local PaddingData79 = "ExpandLength"
-local PaddingData80 = "ExpandLength"
-local PaddingData81 = "ExpandLength"
-local PaddingData82 = "ExpandLength"
-local PaddingData83 = "ExpandLength"
-local PaddingData84 = "ExpandLength"
-local PaddingData85 = "ExpandLength"
-local PaddingData86 = "ExpandLength"
-local PaddingData87 = "ExpandLength"
-local PaddingData88 = "ExpandLength"
-local PaddingData89 = "ExpandLength"
-local PaddingData90 = "ExpandLength"
-local PaddingData91 = "ExpandLength"
-local PaddingData92 = "ExpandLength"
-local PaddingData93 = "ExpandLength"
-local PaddingData94 = "ExpandLength"
-local PaddingData95 = "ExpandLength"
-local PaddingData96 = "ExpandLength"
-local PaddingData97 = "ExpandLength"
-local PaddingData98 = "ExpandLength"
-local PaddingData99 = "ExpandLength"
-local PaddingData100 = "ExpandLength"
+if not game:IsLoaded() then game.Loaded:Wait() end
 
-local LauncherGui = Instance.new("ScreenGui")
-LauncherGui.Name = "FNF_Ultimate_Launcher"
-LauncherGui.ResetOnSpawn = false
-LauncherGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-pcall(function()
-    LauncherGui.Parent = CoreGui
-end)
-if not LauncherGui.Parent then
-    LauncherGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-end
-
-local LaunchBtn = Instance.new("TextButton")
-LaunchBtn.Size = UDim2.new(0, 400, 0, 80)
-LaunchBtn.Position = UDim2.new(0.5, -200, 0.1, 0)
-LaunchBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
-LaunchBtn.TextColor3 = Color3.fromRGB(0, 255, 127)
-LaunchBtn.Font = Enum.Font.GothamBold
-LaunchBtn.TextSize = 18
-LaunchBtn.Text = "EXECUTE FULL FNF SUITE"
-LaunchBtn.Parent = LauncherGui
-
-local LCorner = Instance.new("UICorner")
-LCorner.CornerRadius = UDim.new(0, 12)
-LCorner.Parent = LaunchBtn
-
-local LStroke = Instance.new("UIStroke")
-LStroke.Color = Color3.fromRGB(0, 255, 127)
-LStroke.Thickness = 3
-LStroke.Parent = LaunchBtn
-
-local SaveFileName = "FNF_Script_Data_V7.json"
-local UserSettings = {
-    HealthDrainEnabled = false,
-    IntenseModeEnabled = false,
-    CurrentTheme = "Pink",
-    Binds = {
-        LEFT = "Z",
-        DOWN = "X",
-        UP = "C",
-        RIGHT = "V"
-    }
+-- ============================================================
+--  LUAU TYPE DEFINITIONS
+-- ============================================================
+type FxSettings = {
+    EnableAfterimages: boolean,
+    MaxActiveAfterimages: number, 
+    EnableFloatingNotes: boolean,
+    EnableAmbientParticles: boolean,
+    EnableEqualizer: boolean,
+    EnableWaveform: boolean,
+    EnableBeatPulse: boolean,
+    EnableVinylSpin: boolean,
+    EnableCRTMode: boolean,
+    EnableArrowGlows: boolean,
+    EnableArrowStrokeTweens: boolean,
+    VisualizerTickRate: number, 
+    ParticleSpawnRate: number,
+    EnableAuraSystem: boolean,
 }
 
-if isfile and readfile and isfile(SaveFileName) then
-    local ok, data = pcall(function()
-        return HttpService:JSONDecode(readfile(SaveFileName))
-    end)
-    if ok and type(data) == "table" then
-        if data.HealthDrainEnabled ~= nil then
-            UserSettings.HealthDrainEnabled = data.HealthDrainEnabled
-        end
-        if data.IntenseModeEnabled ~= nil then
-            UserSettings.IntenseModeEnabled = data.IntenseModeEnabled
-        end
-        if data.CurrentTheme ~= nil then
-            UserSettings.CurrentTheme = data.CurrentTheme
-        end
-        if data.Binds ~= nil then
-            UserSettings.Binds = data.Binds
-        end
-    end
+type AuraState = {
+    Active: boolean,
+    Color: Color3,
+    Particles: {Part},
+    FixedDuration: number,
+}
+
+type DecalConfig = { id: string, useDecal: boolean }
+
+type BindingAlt = { id: string, chance: number }
+type Binding = {
+    dir: string,
+    key: string,
+    id: string,
+    speedMult: number,
+    holdLoop: boolean,
+    alts: {BindingAlt},
+    keyBtn: TextButton?
+}
+
+type Preset = { name: string, ids: { [string]: string } }
+
+type SyncState = {
+    Enabled: boolean,
+    TargetPlayer: Player?,
+    Connection: RBXScriptConnection?,
+    MimicDelay: number,
+    PushbackEnabled: boolean,
+}
+
+type MovementState = {
+    Enabled: boolean,
+    Style: string,
+    FlightSpeed: number,
+    HoverHeight: number,
+    Shiftlock: boolean,
+    Spinning: boolean,
+    SpinSpeed: number,
+    CurrentSpinAngle: number,
+    BodyVelocity: BodyVelocity?,
+    BodyGyro: BodyGyro?,
+    HoverTime: number,
+    DashEnabled: boolean,
+    DashTarget: Player?,
+    DashOffsetValue: number,
+}
+
+-- ============================================================
+--  EXECUTOR INITIALIZATION & PROTECTIONS
+-- ============================================================
+local gethui: any = (getfenv)().gethui
+local isfile: any = (getfenv)().isfile
+local writefile: any = (getfenv)().writefile
+local readfile: any = (getfenv)().readfile
+
+local function safeGetUIContainer(): Instance
+    if gethui then return gethui() end
+    local core: CoreGui? = game:GetService("CoreGui")
+    if core then return core end
+    return game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
 end
 
-local function SaveDataToFile()
+local is_executor: boolean = (writefile ~= nil)
+local safe_isfile: any = isfile or function(): boolean return false end
+
+-- ============================================================
+--  SERVICES & GLOBALS
+-- ============================================================
+local Players: Players = game:GetService("Players")
+local UserInputService: UserInputService = game:GetService("UserInputService")
+local TweenService: TweenService = game:GetService("TweenService")
+local RunService: RunService = game:GetService("RunService")
+local ReplicatedStorage: ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SoundService: SoundService = game:GetService("SoundService")
+local HttpService: HttpService = game:GetService("HttpService")
+
+local LocalPlayer: Player = Players.LocalPlayer
+local PlayerGui: PlayerGui = LocalPlayer:WaitForChild("PlayerGui") :: PlayerGui
+local SecureGuiParent: Instance = safeGetUIContainer()
+local Camera: Camera = workspace.CurrentCamera
+
+-- ============================================================
+--  ADVANCED PERFORMANCE & FX SETTINGS (THE ANTI-LAG ENGINE)
+-- ============================================================
+local FX_SETTINGS: FxSettings = {
+    EnableAfterimages       = true,
+    MaxActiveAfterimages    = 3, 
+    EnableFloatingNotes     = true,
+    EnableAmbientParticles  = true,
+    EnableEqualizer         = true,
+    EnableWaveform          = true,
+    EnableBeatPulse         = true,
+    EnableVinylSpin         = true,
+    EnableCRTMode           = false,
+    EnableArrowGlows        = true,
+    EnableArrowStrokeTweens = true,
+    VisualizerTickRate      = 0.05, 
+    ParticleSpawnRate       = 0.4,
+    EnableAuraSystem        = true,
+}
+
+local activeAfterimages: number = 0 
+local currentFPS: number = 60       
+local fallbackMicBump: number = 0 
+
+-- ============================================================
+--  [NEW] ADVANCED AURA SYSTEM
+-- ============================================================
+local AURA_STATE: AuraState = {
+    Active = false,
+    Color = Color3.fromRGB(255, 80, 180),
+    Particles = {},
+    FixedDuration = 2.5, 
+}
+
+local function spawnAuraParticle(rootPart: BasePart?)
+    if not FX_SETTINGS.EnableAuraSystem or not rootPart then return end
+    
+    local part: Part = Instance.new("Part")
+    part.Size = Vector3.new(1, 1, 1)
+    part.CFrame = rootPart.CFrame * CFrame.new(math.random(-2,2), math.random(-3,1), math.random(-2,2))
+    part.Anchored = true
+    part.CanCollide = false
+    part.Massless = true
+    part.Material = Enum.Material.Neon
+    part.Color = AURA_STATE.Color
+    part.Transparency = 0.3
+    part.Parent = workspace
+
+    TweenService:Create(part, TweenInfo.new(AURA_STATE.FixedDuration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        CFrame = part.CFrame * CFrame.new(0, 5, 0) * CFrame.Angles(math.rad(math.random(-180, 180)), math.rad(math.random(-180, 180)), 0),
+        Transparency = 1,
+        Size = Vector3.new(0, 0, 0)
+    }):Play()
+
+    task.delay(AURA_STATE.FixedDuration, function()
+        if part then part:Destroy() end
+    end)
+end
+
+-- ============================================================
+--  ULTIMATE EDITION SYSTEMS & DATA SAVING
+-- ============================================================
+local CONFIG_FILE: string = "FNF_Injector_Config_v9.json"
+local BG_DECAL_ID: string = ""
+local uiBgImage: ImageLabel? = nil
+
+local CUSTOM_DECALS: { [string]: DecalConfig } = {
+    LEFT  = { id = "", useDecal = false },
+    DOWN  = { id = "", useDecal = false },
+    UP    = { id = "", useDecal = false },
+    RIGHT = { id = "", useDecal = false },
+}
+
+local SYNC_STATE: SyncState = {
+    Enabled = false,
+    TargetPlayer = nil,
+    Connection = nil,
+    MimicDelay = 0.05,
+    PushbackEnabled = false,
+}
+
+local MOVEMENT_STATE: MovementState = {
+    Enabled = false,
+    Style = "GodEater",
+    FlightSpeed = 45,
+    HoverHeight = 4,
+    Shiftlock = false,
+    Spinning = false,
+    SpinSpeed = 15,
+    CurrentSpinAngle = 0,
+    BodyVelocity = nil,
+    BodyGyro = nil,
+    HoverTime = 0,
+    DashEnabled = false,
+    DashTarget = nil,
+    DashOffsetValue = 0,
+}
+
+-- ============================================================
+--  DEFAULT BINDINGS
+-- ============================================================
+local DEFAULT_BINDINGS = {
+    { dir = "LEFT",  key = "Z", id = "243827693" },
+    { dir = "DOWN",  key = "X", id = "182724289" },
+    { dir = "UP",    key = "C", id = "183412246" },
+    { dir = "RIGHT", key = "V", id = "243656287" },
+}
+local CurrentBindings: {Binding} = {}
+for _, v in ipairs(DEFAULT_BINDINGS) do
+    table.insert(CurrentBindings, { dir = v.dir, key = v.key, id = v.id, speedMult = 1, holdLoop = false, alts = {} })
+end
+
+local PRESETS: {Preset} = {
+    { name = "Default Set",  ids = { LEFT="204062532", DOWN="204292303", UP="183412246", RIGHT="218504594" } },
+    { name = "Preset Slot A",ids = { LEFT="0", DOWN="0", UP="0", RIGHT="0" } },
+    { name = "Preset Slot B",ids = { LEFT="0", DOWN="0", UP="0", RIGHT="0" } },
+}
+
+-- ============================================================
+--  STATE
+-- ============================================================
+local animTracks: { [string]: AnimationTrack } = {}
+local idleTrack: AnimationTrack? = nil
+local connections: { RBXScriptConnection } = {}
+local animator: Animator? = nil
+local character: Model? = nil
+local rebindingRow: Binding? = nil
+local guiVisible: boolean = true
+local idleLooping: boolean = false
+
+local rpModeEnabled: boolean  = false
+local currentTarget: Player?  = nil
+local rpMoveStep: number      = 1.5      
+local rpMinDistance: number   = 3.5      
+local rpPushbackStep: number  = 1.0      
+local rpDodgeEnabled: boolean = false    
+local targetAnimConn: RBXScriptConnection? = nil     
+
+local legsLocked: boolean = false
+local savedWalkSpeed: number = 16
+local savedJumpPower: number = 50
+
+local faceDecal: Decal? = nil
+local defaultFaceId: string? = nil
+local faceIds: { [string]: string } = { LEFT = "", DOWN = "", UP = "", RIGHT = "" }
+
+type SequenceStep = { id: string, delay: number }
+local sequence: {SequenceStep} = {}
+local seqPlaying: boolean = false
+local seqTrack: AnimationTrack? = nil
+local seqRowFrames: {Frame} = {}
+
+type ArrowHudFrame = { bg: Frame, lbl: TextLabel, img: ImageLabel, stroke: UIStroke, glow: Frame }
+local arrowHudFrames: { [string]: ArrowHudFrame } = {}  
+
+local idleBPM: number  = 100  
+local BASE_BPM: number = 58   
+
+local StatusState = {
+    currentAnimName = "—",
+    currentAnimId   = "",
+    speedMult       = 1,
+    bpm             = idleBPM,
+    playing         = false,
+}
+
+type FavoriteAnim = { name: string, id: string }
+local favorites: {FavoriteAnim} = {
+    { name = "Default: Dance",  id = "507771019" },
+    { name = "Default: Dance2", id = "507776043" },
+    { name = "Default: Dance3", id = "507777268" },
+    { name = "Default: Laugh",  id = "507770818" },
+    { name = "Default: Cheer",  id = "507770677" },
+    { name = "Default: Point",  id = "507770453" },
+    { name = "Default: Sit",    id = "2506281703" },
+}
+
+type RecentAnim = { id: string, label: string }
+local recents: {RecentAnim} = {}   
+local RECENTS_CAP: number = 8
+
+type PlaylistTrack = { name: string, id: string, delay: number }
+local playlist: {PlaylistTrack} = {}   
+local playlistIndex: number = 1
+local playlistPlaying: boolean = false
+
+local previewClone: Model? = nil
+local previewAnimator: Animator? = nil
+local previewCam: Camera? = nil
+local previewAngle: number = 0
+local previewCloneContainer: WorldModel? = nil
+
+type Theme = { accent: Color3, accent2: Color3 }
+local THEMES: { [string]: Theme } = {
+    Pink   = { accent = Color3.fromRGB(255, 80, 180), accent2 = Color3.fromRGB(0, 200, 255) },
+    Cyan   = { accent = Color3.fromRGB(0, 200, 255),  accent2 = Color3.fromRGB(255, 80, 180) },
+    Purple = { accent = Color3.fromRGB(165, 85, 255), accent2 = Color3.fromRGB(255, 80, 180) },
+    RGB    = { accent = Color3.fromRGB(255, 0, 0),    accent2 = Color3.fromRGB(0, 255, 255) },
+}
+local currentThemeName: string = "Pink"
+local themedStrokes: {UIStroke} = {}   
+local themedBgs: {GuiObject} = {}   
+local themedTexts: {TextLabel | TextButton} = {}   
+local rgbCycleOn: boolean = false
+
+local vinylImage: ImageLabel? = nil   
+local VINYL_DECAL_ID: string = ""     
+local vinylRotation: number = 0
+local vinylBaseRPM: number = 33.3  
+
+local crtOverlay: Frame? = nil        
+local crtEnabled: boolean = false
+local crtFlickerConn: RBXScriptConnection? = nil
+
+local micDeviceInput: AudioDeviceInput? = nil
+local micAnalyzer: AudioAnalyzer? = nil
+local micWire: Wire? = nil
+local micAvailable: boolean = false
+local specBars: {Frame} = {}
+local SPEC_BAR_COUNT: number = 20
+
+local bpmDetectTaps: {number} = {}   
+local BPM_TAP_WINDOW: number = 8     
+local detectedBPM: number? = nil
+local beatsPerIdleLoop: number = 4
+
+local musicRemote: RemoteEvent? = nil
+local MUSIC_SOUND_NAME: string = "FNFMusicPlayer"
+local musicStatusLbl: TextLabel? = nil 
+local musicRequestTick: number = 0
+
+local PRIORITY = Enum.AnimationPriority.Action
+local FRAME_TARGET: number = 10
+local BLEND_IN: number = 0
+local BLEND_OUT: number = 0.05
+
+type ArrowColor = { idle: Color3, hit: Color3 }
+local ARROW_COLORS: { [string]: ArrowColor } = {
+    LEFT  = { idle = Color3.fromRGB(150, 50, 130), hit = Color3.fromRGB(255, 110, 230) },
+    DOWN  = { idle = Color3.fromRGB(0,  130, 170), hit = Color3.fromRGB(0,   240, 255) },
+    UP    = { idle = Color3.fromRGB(15, 130,  10), hit = Color3.fromRGB(20,  250,   5) },
+    RIGHT = { idle = Color3.fromRGB(160, 35,  35), hit = Color3.fromRGB(255,  90,  90) },
+}
+local ARROW_SYMBOLS = { LEFT = "◄", DOWN = "▼", UP = "▲", RIGHT = "►" }
+
+local ARROW_SIZE: number = 64
+local ARROW_HIT_SIZE: number = 74
+local ARROW_GAP: number = 14
+local ARROW_ORDER = { "LEFT", "DOWN", "UP", "RIGHT" }
+
+local function log(m: any) print("[FNF] "..tostring(m)) end
+
+-- ============================================================
+--  DATA SAVING & LOADING
+-- ============================================================
+local function SaveConfig()
+    local data = {
+        Bindings = CurrentBindings,
+        Theme = currentThemeName,
+        IdleBPM = idleBPM,
+        BaseBPM = BASE_BPM,
+        CustomDecals = CUSTOM_DECALS,
+        BgDecal = BG_DECAL_ID,
+        VinylDecal = VINYL_DECAL_ID,
+        FaceIds = faceIds,
+    }
     if writefile then
-        local ok, data = pcall(function()
-            return HttpService:JSONEncode(UserSettings)
+        pcall(function()
+            writefile(CONFIG_FILE, HttpService:JSONEncode(data))
+            log("Config Saved!")
         end)
-        if ok then
-            writefile(SaveFileName, data)
+    end
+end
+
+local function LoadConfig()
+    if safe_isfile(CONFIG_FILE) and readfile then
+        local ok, result = pcall(function()
+            return HttpService:JSONDecode(readfile(CONFIG_FILE))
+        end)
+        if ok and result then
+            if result.Bindings then CurrentBindings = result.Bindings end
+            if result.Theme then currentThemeName = result.Theme end
+            if result.IdleBPM then idleBPM = result.IdleBPM end
+            if result.BaseBPM then BASE_BPM = result.BaseBPM end
+            if result.CustomDecals then CUSTOM_DECALS = result.CustomDecals end
+            if result.BgDecal then BG_DECAL_ID = result.BgDecal end
+            if result.VinylDecal then VINYL_DECAL_ID = result.VinylDecal end
+            if result.FaceIds then faceIds = result.FaceIds end
+            log("Config Loaded successfully.")
         end
     end
 end
 
-local function ExecuteArrowScript()
-    local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+-- ============================================================
+--  ANIMATOR HELPERS
+-- ============================================================
+local function getAnimator(char: Model): Animator?
+    local hum: Humanoid? = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return nil end
+    local a: Animator? = hum:FindFirstChildOfClass("Animator")
+    if not a then 
+        a = Instance.new("Animator")
+        a.Parent = hum 
+    end
+    return a
+end
 
-    local DEFAULT_BINDINGS = {
-        {
-            dir = "LEFT",
-            key = UserSettings.Binds.LEFT,
-            id = "204062532"
-        },
-        {
-            dir = "DOWN",
-            key = UserSettings.Binds.DOWN,
-            id = "204292303"
-        },
-        {
-            dir = "UP",
-            key = UserSettings.Binds.UP,
-            id = "183412246"
-        },
-        {
-            dir = "RIGHT",
-            key = UserSettings.Binds.RIGHT,
-            id = "218504594"
-        }
+local function destroyTrack(key: string)
+    local t: AnimationTrack? = animTracks[key]
+    if t then 
+        pcall(function() t:Stop(0) end) 
+        pcall(function() t:Destroy() end) 
+        animTracks[key] = nil 
+    end
+end
+
+local function destroyIdleTrack()
+    if idleTrack then 
+        pcall(function() idleTrack:Stop(0) end) 
+        pcall(function() idleTrack:Destroy() end) 
+        idleTrack = nil 
+    end
+    idleLooping = false
+end
+
+local function destroySeqTrack()
+    if seqTrack then 
+        pcall(function() seqTrack:Stop(0) end) 
+        pcall(function() seqTrack:Destroy() end) 
+        seqTrack = nil 
+    end
+end
+
+local function cleanupAll()
+    idleLooping = false
+    seqPlaying = false
+    destroyIdleTrack()
+    destroySeqTrack()
+    for k in pairs(animTracks) do destroyTrack(k) end
+    for _, c in ipairs(connections) do pcall(function() c:Disconnect() end) end
+    connections = {}
+    animator = nil
+    character = nil
+    faceDecal = nil
+    defaultFaceId = nil
+end
+
+-- ============================================================
+--  NOTIFICATION TOASTS 
+-- ============================================================
+local notifyContainer: Frame? = nil
+local function notify(text: string, kind: string?)
+    if not notifyContainer then log("[toast] "..text); return end
+    kind = kind or "info"
+    local colors = {
+        info    = Color3.fromRGB(0, 200, 255),
+        success = Color3.fromRGB(80, 220, 120),
+        warn    = Color3.fromRGB(255, 180, 60),
+        error   = Color3.fromRGB(255, 80, 80),
     }
-    local CurrentBindings = {}
-    for _, v in ipairs(DEFAULT_BINDINGS) do
-        table.insert(CurrentBindings, {
-            dir = v.dir,
-            key = v.key,
-            id = v.id,
-            speedMult = 1
-        })
-    end
+    local toast = Instance.new("Frame")
+    toast.Size = UDim2.new(1, 0, 0, 40)
+    toast.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    toast.BackgroundTransparency = 0.05
+    toast.BorderSizePixel = 0
+    toast.ClipsDescendants = true
+    toast.Parent = notifyContainer
+    
+    local corner = Instance.new("UICorner"); corner.CornerRadius = UDim.new(0,8); corner.Parent = toast
+    local stroke = Instance.new("UIStroke"); stroke.Color = colors[kind] or colors.info; stroke.Thickness = 1.5; stroke.Parent = toast
 
-    local animTracks = {}
-    local idleTrack = nil
-    local connections = {}
-    local animator = nil
-    local character = nil
-    local rebindingRow = nil
-    local guiVisible = true
-    local idleLooping = false
-    local legsLocked = false
-    local savedWalkSpeed = 16
-    local savedJumpPower = 50
-    local faceDecal = nil
-    local defaultFaceId = nil
-    local faceIds = {
-        LEFT = "",
-        DOWN = "",
-        UP = "",
-        RIGHT = ""
-    }
-    local sequence = {}
-    local seqPlaying = false
-    local seqTrack = nil
-    local arrowHudFrames = {}
-    local idleBPM = 100
-    local BASE_BPM = 58
-    local lastArrowTime = tick()
-    local intenseWarningGiven = false
+    local bar = Instance.new("Frame")
+    bar.Size = UDim2.new(0, 4, 1, 0)
+    bar.BackgroundColor3 = colors[kind] or colors.info
+    bar.BorderSizePixel = 0
+    bar.Parent = toast
 
-    local StatusState = {
-        currentAnimName = "---",
-        currentAnimId = "",
-        speedMult = 1,
-        bpm = idleBPM,
-        playing = false
-    }
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -16, 1, 0); lbl.Position = UDim2.new(0, 12, 0, 0)
+    lbl.BackgroundTransparency = 1; lbl.Text = text
+    lbl.TextColor3 = Color3.fromRGB(230,230,240); lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 12; lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.TextWrapped = true; lbl.Parent = toast
 
-    local recents = {}
-    local RECENTS_CAP = 8
-    local playlist = {}
-    local playlistIndex = 1
-    local playlistPlaying = false
-    local previewClone = nil
-    local previewAnimator = nil
+    toast.Position = UDim2.new(1, 20, 0, 0)
+    TweenService:Create(toast, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Position = UDim2.new(0,0,0,0) }):Play()
 
-    local THEMES = {
-        Pink = {
-            accent = Color3.fromRGB(255, 80, 180),
-            accent2 = Color3.fromRGB(0, 200, 255)
-        },
-        Cyan = {
-            accent = Color3.fromRGB(0, 200, 255),
-            accent2 = Color3.fromRGB(255, 80, 180)
-        },
-        Purple = {
-            accent = Color3.fromRGB(165, 85, 255),
-            accent2 = Color3.fromRGB(255, 80, 180)
-        },
-        RGB = {
-            accent = Color3.fromRGB(255, 0, 0),
-            accent2 = Color3.fromRGB(0, 255, 255)
-        }
-    }
-    local currentThemeName = UserSettings.CurrentTheme
-    local themedStrokes = {}
-    local themedBgs = {}
-    local themedTexts = {}
-    local rgbCycleOn = false
-
-    local PRIORITY = Enum.AnimationPriority.Action
-    local FRAME_TARGET = 10
-    local BLEND_IN = 0
-    local BLEND_OUT = 0.05
-    local ARROW_COLORS = {
-        LEFT = {
-            idle = Color3.fromRGB(150, 50, 130),
-            hit = Color3.fromRGB(255, 110, 230)
-        },
-        DOWN = {
-            idle = Color3.fromRGB(0, 130, 170),
-            hit = Color3.fromRGB(0, 240, 255)
-        },
-        UP = {
-            idle = Color3.fromRGB(15, 130, 10),
-            hit = Color3.fromRGB(20, 250, 5)
-        },
-        RIGHT = {
-            idle = Color3.fromRGB(160, 35, 35),
-            hit = Color3.fromRGB(255, 90, 90)
-        }
-    }
-    local ARROW_SYMBOLS = {
-        LEFT = "<",
-        DOWN = "V",
-        UP = "^",
-        RIGHT = ">"
-    }
-    local ARROW_SIZE = 64
-    local ARROW_HIT_SIZE = 74
-    local ARROW_GAP = 14
-    local ARROW_ORDER = {
-        "LEFT",
-        "DOWN",
-        "UP",
-        "RIGHT"
-    }
-
-    local function getAnimator(char)
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if not hum then
-            return nil
-        end
-        local a = hum:FindFirstChildOfClass("Animator")
-        if not a then
-            a = Instance.new("Animator")
-            a.Parent = hum
-        end
-        return a
-    end
-
-    local function destroyTrack(key)
-        local t = animTracks[key]
-        if t then
-            pcall(function()
-                t:Stop(0)
-            end)
-            pcall(function()
-                t:Destroy()
-            end)
-            animTracks[key] = nil
-        end
-    end
-
-    local function destroyIdleTrack()
-        if idleTrack then
-            pcall(function()
-                idleTrack:Stop(0)
-            end)
-            pcall(function()
-                idleTrack:Destroy()
-            end)
-            idleTrack = nil
-        end
-        idleLooping = false
-    end
-
-    local function destroySeqTrack()
-        if seqTrack then
-            pcall(function()
-                seqTrack:Stop(0)
-            end)
-            pcall(function()
-                seqTrack:Destroy()
-            end)
-            seqTrack = nil
-        end
-    end
-
-    local function cleanupAll()
-        idleLooping = false
-        seqPlaying = false
-        destroyIdleTrack()
-        destroySeqTrack()
-        for k in pairs(animTracks) do
-            destroyTrack(k)
-        end
-        for _, c in ipairs(connections) do
-            pcall(function()
-                c:Disconnect()
-            end)
-        end
-        connections = {}
-        animator = nil
-        character = nil
-        faceDecal = nil
-        defaultFaceId = nil
-    end
-
-    local function regStroke(obj)
-        table.insert(themedStrokes, obj)
-        obj.Color = THEMES[currentThemeName].accent
-    end
-
-    local function regBg(obj)
-        table.insert(themedBgs, obj)
-        obj.BackgroundColor3 = THEMES[currentThemeName].accent
-    end
-
-    local function regText(obj)
-        table.insert(themedTexts, obj)
-        obj.TextColor3 = THEMES[currentThemeName].accent
-    end
-
-    local function applyThemeColors(accent)
-        for _, o in ipairs(themedStrokes) do
-            pcall(function()
-                o.Color = accent
-            end)
-        end
-        for _, o in ipairs(themedBgs) do
-            pcall(function()
-                o.BackgroundColor3 = accent
-            end)
-        end
-        for _, o in ipairs(themedTexts) do
-            pcall(function()
-                o.TextColor3 = accent
-            end)
-        end
-    end
-
-    local function setTheme(name)
-        if not THEMES[name] then
-            return
-        end
-        currentThemeName = name
-        UserSettings.CurrentTheme = name
-        SaveDataToFile()
-        rgbCycleOn = (name == "RGB")
-        if not rgbCycleOn then
-            applyThemeColors(THEMES[name].accent)
-        end
-    end
-
-    task.spawn(function()
-        local hue = 0
-        while true do
-            task.wait(0.05)
-            if rgbCycleOn then
-                hue = (hue + 0.006) % 1
-                applyThemeColors(Color3.fromHSV(hue, 0.85, 1))
-            end
-        end
+    task.delay(2.6, function()
+        if not toast or not toast.Parent then return end
+        local t = TweenService:Create(toast, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In), { BackgroundTransparency = 1 })
+        TweenService:Create(lbl, TweenInfo.new(0.2), { TextTransparency = 1 }):Play()
+        TweenService:Create(stroke, TweenInfo.new(0.2), { Transparency = 1 }):Play()
+        t:Play()
+        t.Completed:Connect(function() if toast then toast:Destroy() end end)
     end)
+end
 
-    local function initFace(char)
-        local head = char:FindFirstChild("Head")
-        if not head then
-            return
-        end
-        local d = head:FindFirstChild("face")
-        if not d or d.ClassName ~= "Decal" then
-            return
-        end
-        faceDecal = d
-        defaultFaceId = d.Texture
+-- ============================================================
+--  THEME SYSTEM
+-- ============================================================
+local function regStroke(obj: UIStroke) table.insert(themedStrokes, obj); obj.Color = THEMES[currentThemeName].accent end
+local function regBg(obj: GuiObject) table.insert(themedBgs, obj); obj.BackgroundColor3 = THEMES[currentThemeName].accent end
+local function regText(obj: TextLabel | TextButton) table.insert(themedTexts, obj); obj.TextColor3 = THEMES[currentThemeName].accent end
+
+local function applyThemeColors(accent: Color3)
+    for _, o in ipairs(themedStrokes) do pcall(function() o.Color = accent end) end
+    for _, o in ipairs(themedBgs)     do pcall(function() o.BackgroundColor3 = accent end) end
+    for _, o in ipairs(themedTexts)   do pcall(function() o.TextColor3 = accent end) end
+end
+
+local function setTheme(name: string)
+    if not THEMES[name] then return end
+    currentThemeName = name
+    rgbCycleOn = (name == "RGB")
+    if not rgbCycleOn then
+        applyThemeColors(THEMES[name].accent)
     end
+    SaveConfig()
+    notify("Theme set to "..name, "info")
+end
 
-    local function swapFace(dir)
-        if not faceDecal then
-            return
-        end
-        local id = faceIds[dir]
-        if id and id ~= "" then
-            faceDecal.Texture = "rbxassetid://" .. id
-        end
-    end
-
-    local function restoreFace()
-        if faceDecal and defaultFaceId then
-            faceDecal.Texture = defaultFaceId
-        end
-    end
-
-    local function applyLegsLock(locked)
-        if not character then
-            return
-        end
-        local hum = character:FindFirstChildOfClass("Humanoid")
-        if not hum then
-            return
-        end
-        if locked then
-            savedWalkSpeed = hum.WalkSpeed
-            savedJumpPower = hum.JumpPower
-            hum.WalkSpeed = 0
-            hum.JumpPower = 0
-        else
-            hum.WalkSpeed = savedWalkSpeed
-            hum.JumpPower = savedJumpPower
+task.spawn(function()
+    local hue: number = 0
+    while true do
+        task.wait(0.05)
+        if rgbCycleOn then
+            hue = (hue + 0.006) % 1
+            applyThemeColors(Color3.fromHSV(hue, 0.85, 1))
         end
     end
+end)
 
-    local function BroadcastNetworkMessage(msg)
-        pcall(function()
-            if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-                local channel = TextChatService.TextChannels:FindFirstChild("RBXGeneral")
-                if channel then
-                    channel:SendAsync(msg)
-                end
-            else
-                local ev = ReplicatedStorage:FindFirstChild("DefaultChatSystemChatEvents")
-                if ev then
-                    local req = ev:FindFirstChild("SayMessageRequest")
-                    if req then
-                        req:FireServer(msg, "All")
-                    end
-                end
-            end
+-- ============================================================
+--  FACE SYSTEM
+-- ============================================================
+local function initFace(char: Model)
+    local head = char:FindFirstChild("Head")
+    if not head then return end
+    local d = head:FindFirstChild("face")
+    if not d or d.ClassName ~= "Decal" then return end
+    faceDecal = d :: Decal
+    defaultFaceId = faceDecal.Texture
+end
+
+local function swapFace(dir: string)
+    if not faceDecal then return end
+    local id = faceIds[dir]
+    if id and id ~= "" then
+        faceDecal.Texture = "rbxassetid://"..id
+    end
+end
+
+local function restoreFace()
+    if faceDecal and defaultFaceId then
+        faceDecal.Texture = defaultFaceId
+    end
+end
+
+local function applyLegsLock(locked: boolean)
+    if not character then return end
+    local hum: Humanoid? = character:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+    if locked then
+        savedWalkSpeed = hum.WalkSpeed
+        savedJumpPower = hum.JumpPower
+        hum.WalkSpeed = 0
+        hum.JumpPower = 0
+    else
+        hum.WalkSpeed = savedWalkSpeed
+        hum.JumpPower = savedJumpPower
+    end
+end
+
+local function pushRecent(id: string, label: string?)
+    if not id or id == "" then return end
+    for i = #recents, 1, -1 do
+        if recents[i].id == id then table.remove(recents, i) end
+    end
+    table.insert(recents, 1, { id = id, label = label or id })
+    while #recents > RECENTS_CAP do table.remove(recents) end
+end
+
+local function updatePreviewAnimation(assetId: string, label: string?)
+    StatusState.currentAnimName = label or assetId
+    StatusState.currentAnimId = assetId
+    if not previewAnimator or not assetId or assetId == "" then return end
+    local ok, result = pcall(function()
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://"..assetId
+        local t = previewAnimator:LoadAnimation(anim)
+        t.Priority = Enum.AnimationPriority.Action
+        return t
+    end)
+    if ok and result then
+        for _, t in ipairs(previewAnimator:GetPlayingAnimationTracks()) do t:Stop(0) end
+        result:Play(0.05)
+    end
+end
+
+-- ============================================================
+--  RP TUG-OF-WAR STATE & AUTO-DODGE CONFIG
+-- ============================================================
+local rpRetreatStep: number = 1.2   
+local rpMaxDistance: number = 25.0  
+local targetCharAddedConn: RBXScriptConnection? = nil   
+
+local function stopWatchingTargetAnims()
+    if targetAnimConn then targetAnimConn:Disconnect(); targetAnimConn = nil end
+    if targetCharAddedConn then targetCharAddedConn:Disconnect(); targetCharAddedConn = nil end
+end
+
+local function triggerRetreatOrDodge()
+    if not rpModeEnabled or not currentTarget then return end
+    if not character or not currentTarget.Character then return end
+
+    local myRoot: BasePart? = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+    local targetRoot: BasePart? = currentTarget.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+    if not myRoot or not targetRoot then return end
+
+    if rpDodgeEnabled then
+        local dodgeDir = (math.random() > 0.5) and 1 or -1
+        local dodgeOffset = myRoot.CFrame.RightVector * (3.5 * dodgeDir)
+        TweenService:Create(myRoot, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            CFrame = myRoot.CFrame + dodgeOffset
+        }):Play()
+        notify(dodgeDir == 1 and "Dodged Right!" or "Dodged Left!", "success")
+    else
+        local awayVector = (myRoot.Position - targetRoot.Position)
+        local distance = awayVector.Magnitude
+        if distance <= 0.001 then return end 
+        if distance < rpMaxDistance then
+            local actualStep = math.min(rpRetreatStep, rpMaxDistance - distance)
+            myRoot.CFrame = myRoot.CFrame + (awayVector.Unit * actualStep)
+        end
+    end
+end
+
+local function startWatchingTargetAnims()
+    stopWatchingTargetAnims()
+    if not currentTarget then return end
+
+    local function bindAnimator(targetChar: Model)
+        if not targetChar then return end
+        local hum = targetChar:WaitForChild("Humanoid", 5)
+        if not hum then return end
+        local anr: Animator? = hum:WaitForChild("Animator", 5) or hum:FindFirstChildOfClass("Animator")
+        if not anr then return end
+
+        targetAnimConn = anr.AnimationPlayed:Connect(function(track)
+            if rpModeEnabled then triggerRetreatOrDodge() end
         end)
     end
 
-    local function BroadcastNoteHit()
-        BroadcastNetworkMessage("[FNF_HIT]")
-    end
+    if currentTarget.Character then bindAnimator(currentTarget.Character) end
 
-    local function BroadcastScriptUser()
-        BroadcastNetworkMessage("[FNF_INIT]")
-    end
-
-    local function SetupNetworkListener()
-        local function ParseNetworkMessage(msgText, senderName)
-            local senderPlayer = Players:FindFirstChild(senderName)
-            if not senderPlayer then
-                return
-            end
-
-            if string.match(msgText, "%[FNF_INIT%]") then
-                if senderPlayer ~= LocalPlayer then
-                    local char = senderPlayer.Character
-                    if char then
-                        local head = char:FindFirstChild("Head")
-                        if head then
-                            if not head:FindFirstChild("FNF_USER_ICON") then
-                                local bg = Instance.new("BillboardGui")
-                                bg.Name = "FNF_USER_ICON"
-                                bg.Size = UDim2.new(0, 60, 0, 60)
-                                bg.StudsOffset = Vector3.new(0, 2.5, 0)
-                                bg.AlwaysOnTop = true
-                                bg.Parent = head
-                                local img = Instance.new("ImageLabel")
-                                img.Size = UDim2.new(1, 0, 1, 0)
-                                img.BackgroundTransparency = 1
-                                img.Image = "rbxassetid://7001532174"
-                                img.Parent = bg
-                            end
-                        end
-                    end
-                end
-            end
-
-            if not UserSettings.HealthDrainEnabled then
-                return
-            end
-            
-            if string.match(msgText, "%[FNF_HIT%]") then
-                if senderName ~= LocalPlayer.Name then
-                    local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-                    if hum then
-                        hum.Health = math.clamp(hum.Health - 3, 0, hum.MaxHealth)
-                        local flash = Instance.new("ColorCorrectionEffect")
-                        flash.TintColor = Color3.fromRGB(255, 0, 0)
-                        flash.Parent = game.Lighting
-                        TweenService:Create(flash, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                            TintColor = Color3.fromRGB(255, 255, 255)
-                        }):Play()
-                        task.delay(0.2, function()
-                            flash:Destroy()
-                        end)
-                    end
-                end
-            end
-        end
-
-        pcall(function()
-            if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
-                TextChatService.MessageReceived:Connect(function(msg)
-                    if msg.TextSource then
-                        local sender = Players:GetPlayerByUserId(msg.TextSource.UserId)
-                        if sender then
-                            ParseNetworkMessage(msg.Text, sender.Name)
-                        end
-                    end
-                end)
-            else
-                ReplicatedStorage.DefaultChatSystemChatEvents.OnMessageDoneFiltering.OnClientEvent:Connect(function(msgData)
-                    ParseNetworkMessage(msgData.Message, msgData.FromSpeaker)
-                end)
-            end
-        end)
-    end
-    SetupNetworkListener()
-
-    RunService.Heartbeat:Connect(function()
-        if not UserSettings.IntenseModeEnabled then
-            return
-        end
-        local hum = character and character:FindFirstChild("Humanoid")
-        if hum and hum.Health > 0 and hum.Health <= 20 then
-            local timeSinceLastNote = tick() - lastArrowTime
-            if timeSinceLastNote >= 20 then
-                hum.Health = 0
-            end
-        end
+    targetCharAddedConn = currentTarget.CharacterAdded:Connect(function(newChar)
+        stopWatchingTargetAnims()
+        bindAnimator(newChar)
     end)
+end
 
-    local function playAnim(key, assetId, speedMult)
-        if not animator then
-            return
+local function setTargetPlayer(partialName: string?, isDashTarget: boolean): Player?
+    if not partialName or partialName == "" then
+        if isDashTarget then 
+            MOVEMENT_STATE.DashTarget = nil 
+        else 
+            currentTarget = nil; stopWatchingTargetAnims() 
         end
-        speedMult = speedMult or 1
-        if speedMult <= 0 then
-            speedMult = 0.01
-        end
-        local track = animTracks[key]
-        if not track or not track.Animation or track.Animation.AnimationId ~= "rbxassetid://" .. assetId then
-            destroyTrack(key)
-            local ok, result = pcall(function()
-                local anim = Instance.new("Animation")
-                anim.AnimationId = "rbxassetid://" .. assetId
-                local t = animator:LoadAnimation(anim)
-                t.Priority = PRIORITY
-                t.Looped = false
-                return t
-            end)
-            if not ok then
-                return
+        return nil
+    end
+
+    local lowerName = partialName:lower()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Name:lower():sub(1, #lowerName) == lowerName then
+            if isDashTarget then
+                MOVEMENT_STATE.DashTarget = player
+                if notify then notify("Dash Target locked: " .. player.Name, "success") end
+            else
+                currentTarget = player
+                startWatchingTargetAnims()
+                if notify then notify("Target locked: " .. player.Name, "success") end
             end
-            track = result
-            animTracks[key] = track
+            return player
         end
+    end
+
+    if notify then notify("Player not found.", "warn") end
+    return nil
+end
+
+local function triggerRPMovement()
+    if not rpModeEnabled or not currentTarget then return end
+    if not character or not currentTarget.Character then return end
+
+    local myRoot: BasePart? = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+    local targetRoot: BasePart? = currentTarget.Character:FindFirstChild("HumanoidRootPart") :: BasePart?
+    if not myRoot or not targetRoot then return end
+
+    local direction = (targetRoot.Position - myRoot.Position)
+    local distance = direction.Magnitude
+
+    if distance > rpMinDistance then
+        local actualStep = math.min(rpMoveStep, distance - rpMinDistance)
+        myRoot.CFrame = myRoot.CFrame + (direction.Unit * actualStep)
+    end
+end
+ 
+-- ============================================================
+--  DIRECTIONAL ANIMATION PLAYBACK
+-- ============================================================
+local function playAnim(key: string, assetId: string, speedMult: number?, holdLoop: boolean)
+    if not animator then return end
+    speedMult = speedMult or 1
+    if (speedMult :: number) <= 0 then speedMult = 0.01 end
+    local wantLooped = holdLoop and true or false
+
+    local track = animTracks[key]
+    if not track or not track.Animation
+        or track.Animation.AnimationId ~= "rbxassetid://"..assetId
+        or track.Looped ~= wantLooped then
+        destroyTrack(key)
+        local ok, result = pcall(function()
+            local anim = Instance.new("Animation")
+            anim.AnimationId = "rbxassetid://"..assetId
+            local t = animator:LoadAnimation(anim)
+            t.Priority = PRIORITY; t.Looped = wantLooped
+            return t
+        end)
+        if not ok then warn("[FNF] Load fail: "..assetId); return end
+        track = result; animTracks[key] = track
+    end
+
+    if wantLooped then
+        track:Play(BLEND_IN)
+        track:AdjustSpeed(speedMult)
+    else
         local baseReach = FRAME_TARGET / 60
-        local reach = baseReach / speedMult
+        local reach = baseReach / (speedMult :: number)
         track:Play(BLEND_IN)
         track:AdjustSpeed(track.Length > 0 and (track.Length / reach) or 10)
         task.delay(reach, function()
@@ -648,531 +762,2733 @@ local function ExecuteArrowScript()
                 track.TimePosition = math.max(0, track.Length - 0.01)
             end
         end)
+    end
 
-        StatusState.currentAnimName = key
-        StatusState.currentAnimId = assetId
-        StatusState.speedMult = speedMult
-        StatusState.playing = true
-        
-        lastArrowTime = tick()
-        intenseWarningGiven = false
-        BroadcastNoteHit()
-        
-        if UserSettings.HealthDrainEnabled then
-            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid")
-            if hum then
-                hum.Health = math.clamp(hum.Health + 3, 0, hum.MaxHealth)
+    StatusState.currentAnimName = key
+    StatusState.currentAnimId   = assetId
+    StatusState.speedMult       = speedMult :: number
+    StatusState.playing         = true
+    updatePreviewAnimation(assetId, key)
+    pushRecent(assetId, key)
+end
+
+local function stopAnim(key: string)
+    local t = animTracks[key]
+    if t and t.IsPlaying then t:Stop(BLEND_OUT) end
+    StatusState.playing = false
+end
+
+local function rollBindingAnimId(row: Binding): string
+    if row.alts and #row.alts > 0 then
+        local roll = math.random() * 100
+        local acc = 0
+        for _, alt in ipairs(row.alts) do
+            acc = acc + alt.chance
+            if roll <= acc and alt.id ~= "" then
+                return alt.id
             end
         end
     end
+    return row.id
+end
 
-    local function stopAnim(key)
-        local t = animTracks[key]
-        if t and t.IsPlaying then
-            t:Stop(BLEND_OUT)
-        end
-        StatusState.playing = false
+-- ============================================================
+--  ARROW HUD REACTIONS 
+-- ============================================================
+local function hitArrow(dir: string)
+    local f = arrowHudFrames[dir]
+    if not f then return end
+    TweenService:Create(f.bg, TweenInfo.new(0.05, Enum.EasingStyle.Linear), {
+        BackgroundColor3 = ARROW_COLORS[dir].hit,
+        Size = UDim2.new(0, ARROW_HIT_SIZE, 0, ARROW_HIT_SIZE),
+    }):Play()
+    if f.stroke and FX_SETTINGS.EnableArrowStrokeTweens then
+        TweenService:Create(f.stroke, TweenInfo.new(0.05, Enum.EasingStyle.Linear), { Thickness = 4 }):Play()
     end
-
-    local function hitArrow(dir)
-        local f = arrowHudFrames[dir]
-        if not f then
-            return
-        end
-        TweenService:Create(f.bg, TweenInfo.new(0.05, Enum.EasingStyle.Linear), {
-            BackgroundColor3 = ARROW_COLORS[dir].hit,
-            Size = UDim2.new(0, ARROW_HIT_SIZE, 0, ARROW_HIT_SIZE)
-        }):Play()
-        if f.stroke then
-            TweenService:Create(f.stroke, TweenInfo.new(0.05, Enum.EasingStyle.Linear), {
-                Thickness = 4
-            }):Play()
-        end
-        if f.glow then
-            f.glow.Visible = true
-            TweenService:Create(f.glow, TweenInfo.new(0.05), {
-                BackgroundTransparency = 0.35
-            }):Play()
-        end
+    if f.glow and FX_SETTINGS.EnableArrowGlows then
+        f.glow.Visible = true
+        TweenService:Create(f.glow, TweenInfo.new(0.05), { BackgroundTransparency = 0.35 }):Play()
     end
+end
 
-    local function releaseArrow(dir)
-        local f = arrowHudFrames[dir]
-        if not f then
-            return
-        end
-        TweenService:Create(f.bg, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
-            BackgroundColor3 = ARROW_COLORS[dir].idle,
-            Size = UDim2.new(0, ARROW_SIZE, 0, ARROW_SIZE)
-        }):Play()
-        if f.stroke then
-            TweenService:Create(f.stroke, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
-                Thickness = 2
-            }):Play()
-        end
-        if f.glow then
-            local tw = TweenService:Create(f.glow, TweenInfo.new(0.15), {
-                BackgroundTransparency = 1
-            })
-            tw:Play()
-            tw.Completed:Connect(function()
-                if f.glow then
-                    f.glow.Visible = false
-                end
-            end)
-        end
+local function releaseArrow(dir: string)
+    local f = arrowHudFrames[dir]
+    if not f then return end
+    TweenService:Create(f.bg, TweenInfo.new(0.1, Enum.EasingStyle.Linear), {
+        BackgroundColor3 = ARROW_COLORS[dir].idle,
+        Size = UDim2.new(0, ARROW_SIZE, 0, ARROW_SIZE),
+    }):Play()
+    if f.stroke and FX_SETTINGS.EnableArrowStrokeTweens then
+        TweenService:Create(f.stroke, TweenInfo.new(0.1, Enum.EasingStyle.Linear), { Thickness = 2 }):Play()
     end
+    if f.glow and FX_SETTINGS.EnableArrowGlows then
+        local tw = TweenService:Create(f.glow, TweenInfo.new(0.15), { BackgroundTransparency = 1 })
+        tw:Play()
+        tw.Completed:Connect(function() if f.glow then f.glow.Visible = false end end)
+    else 
+        if f.glow then f.glow.Visible = false end
+    end
+end
 
-    local function onInput(input, _gp)
-        if rebindingRow then
-            local kn = input.KeyCode and input.KeyCode.Name or "Unknown"
-            if input.UserInputState == Enum.UserInputState.Begin and kn ~= "Unknown" and not kn:match("Mouse") then
-                rebindingRow.key = kn
-                rebindingRow.keyBtn.Text = kn
-                rebindingRow.keyBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 45)
-                UserSettings.Binds[rebindingRow.dir] = kn
-                SaveDataToFile()
-                rebindingRow = nil
-            end
-            return
-        end
-        for _, row in ipairs(CurrentBindings) do
-            if input.KeyCode and input.KeyCode.Name == row.key then
-                if input.UserInputState == Enum.UserInputState.Begin then
-                    playAnim(row.key, row.id, row.speedMult)
-                    hitArrow(row.dir)
-                    swapFace(row.dir)
-                elseif input.UserInputState == Enum.UserInputState.End then
-                    stopAnim(row.key)
-                    releaseArrow(row.dir)
-                    restoreFace()
-                end
-            end
+-- ============================================================
+--  ADVANCED AFTERIMAGE HELPER (GARBAGE COLLECTED)
+-- ============================================================
+local function spawnAfterimage(char: Model?)
+    if not char then return end
+    if not FX_SETTINGS.EnableAfterimages then return end
+    
+    if activeAfterimages >= FX_SETTINGS.MaxActiveAfterimages then return end
+    
+    local oldArch = char.Archivable
+    char.Archivable = true
+    
+    activeAfterimages = activeAfterimages + 1
+    local ok, clone = pcall(function() return char:Clone() end)
+    char.Archivable = oldArch
+    
+    if not ok or not clone then 
+        activeAfterimages = activeAfterimages - 1
+        return 
+    end
+    
+    for _, v in ipairs(clone:GetDescendants()) do
+        if v:IsA("Script") or v:IsA("LocalScript") then
+            v:Destroy()
+        elseif v:IsA("BasePart") then
+            v.CanCollide = false
+            v.Anchored = true
+            v.Massless = true
+            v.Material = Enum.Material.ForceField 
+            
+            TweenService:Create(v, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 1}):Play()
+        elseif v:IsA("Decal") or v:IsA("Texture") or v:IsA("SurfaceAppearance") then
+            TweenService:Create(v, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Transparency = 1}):Play()
         end
     end
-
-    local function setupCharacter(char)
-        cleanupAll()
-        character = char
-        pcall(function()
-            character:WaitForChild("HumanoidRootPart", 10)
-        end)
-        animator = getAnimator(char)
-        if not animator then
-            return
-        end
-        initFace(char)
-        if legsLocked then
-            applyLegsLock(true)
-        end
-        table.insert(connections, UserInputService.InputBegan:Connect(onInput))
-        table.insert(connections, UserInputService.InputEnded:Connect(onInput))
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            table.insert(connections, hum.Died:Connect(cleanupAll))
-        end
-    end
-
-    if LocalPlayer.Character then
-        task.spawn(setupCharacter, LocalPlayer.Character)
-    end
-    LocalPlayer.CharacterAdded:Connect(function(c)
-        task.spawn(setupCharacter, c)
+    
+    local root = clone:FindFirstChild("HumanoidRootPart") or clone.PrimaryPart
+    if root then (root :: BasePart).Anchored = true end
+    
+    clone.Parent = workspace
+    
+    task.delay(0.45, function()
+        if clone then clone:Destroy() end
+        activeAfterimages = activeAfterimages - 1
     end)
+end
 
-    local function uiCorner(p, r)
-        local c = Instance.new("UICorner")
-        c.CornerRadius = r or UDim.new(0, 8)
-        c.Parent = p
+-- ============================================================
+--  IDLE ANIMATION
+-- ============================================================
+local function idleSpeedFromBPM(): number
+    if not BASE_BPM or BASE_BPM <= 0 then return 1 end
+    return idleBPM / BASE_BPM
+end
+
+local function loadIdleTrack(assetId: string, shouldLoop: boolean): AnimationTrack?
+    destroyIdleTrack()
+    if not animator then return nil end
+    local ok, result = pcall(function()
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://"..assetId
+        local t = animator:LoadAnimation(anim)
+        t.Priority = Enum.AnimationPriority.Idle; t.Looped = shouldLoop
+        return t
+    end)
+    if not ok then return nil end
+    return result
+end
+
+local function playIdleOnce(assetId: string, cb: () -> ())
+    local t = loadIdleTrack(assetId, false)
+    if not t then return end
+    idleTrack = t; t:Play(0.1)
+    t:AdjustSpeed(idleSpeedFromBPM())
+    updatePreviewAnimation(assetId, "IDLE (once)")
+    t.Stopped:Connect(function() if cb then cb() end end)
+end
+
+local function playIdleLoop(assetId: string)
+    local t = loadIdleTrack(assetId, true)
+    if not t then return end
+    idleTrack = t; idleLooping = true; t:Play(0.1)
+    t:AdjustSpeed(idleSpeedFromBPM())
+    updatePreviewAnimation(assetId, "IDLE (loop)")
+    StatusState.playing = true
+end
+
+local function stopIdle()
+    idleLooping = false
+    if idleTrack and idleTrack.IsPlaying then idleTrack:Stop(0.2) end
+    StatusState.playing = false
+end
+
+local function setIdleBPM(bpm: number)
+    if bpm and bpm > 0 then idleBPM = bpm end
+    StatusState.bpm = idleBPM
+    if idleTrack and idleTrack.IsPlaying then
+        idleTrack:AdjustSpeed(idleSpeedFromBPM())
     end
+end
 
-    local function uiStroke(p, col, th)
-        local s = Instance.new("UIStroke")
-        s.Color = col
-        s.Thickness = th or 1.5
-        s.Parent = p
-        return s
+local function setIdleBaseBPM(bpm: number)
+    if bpm and bpm > 0 then BASE_BPM = bpm end
+    if idleTrack and idleTrack.IsPlaying then
+        idleTrack:AdjustSpeed(idleSpeedFromBPM())
     end
+end
 
-    local function makeLabel(parent, text, pos, size, color, xAlign, ts)
-        local l = Instance.new("TextLabel")
-        l.Size = size
-        l.Position = pos
-        l.BackgroundTransparency = 1
-        l.Text = text
-        l.TextColor3 = color or Color3.fromRGB(180, 180, 180)
-        l.TextSize = ts or 11
-        l.Font = Enum.Font.GothamBold
-        l.TextXAlignment = xAlign or Enum.TextXAlignment.Center
-        l.Parent = parent
-        return l
+-- ============================================================
+--  ANIMATION BPM DETECTOR
+-- ============================================================
+local function registerBpmTap(): number?
+    local now = os.clock()
+    table.insert(bpmDetectTaps, now)
+    while #bpmDetectTaps > BPM_TAP_WINDOW do table.remove(bpmDetectTaps, 1) end
+    if #bpmDetectTaps < 3 then return nil end
+
+    local gaps = {}
+    for i = 2, #bpmDetectTaps do
+        local gap = bpmDetectTaps[i] - bpmDetectTaps[i-1]
+        if gap > 0.08 and gap < 3 then table.insert(gaps, gap) end
     end
+    if #gaps == 0 then return nil end
 
-    local function makeBtn(parent, text, pos, size, bg, tc, ts)
-        local b = Instance.new("TextButton")
-        b.Size = size
-        b.Position = pos
-        b.BackgroundColor3 = bg
-        b.Text = text
-        b.TextColor3 = tc or Color3.fromRGB(255, 255, 255)
-        b.Font = Enum.Font.GothamBold
-        b.TextSize = ts or 12
-        b.BorderSizePixel = 0
-        b.Parent = parent
-        b.AutoButtonColor = false
-        uiCorner(b)
-        return b
+    table.sort(gaps)
+    local median = gaps[math.ceil(#gaps/2)]
+    local sum, count = 0, 0
+    for _, g in ipairs(gaps) do
+        if g < median * 2 and g > median * 0.5 then sum = sum + g; count = count + 1 end
     end
+    if count == 0 then return nil end
+    local avgGap = sum / count
+    detectedBPM = math.floor((60 / avgGap) + 0.5)
+    return detectedBPM
+end
 
-    local function makeDivider(parent, yPos, color)
-        local d = Instance.new("Frame")
-        d.Size = UDim2.new(1, -16, 0, 1)
-        d.Position = UDim2.new(0, 8, 0, yPos)
-        d.BackgroundColor3 = color or Color3.fromRGB(0, 200, 255)
-        d.BorderSizePixel = 0
-        d.Parent = parent
-        return d
+local function detectBpmFromIdleLength(beatsPerLoop: number?): number?
+    beatsPerLoop = beatsPerLoop or beatsPerIdleLoop
+    if not idleTrack or not idleTrack.Length or idleTrack.Length <= 0 then return nil end
+    local bpm = ((beatsPerLoop :: number) * 60) / idleTrack.Length
+    detectedBPM = math.floor(bpm + 0.5)
+    return detectedBPM
+end
+
+-- ============================================================
+--  SHARED MUSIC PLAYER
+-- ============================================================
+local function setupMusicRemote(): boolean
+    local ok, remote = pcall(function()
+        return ReplicatedStorage:WaitForChild("FNFMusicRemote", 8)
+    end)
+    if ok and remote then
+        musicRemote = remote :: RemoteEvent
     end
+    return musicRemote ~= nil
+end
 
-    local function makeBox(parent, pos, size, placeholder, default)
-        local b = Instance.new("TextBox")
-        b.Size = size
-        b.Position = pos
-        b.BackgroundColor3 = Color3.fromRGB(22, 22, 32)
-        b.PlaceholderText = placeholder or ""
-        b.PlaceholderColor3 = Color3.fromRGB(90, 90, 110)
-        b.Text = default or ""
-        b.TextColor3 = Color3.fromRGB(255, 255, 255)
-        b.ClearTextOnFocus = false
-        b.Font = Enum.Font.Code
-        b.TextSize = 11
-        b.Parent = parent
-        uiCorner(b)
-        return b
+local function setMusicStatus(text: string, color: Color3?)
+    if musicStatusLbl then
+        musicStatusLbl.Text = text
+        if color then musicStatusLbl.TextColor3 = color end
     end
+end
 
-    local function buildArrowHud()
-        local old = PlayerGui:FindFirstChild("FNFArrowHud")
-        if old then
-            old:Destroy()
-        end
-        local sg = Instance.new("ScreenGui")
-        sg.Name = "FNFArrowHud"
-        sg.ResetOnSpawn = false
-        sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        sg.Parent = PlayerGui
-        local totalW = #ARROW_ORDER * ARROW_SIZE + (#ARROW_ORDER - 1) * ARROW_GAP
-        local bottomY = 50
-        for i, dir in ipairs(ARROW_ORDER) do
-            local colors = ARROW_COLORS[dir]
-            local cx = -totalW / 2 + (i - 1) * (ARROW_SIZE + ARROW_GAP) + ARROW_SIZE / 2
-            local cy = -(ARROW_SIZE / 2 + bottomY)
-            local bg = Instance.new("Frame")
-            bg.AnchorPoint = Vector2.new(0.5, 0.5)
-            bg.Size = UDim2.new(0, ARROW_SIZE, 0, ARROW_SIZE)
-            bg.Position = UDim2.new(0.5, cx, 1, cy)
-            bg.BackgroundColor3 = colors.idle
-            bg.BorderSizePixel = 0
-            bg.Parent = sg
-            uiCorner(bg, UDim.new(0, 10))
-            local stroke = uiStroke(bg, Color3.fromRGB(255, 255, 255), 2)
-            local glow = Instance.new("Frame")
-            glow.Size = UDim2.new(1, 0, 1, 0)
-            glow.BackgroundTransparency = 0.7
-            glow.BackgroundColor3 = colors.hit
-            glow.BorderSizePixel = 0
-            glow.Parent = bg
-            uiCorner(glow, UDim.new(0, 10))
-            glow.Visible = false
-            local lbl = Instance.new("TextLabel")
-            lbl.Size = UDim2.new(1, 0, 1, 0)
-            lbl.BackgroundTransparency = 1
-            lbl.Text = ARROW_SYMBOLS[dir]
-            lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-            lbl.TextSize = 26
-            lbl.Font = Enum.Font.GothamBold
-            lbl.Parent = bg
-            arrowHudFrames[dir] = {
-                bg = bg,
-                lbl = lbl,
-                stroke = stroke,
-                glow = glow
-            }
-        end
-    end
-
-    local function buildGUI()
-        local old = PlayerGui:FindFirstChild("FNFInjectorGui")
-        if old then
-            old:Destroy()
-        end
-
-        local sg = Instance.new("ScreenGui")
-        sg.Name = "FNFInjectorGui"
-        sg.ResetOnSpawn = false
-        sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-        sg.Parent = PlayerGui
-
-        local MAIN_W, MAIN_H = 430, 600
-        local main = Instance.new("Frame")
-        main.Name = "Main"
-        main.Size = UDim2.new(0, MAIN_W, 0, MAIN_H)
-        main.Position = UDim2.new(0, 60, 0, 60)
-        main.BackgroundColor3 = Color3.fromRGB(13, 13, 18)
-        main.BorderSizePixel = 0
-        main.Active = true
-        main.Draggable = true
-        main.Parent = sg
-        uiCorner(main, UDim.new(0, 10))
-        local mainStroke = uiStroke(main, Color3.fromRGB(255, 80, 180), 2)
-        regStroke(mainStroke)
-
-        local titleBar = Instance.new("Frame")
-        titleBar.Size = UDim2.new(1, 0, 0, 36)
-        titleBar.BackgroundColor3 = Color3.fromRGB(22, 8, 32)
-        titleBar.BorderSizePixel = 0
-        titleBar.Parent = main
-        uiCorner(titleBar, UDim.new(0, 10))
-
-        local titleLbl = makeLabel(titleBar, "FNF ANIM INJECTOR", UDim2.new(0, 12, 0, 0), UDim2.new(1, -80, 1, 0), Color3.fromRGB(255, 80, 180), Enum.TextXAlignment.Left, 13)
-        regText(titleLbl)
-
-        local toggleBtn = makeBtn(titleBar, "HIDE", UDim2.new(1, -68, 0, 5), UDim2.new(0, 60, 0, 26), Color3.fromRGB(255, 80, 180))
-        regBg(toggleBtn)
-
-        local TAB_H = 32
-        local tabBar = Instance.new("Frame")
-        tabBar.Size = UDim2.new(1, 0, 0, TAB_H)
-        tabBar.Position = UDim2.new(0, 0, 0, 36)
-        tabBar.BackgroundColor3 = Color3.fromRGB(18, 8, 28)
-        tabBar.BorderSizePixel = 0
-        tabBar.Parent = main
-
-        local contentArea = Instance.new("Frame")
-        contentArea.Size = UDim2.new(1, 0, 1, -(36 + TAB_H))
-        contentArea.Position = UDim2.new(0, 0, 0, 36 + TAB_H)
-        contentArea.BackgroundTransparency = 1
-        contentArea.Parent = main
-
-        local tabNames = {
-            "BINDS",
-            "SETTINGS",
-            "COMBAT"
-        }
-        local pages = {}
-        local tabButtons = {}
-        local tabW = math.floor(MAIN_W / #tabNames)
-
-        for i, name in ipairs(tabNames) do
-            local page = Instance.new("ScrollingFrame")
-            page.Size = UDim2.new(1, 0, 1, 0)
-            page.BackgroundTransparency = 1
-            page.ScrollBarThickness = 4
-            page.CanvasSize = UDim2.new(0, 0, 0, 0)
-            page.AutomaticCanvasSize = Enum.AutomaticSize.Y
-            page.Visible = (i == 1)
-            page.Parent = contentArea
-            pages[name] = page
-
-            local tb = makeBtn(tabBar, name, UDim2.new(0, (i - 1) * tabW, 0, 0), UDim2.new(0, tabW, 1, 0), i == 1 and Color3.fromRGB(255, 80, 180) or Color3.fromRGB(28, 12, 42), nil, 8)
-            tabButtons[name] = tb
-            if i == 1 then
-                regBg(tb)
-            end
-            tb.MouseButton1Click:Connect(function()
-                for n, p in pairs(pages) do
-                    p.Visible = (n == name)
-                end
-                for n, btn in pairs(tabButtons) do
-                    local isActive = (n == name)
-                    btn.BackgroundColor3 = isActive and THEMES[currentThemeName].accent or Color3.fromRGB(28, 12, 42)
-                    for j = #themedBgs, 1, -1 do
-                        if themedBgs[j] == btn then
-                            table.remove(themedBgs, j)
-                        end
-                    end
-                    if isActive then
-                        regBg(btn)
-                    end
-                end
-            end)
-        end
-
-        local pg1 = pages["BINDS"]
-        makeLabel(pg1, "DIR", UDim2.new(0, 8, 0, 6), UDim2.new(0, 36, 0, 20), Color3.fromRGB(255, 80, 180))
-        makeLabel(pg1, "KEY", UDim2.new(0, 48, 0, 6), UDim2.new(0, 62, 0, 20), Color3.fromRGB(255, 80, 180))
-        makeLabel(pg1, "ANIM ID", UDim2.new(0, 116, 0, 6), UDim2.new(0, 180, 0, 20), Color3.fromRGB(255, 80, 180))
-        makeLabel(pg1, "TEST", UDim2.new(0, 308, 0, 6), UDim2.new(0, 90, 0, 20), Color3.fromRGB(255, 80, 180))
-        makeDivider(pg1, 28, Color3.fromRGB(0, 200, 255))
-        local ROW_H, startY = 62, 36
-        for i, row in ipairs(CurrentBindings) do
-            local y = startY + (i - 1) * ROW_H
-            local dirColor = ARROW_COLORS[row.dir] and ARROW_COLORS[row.dir].hit or Color3.fromRGB(255, 255, 255)
-            makeLabel(pg1, row.dir, UDim2.new(0, 8, 0, y), UDim2.new(0, 36, 0, 28), dirColor)
-            local keyBtn = makeBtn(pg1, row.key, UDim2.new(0, 48, 0, y), UDim2.new(0, 60, 0, 28), Color3.fromRGB(25, 35, 48))
-            row.keyBtn = keyBtn
-            keyBtn.MouseButton1Click:Connect(function()
-                rebindingRow = row
-                keyBtn.Text = "..."
-                keyBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 255)
-            end)
-            local idBox = makeBox(pg1, UDim2.new(0, 116, 0, y), UDim2.new(0, 180, 0, 28), "anim id", row.id)
-            idBox.FocusLost:Connect(function()
-                local n = idBox.Text:gsub("%D", "")
-                if n ~= "" then
-                    row.id = n
-                    destroyTrack(row.key)
-                else
-                    idBox.Text = row.id
-                end
-            end)
-            local testBtn = makeBtn(pg1, "TEST", UDim2.new(0, 306, 0, y), UDim2.new(0, 90, 0, 28), Color3.fromRGB(0, 180, 230), nil, 11)
-            testBtn.MouseButton1Down:Connect(function()
-                playAnim(row.key, row.id, row.speedMult)
-                hitArrow(row.dir)
-                swapFace(row.dir)
-            end)
-            testBtn.MouseButton1Up:Connect(function()
-                stopAnim(row.key)
-                releaseArrow(row.dir)
-                restoreFace()
-            end)
-        end
-
-        local pg6 = pages["SETTINGS"]
-        local legsTitle = makeLabel(pg6, "LEGS ON GROUND", UDim2.new(0, 8, 0, 8), UDim2.new(1, -16, 0, 20), Color3.fromRGB(255, 80, 180), Enum.TextXAlignment.Left, 12)
-        regText(legsTitle)
-        makeDivider(pg6, 30, Color3.fromRGB(0, 200, 255))
-        local legsBtn = makeBtn(pg6, "LEGS UNLOCKED (OFF)", UDim2.new(0, 8, 0, 48), UDim2.new(1, -16, 0, 32), Color3.fromRGB(35, 35, 55), nil, 11)
-        legsBtn.MouseButton1Click:Connect(function()
-            legsLocked = not legsLocked
-            applyLegsLock(legsLocked)
-            if legsLocked then
-                legsBtn.Text = "LEGS LOCKED (ON)"
-                legsBtn.BackgroundColor3 = THEMES[currentThemeName].accent
-            else
-                legsBtn.Text = "LEGS UNLOCKED (OFF)"
-                legsBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
-            end
-        end)
-        makeDivider(pg6, 114, Color3.fromRGB(255, 80, 180))
-        local faceTitle = makeLabel(pg6, "DYNAMIC FACE IDs", UDim2.new(0, 8, 0, 120), UDim2.new(1, -16, 0, 20), Color3.fromRGB(255, 80, 180), Enum.TextXAlignment.Left, 12)
-        regText(faceTitle)
-        local faceOrder = {
-            "LEFT",
-            "DOWN",
-            "UP",
-            "RIGHT"
-        }
-        for i, dir in ipairs(faceOrder) do
-            local y = 144 + (i - 1) * 38
-            local col = ARROW_COLORS[dir] and ARROW_COLORS[dir].hit or Color3.fromRGB(255, 255, 255)
-            makeLabel(pg6, dir, UDim2.new(0, 8, 0, y), UDim2.new(0, 52, 0, 28), col, Enum.TextXAlignment.Left)
-            local fb = makeBox(pg6, UDim2.new(0, 66, 0, y), UDim2.new(1, -74, 0, 28), "Face decal ID for " .. dir, faceIds[dir])
-            local capturedDir = dir
-            fb.FocusLost:Connect(function()
-                faceIds[capturedDir] = fb.Text:gsub("%D", "")
-            end)
-        end
-        makeDivider(pg6, 300, Color3.fromRGB(0, 200, 255))
-        local themeTitle = makeLabel(pg6, "THEME", UDim2.new(0, 8, 0, 306), UDim2.new(1, -16, 0, 20), Color3.fromRGB(255, 80, 180), Enum.TextXAlignment.Left, 12)
-        regText(themeTitle)
-        local themeNames = {
-            "Pink",
-            "Cyan",
-            "Purple",
-            "RGB"
-        }
-        local themeSwatch = {
-            Pink = Color3.fromRGB(255, 80, 180),
-            Cyan = Color3.fromRGB(0, 200, 255),
-            Purple = Color3.fromRGB(165, 85, 255),
-            RGB = Color3.fromRGB(255, 255, 255)
-        }
-        for i, tn in ipairs(themeNames) do
-            local tx = 8 + (i - 1) * 104
-            local tbtn = makeBtn(pg6, tn, UDim2.new(0, tx, 0, 336), UDim2.new(0, 96, 0, 32), themeSwatch[tn], Color3.fromRGB(20, 20, 20), 11)
-            tbtn.MouseButton1Click:Connect(function()
-                setTheme(tn)
-            end)
-        end
-
-        local pg7 = pages["COMBAT"]
-        local combatTitle = makeLabel(pg7, "COMBAT & HEALTH DRAIN", UDim2.new(0, 8, 0, 8), UDim2.new(1, -16, 0, 20), Color3.fromRGB(255, 80, 180), Enum.TextXAlignment.Left, 12)
-        regText(combatTitle)
-        makeDivider(pg7, 30, Color3.fromRGB(0, 200, 255))
-
-        local hdBtn = makeBtn(pg7, "HEALTH DRAIN (OFF)", UDim2.new(0, 8, 0, 48), UDim2.new(1, -16, 0, 32), Color3.fromRGB(35, 35, 55), nil, 11)
-        
-        local function UpdateHealthDrainUI()
-            if UserSettings.HealthDrainEnabled then
-                hdBtn.Text = "HEALTH DRAIN (ON)"
-                hdBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
-            else
-                hdBtn.Text = "HEALTH DRAIN (OFF)"
-                hdBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
-            end
-        end
-        UpdateHealthDrainUI()
-
-        hdBtn.MouseButton1Click:Connect(function()
-            UserSettings.HealthDrainEnabled = not UserSettings.HealthDrainEnabled
-            SaveDataToFile()
-            UpdateHealthDrainUI()
-        end)
-
-        makeDivider(pg7, 124, Color3.fromRGB(255, 80, 180))
-        local intenseTitle = makeLabel(pg7, "INTENSE MODE", UDim2.new(0, 8, 0, 130), UDim2.new(1, -16, 0, 20), Color3.fromRGB(255, 80, 180), Enum.TextXAlignment.Left, 12)
-        regText(intenseTitle)
-        
-        local imBtn = makeBtn(pg7, "INTENSE MODE (OFF)", UDim2.new(0, 8, 0, 160), UDim2.new(1, -16, 0, 32), Color3.fromRGB(35, 35, 55), nil, 11)
-        
-        local function UpdateIntenseModeUI()
-            if UserSettings.IntenseModeEnabled then
-                imBtn.Text = "INTENSE MODE (ON)"
-                imBtn.BackgroundColor3 = Color3.fromRGB(255, 120, 0)
-                lastArrowTime = tick()
-            else
-                imBtn.Text = "INTENSE MODE (OFF)"
-                imBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 55)
-            end
-        end
-        UpdateIntenseModeUI()
-
-        imBtn.MouseButton1Click:Connect(function()
-            UserSettings.IntenseModeEnabled = not UserSettings.IntenseModeEnabled
-            SaveDataToFile()
-            UpdateIntenseModeUI()
-        end)
-
-        toggleBtn.MouseButton1Click:Connect(function()
-            guiVisible = not guiVisible
-            contentArea.Visible = guiVisible
-            tabBar.Visible = guiVisible
-            toggleBtn.Text = guiVisible and "HIDE" or "SHOW"
-        end)
-
-        setTheme(UserSettings.CurrentTheme)
-        return sg
-    end
-
-    buildArrowHud()
-    buildGUI()
+local function watchMusicStatus(expectedId: string)
     task.spawn(function()
-        task.wait(2)
-        BroadcastScriptUser()
-        while true do
-            task.wait(15)
-            BroadcastScriptUser()
+        local myTick = musicRequestTick
+        local deadline = os.clock() + 8
+        local snd: Sound? = nil
+        while os.clock() < deadline and myTick == musicRequestTick do
+            snd = SoundService:FindFirstChild(MUSIC_SOUND_NAME) :: Sound?
+            if snd and snd.SoundId:find(expectedId, 1, true) then break end
+            task.wait(0.2)
+        end
+        if myTick ~= musicRequestTick then return end 
+
+        if not snd or not snd.SoundId:find(expectedId, 1, true) then
+            setMusicStatus("✖ NO SERVER SCRIPT FOUND", Color3.fromRGB(255,80,80))
+            return
+        end
+
+        local loadDeadline = os.clock() + 6
+        while os.clock() < loadDeadline and myTick == musicRequestTick do
+            if snd.IsLoaded then break end
+            task.wait(0.15)
+        end
+        if myTick ~= musicRequestTick then return end
+
+        if snd.IsLoaded and snd.IsPlaying then
+            setMusicStatus("✔ PLAYING — allowed in this game", Color3.fromRGB(80,220,120))
+        elseif snd.IsLoaded then
+            setMusicStatus("● loaded, not playing", Color3.fromRGB(255,180,60))
+        else
+            setMusicStatus("✖ NOT PLAYABLE HERE (blocked/private asset)", Color3.fromRGB(255,80,80))
         end
     end)
 end
 
-LaunchBtn.MouseButton1Click:Connect(function()
-    LaunchBtn.Text = "INJECTING..."
-    LaunchBtn.BackgroundColor3 = Color3.fromRGB(46, 204, 113)
-    task.delay(0.5, function()
-        ExecuteArrowScript()
-        LauncherGui:Destroy()
+local function playMusicTrack(id: string)
+    if not musicRemote then
+        setMusicStatus("✖ NO SERVER SCRIPT FOUND", Color3.fromRGB(255,80,80))
+        return
+    end
+    musicRequestTick = musicRequestTick + 1
+    setMusicStatus("⏳ requesting...", Color3.fromRGB(0,200,255))
+    musicRemote:FireServer("play", id)
+    watchMusicStatus(id)
+end
+
+local function stopMusicTrack()
+    if not musicRemote then return end
+    musicRequestTick = musicRequestTick + 1
+    musicRemote:FireServer("stop")
+    setMusicStatus("● stopped", Color3.fromRGB(160,80,80))
+end
+
+-- ============================================================
+--  ANIMATION SEQUENCE MAKER
+-- ============================================================
+local function playSequence()
+    if seqPlaying or #sequence == 0 or not animator then return end
+    seqPlaying = true
+    task.spawn(function()
+        for _, step in ipairs(sequence) do
+            if not seqPlaying then break end
+            if step.id and step.id ~= "" then
+                destroySeqTrack()
+                local ok, result = pcall(function()
+                    local anim = Instance.new("Animation")
+                    anim.AnimationId = "rbxassetid://"..step.id
+                    local t = animator:LoadAnimation(anim)
+                    t.Priority = PRIORITY; t.Looped = false
+                    return t
+                end)
+                if ok then
+                    seqTrack = result; (seqTrack :: AnimationTrack):Play(0)
+                    updatePreviewAnimation(step.id, "SEQUENCE")
+                end
+            end
+            task.wait(math.max(0.01, step.delay or 0.5))
+        end
+        destroySeqTrack()
+        seqPlaying = false
+    end)
+end
+
+local function stopSequence()
+    seqPlaying = false
+    destroySeqTrack()
+end
+
+-- ============================================================
+--  PLAYLIST MANAGER
+-- ============================================================
+local function playPlaylist()
+    if playlistPlaying or #playlist == 0 or not animator then return end
+    playlistPlaying = true
+    task.spawn(function()
+        while playlistPlaying do
+            local step = playlist[playlistIndex]
+            if step and step.id and step.id ~= "" then
+                destroySeqTrack()
+                local ok, result = pcall(function()
+                    local anim = Instance.new("Animation")
+                    anim.AnimationId = "rbxassetid://"..step.id
+                    local t = animator:LoadAnimation(anim)
+                    t.Priority = PRIORITY; t.Looped = false
+                    return t
+                end)
+                if ok then
+                    seqTrack = result; (seqTrack :: AnimationTrack):Play(0)
+                    updatePreviewAnimation(step.id, step.name or ("Playlist #"..playlistIndex))
+                end
+            end
+            task.wait(math.max(0.05, (step and step.delay) or 1))
+            if not playlistPlaying then break end
+            playlistIndex = playlistIndex + 1
+            if playlistIndex > #playlist then playlistIndex = 1 end
+        end
+        destroySeqTrack()
+    end)
+end
+
+local function stopPlaylist()
+    playlistPlaying = false
+    destroySeqTrack()
+end
+
+local function nextPlaylistTrack()
+    if #playlist == 0 then return end
+    playlistIndex = playlistIndex + 1
+    if playlistIndex > #playlist then playlistIndex = 1 end
+end
+
+local function prevPlaylistTrack()
+    if #playlist == 0 then return end
+    playlistIndex = playlistIndex - 1
+    if playlistIndex < 1 then playlistIndex = #playlist end
+end
+
+-- ============================================================
+--  [NEW] DOUBLE TROUBLE SYNC SYSTEM LOGIC WITH PUSHBACK
+-- ============================================================
+local function stopDoubleTrouble()
+    SYNC_STATE.Enabled = false
+    if SYNC_STATE.Connection then
+        SYNC_STATE.Connection:Disconnect()
+        SYNC_STATE.Connection = nil
+    end
+    SYNC_STATE.TargetPlayer = nil
+    notify("Double Trouble Sync Offline", "error")
+end
+
+local function startDoubleTrouble(playerName: string)
+    stopDoubleTrouble()
+    if playerName == "" then return end
+    
+    local lowerName = playerName:lower()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Name:lower():sub(1, #lowerName) == lowerName then
+            SYNC_STATE.TargetPlayer = p
+            break
+        end
+    end
+    
+    if not SYNC_STATE.TargetPlayer then
+        notify("Player not found for Sync!", "warn")
+        return
+    end
+    
+    local function bindToTargetAnimator(targetChar: Model)
+        local hum = targetChar:WaitForChild("Humanoid", 5) :: Humanoid?
+        local targetAnimator = hum and hum:WaitForChild("Animator", 5) :: Animator?
+        if not targetAnimator then return end
+        
+        SYNC_STATE.Enabled = true
+        notify("Double Trouble Synced to: " .. SYNC_STATE.TargetPlayer.Name, "success")
+        
+        SYNC_STATE.Connection = targetAnimator.AnimationPlayed:Connect(function(track)
+            if not SYNC_STATE.Enabled then return end
+            
+            local id = track.Animation.AnimationId:match("%d+")
+            if not id then return end
+            
+            local randomDir = ARROW_ORDER[math.random(1, #ARROW_ORDER)]
+            
+            task.delay(SYNC_STATE.MimicDelay, function()
+                playAnim("SYNC_MIMIC", id, 1, false)
+                hitArrow(randomDir)
+                task.delay(0.2, function() releaseArrow(randomDir) end)
+
+                if SYNC_STATE.PushbackEnabled and character and targetChar then
+                    local myRoot = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+                    local trRoot = targetChar:FindFirstChild("HumanoidRootPart") :: BasePart?
+                    if myRoot and trRoot then
+                        local awayVector = (myRoot.Position - trRoot.Position)
+                        local distance = awayVector.Magnitude
+                        if distance > 0.1 and distance < rpMaxDistance then
+                            local actualStep = math.min(rpRetreatStep, rpMaxDistance - distance)
+                            myRoot.CFrame = myRoot.CFrame + (awayVector.Unit * actualStep)
+                        end
+                    end
+                end
+            end)
+        end)
+    end
+    
+    if SYNC_STATE.TargetPlayer.Character then
+        bindToTargetAnimator(SYNC_STATE.TargetPlayer.Character)
+    end
+    
+    SYNC_STATE.TargetPlayer.CharacterAdded:Connect(function(char)
+        if SYNC_STATE.Enabled then bindToTargetAnimator(char) end
+    end)
+end
+
+-- ============================================================
+--  [NEW] MOVEMENT ENGINE LOGIC & DASH MECHANIC
+-- ============================================================
+local function cleanupMovement()
+    if MOVEMENT_STATE.BodyVelocity then MOVEMENT_STATE.BodyVelocity:Destroy(); MOVEMENT_STATE.BodyVelocity = nil end
+    if MOVEMENT_STATE.BodyGyro then MOVEMENT_STATE.BodyGyro:Destroy(); MOVEMENT_STATE.BodyGyro = nil end
+    if character and character:FindFirstChildOfClass("Humanoid") then
+        local hum: Humanoid = character:FindFirstChildOfClass("Humanoid") :: Humanoid
+        hum.PlatformStand = false
+    end
+end
+
+local function toggleMovement(state: boolean)
+    MOVEMENT_STATE.Enabled = state
+    if not state then
+        cleanupMovement()
+        notify("Movement Engine Offline", "error")
+        return
+    end
+    
+    if not character then return end
+    local root: BasePart? = character:FindFirstChild("HumanoidRootPart") :: BasePart?
+    local hum: Humanoid? = character:FindFirstChildOfClass("Humanoid")
+    if not root or not hum then return end
+    
+    cleanupMovement()
+    hum.PlatformStand = true 
+    
+    local bv = Instance.new("BodyVelocity")
+    bv.MaxForce = Vector3.new(100000, 100000, 100000)
+    bv.Velocity = Vector3.new(0,0,0)
+    bv.Parent = root
+    MOVEMENT_STATE.BodyVelocity = bv
+    
+    local bg = Instance.new("BodyGyro")
+    bg.MaxTorque = Vector3.new(100000, 100000, 100000)
+    bg.P = 15000
+    bg.CFrame = root.CFrame
+    bg.Parent = root
+    MOVEMENT_STATE.BodyGyro = bg
+    
+    notify(MOVEMENT_STATE.Style .. " Movement Active!", "success")
+end
+
+RunService.RenderStepped:Connect(function(deltaTime: number)
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local root: BasePart = character:FindFirstChild("HumanoidRootPart") :: BasePart
+    
+    if MOVEMENT_STATE.Spinning then
+        MOVEMENT_STATE.CurrentSpinAngle = (MOVEMENT_STATE.CurrentSpinAngle + (MOVEMENT_STATE.SpinSpeed * deltaTime * 60)) % 360
+        if not MOVEMENT_STATE.Enabled then
+            root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, math.rad(MOVEMENT_STATE.CurrentSpinAngle), 0)
+        end
+    end
+
+    local dashVelocity = Vector3.new()
+    if MOVEMENT_STATE.DashEnabled and MOVEMENT_STATE.DashOffsetValue > 0 then
+        if MOVEMENT_STATE.DashTarget and MOVEMENT_STATE.DashTarget.Character and MOVEMENT_STATE.DashTarget.Character:FindFirstChild("HumanoidRootPart") then
+            local targetRoot = MOVEMENT_STATE.DashTarget.Character:FindFirstChild("HumanoidRootPart") :: BasePart
+            local dir = (targetRoot.Position - root.Position).Unit
+            dashVelocity = dir * (MOVEMENT_STATE.DashOffsetValue * 15)
+        else
+            dashVelocity = root.CFrame.LookVector * (MOVEMENT_STATE.DashOffsetValue * 15)
+        end
+    end
+    
+    if not MOVEMENT_STATE.Enabled or not MOVEMENT_STATE.BodyVelocity or not MOVEMENT_STATE.BodyGyro then
+        if MOVEMENT_STATE.DashEnabled and dashVelocity.Magnitude > 0 then
+            root.CFrame = root.CFrame + (dashVelocity * deltaTime)
+        end
+        return
+    end
+    
+    MOVEMENT_STATE.HoverTime = MOVEMENT_STATE.HoverTime + deltaTime
+    
+    local moveVector = Vector3.new()
+    if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveVector = moveVector + Camera.CFrame.LookVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveVector = moveVector - Camera.CFrame.LookVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveVector = moveVector - Camera.CFrame.RightVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveVector = moveVector + Camera.CFrame.RightVector end
+    if UserInputService:IsKeyDown(Enum.KeyCode.Space) then moveVector = moveVector + Vector3.new(0,1,0) end
+    if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then moveVector = moveVector - Vector3.new(0,1,0) end
+    
+    local targetVelocity = Vector3.new()
+    local yOffset = 0
+    
+    if MOVEMENT_STATE.Style == "Fleetway" then
+        yOffset = math.noise(MOVEMENT_STATE.HoverTime * 10, 0, 0) * 2
+        targetVelocity = (moveVector * MOVEMENT_STATE.FlightSpeed) + Vector3.new(
+            math.noise(MOVEMENT_STATE.HoverTime * 15, 1, 0),
+            yOffset,
+            math.noise(MOVEMENT_STATE.HoverTime * 15, 2, 0)
+        ) * 5
+    elseif MOVEMENT_STATE.Style == "GodEater" then
+        yOffset = math.sin(MOVEMENT_STATE.HoverTime * 3) * MOVEMENT_STATE.HoverHeight
+        targetVelocity = (moveVector * MOVEMENT_STATE.FlightSpeed) + Vector3.new(0, yOffset, 0)
+    end
+    
+    MOVEMENT_STATE.BodyVelocity.Velocity = targetVelocity + dashVelocity
+    
+    if MOVEMENT_STATE.Spinning then
+        MOVEMENT_STATE.BodyGyro.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, math.rad(MOVEMENT_STATE.CurrentSpinAngle), 0)
+    elseif MOVEMENT_STATE.Shiftlock then
+        MOVEMENT_STATE.BodyGyro.CFrame = CFrame.new(root.Position, root.Position + Camera.CFrame.LookVector)
+    else
+        if dashVelocity.Magnitude > 0 then
+            MOVEMENT_STATE.BodyGyro.CFrame = CFrame.new(root.Position, root.Position + dashVelocity.Unit)
+        elseif moveVector.Magnitude > 0.1 then
+            MOVEMENT_STATE.BodyGyro.CFrame = CFrame.new(root.Position, root.Position + targetVelocity.Unit)
+        else
+            local currentLook = root.CFrame.LookVector
+            MOVEMENT_STATE.BodyGyro.CFrame = CFrame.new(root.Position, root.Position + Vector3.new(currentLook.X, 0, currentLook.Z))
+        end
+    end
+end)
+
+-- ============================================================
+--  INPUT HANDLER
+-- ============================================================
+local lastNoteTime: number = 0
+local DOUBLE_NOTE_WINDOW: number = 0.08 
+
+local function onInput(input: InputObject, _gp: boolean)
+    if rebindingRow then
+        local kn = input.KeyCode and input.KeyCode.Name or "Unknown"
+        if input.UserInputState == Enum.UserInputState.Begin
+            and kn ~= "Unknown" and not kn:match("Mouse") then
+            rebindingRow.key = kn
+            if rebindingRow.keyBtn then
+                rebindingRow.keyBtn.Text = kn
+                rebindingRow.keyBtn.BackgroundColor3 = Color3.fromRGB(30, 20, 45)
+            end
+            rebindingRow = nil
+            SaveConfig()
+        end
+        return
+    end
+    
+    for _, row in ipairs(CurrentBindings) do
+        if input.KeyCode and input.KeyCode.Name == row.key then
+            if input.UserInputState == Enum.UserInputState.Begin then
+                
+                local now = os.clock()
+                local isDouble = (now - lastNoteTime) <= DOUBLE_NOTE_WINDOW
+                lastNoteTime = now
+
+                for k, track in pairs(animTracks) do
+                    if track.IsPlaying and k ~= "SYNC_MIMIC" then
+                        track:Stop(0) 
+                    end
+                end
+                
+                if isDouble then
+                    spawnAfterimage(character)
+                end
+
+                local chosenId = rollBindingAnimId(row)
+                playAnim(row.key, chosenId, row.speedMult, row.holdLoop)
+                
+                hitArrow(row.dir)
+                swapFace(row.dir)
+                triggerRPMovement()
+                registerBpmTap()
+                
+                fallbackMicBump = 1.0 
+
+                if MOVEMENT_STATE.DashEnabled then
+                    TweenService:Create(MOVEMENT_STATE, TweenInfo.new(0.08, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {DashOffsetValue = 4}):Play()
+                end
+                
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    spawnAuraParticle(character:FindFirstChild("HumanoidRootPart") :: BasePart)
+                end
+
+            elseif input.UserInputState == Enum.UserInputState.End then
+                stopAnim(row.key)
+                releaseArrow(row.dir)
+                restoreFace()
+                
+                if MOVEMENT_STATE.DashEnabled then
+                    TweenService:Create(MOVEMENT_STATE, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {DashOffsetValue = 0}):Play()
+                end
+            end
+        end
+    end
+end
+
+-- ============================================================
+--  CHARACTER SETUP
+-- ============================================================
+local function buildPreviewClone(char: Model)
+    if not previewCloneContainer then return end
+    if previewClone then previewClone:Destroy(); previewClone = nil end
+
+    local wasArchivable = char.Archivable
+    if not wasArchivable then char.Archivable = true end
+    local ok, clone = pcall(function() return char:Clone() end)
+    if not wasArchivable then char.Archivable = wasArchivable end
+
+    if not ok or not clone then return end
+
+    for _, d in ipairs(clone:GetDescendants()) do
+        if d:IsA("Script") or d:IsA("LocalScript") then d:Destroy() end
+    end
+    clone.Name = "PreviewClone"
+    clone.Parent = previewCloneContainer
+
+    local hum = clone:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+        previewAnimator = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
+    end
+
+    local root = clone:FindFirstChild("HumanoidRootPart") or clone.PrimaryPart
+    if root then (root :: BasePart).Anchored = true end
+
+    local okPivot = pcall(function()
+        clone:PivotTo(CFrame.new(0, 3, 0))
+    end)
+    if not okPivot then
+        local hrp = clone:FindFirstChild("HumanoidRootPart") or clone.PrimaryPart
+        if hrp then clone:SetPrimaryPartCFrame(CFrame.new(0, 3, 0)) end
+    end
+
+    previewClone = clone
+end
+
+local function setupCharacter(char: Model)
+    cleanupAll(); character = char
+    pcall(function() char:WaitForChild("HumanoidRootPart", 10) end)
+    animator = getAnimator(char)
+    if not animator then return end
+    initFace(char)
+    if legsLocked then applyLegsLock(true) end
+    table.insert(connections, UserInputService.InputBegan:Connect(onInput))
+    table.insert(connections, UserInputService.InputEnded:Connect(onInput))
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then table.insert(connections, hum.Died:Connect(function() cleanupAll(); cleanupMovement(); stopDoubleTrouble() end)) end
+    task.defer(buildPreviewClone, char)
+    log("Character ready.")
+    notify("Character loaded — ready to inject", "success")
+end
+
+if LocalPlayer.Character then task.spawn(setupCharacter, LocalPlayer.Character) end
+LocalPlayer.CharacterAdded:Connect(function(c) task.spawn(setupCharacter, c) end)
+
+
+-- ============================================================
+--  UI BUILDER UTILS
+-- ============================================================
+local function uiCorner(p: Instance, r: UDim?): UICorner
+    local c = Instance.new("UICorner"); c.CornerRadius = r or UDim.new(0,8); c.Parent = p
+    return c
+end
+
+local function uiStroke(p: Instance, col: Color3, th: number?): UIStroke
+    local s = Instance.new("UIStroke"); s.Color = col; s.Thickness = th or 1.5; s.Parent = p; return s
+end
+
+local function makeLabel(parent: Instance, text: string, pos: UDim2, size: UDim2, color: Color3?, xAlign: Enum.TextXAlignment?, ts: number?): TextLabel
+    local l = Instance.new("TextLabel")
+    l.Size = size; l.Position = pos; l.BackgroundTransparency = 1
+    l.Text = text; l.TextColor3 = color or Color3.fromRGB(180,180,180)
+    l.TextSize = ts or 11; l.Font = Enum.Font.GothamBold
+    l.TextXAlignment = xAlign or Enum.TextXAlignment.Center
+    l.Parent = parent; return l
+end
+
+local function makeBtn(parent: Instance, text: string, pos: UDim2, size: UDim2, bg: Color3, tc: Color3?, ts: number?): TextButton
+    local b = Instance.new("TextButton")
+    b.Size = size; b.Position = pos; b.BackgroundColor3 = bg
+    b.Text = text; b.TextColor3 = tc or Color3.fromRGB(255,255,255)
+    b.Font = Enum.Font.GothamBold; b.TextSize = ts or 12
+    b.BorderSizePixel = 0; b.Parent = parent; b.AutoButtonColor = false
+    uiCorner(b)
+
+    local baseSize = size
+    local hoverGlow = uiStroke(b, Color3.fromRGB(255,255,255), 0)
+    hoverGlow.Transparency = 1
+    
+    b.MouseEnter:Connect(function()
+        if FX_SETTINGS.EnableArrowStrokeTweens then
+            TweenService:Create(b, TweenInfo.new(0.12, Enum.EasingStyle.Quad), {
+                Size = UDim2.new(baseSize.X.Scale, baseSize.X.Offset + 4, baseSize.Y.Scale, baseSize.Y.Offset + 2)
+            }):Play()
+            TweenService:Create(hoverGlow, TweenInfo.new(0.12), { Thickness = 2, Transparency = 0.2 }):Play()
+        end
+    end)
+    b.MouseLeave:Connect(function()
+        if FX_SETTINGS.EnableArrowStrokeTweens then
+            TweenService:Create(b, TweenInfo.new(0.15, Enum.EasingStyle.Quad), { Size = baseSize }):Play()
+            TweenService:Create(hoverGlow, TweenInfo.new(0.15), { Thickness = 0, Transparency = 1 }):Play()
+        end
+    end)
+    b.MouseButton1Down:Connect(function()
+        if FX_SETTINGS.EnableArrowStrokeTweens then
+            TweenService:Create(b, TweenInfo.new(0.06), { Size = UDim2.new(baseSize.X.Scale, baseSize.X.Offset - 3, baseSize.Y.Scale, baseSize.Y.Offset - 3) }):Play()
+        end
+    end)
+    b.MouseButton1Up:Connect(function()
+        if FX_SETTINGS.EnableArrowStrokeTweens then
+            TweenService:Create(b, TweenInfo.new(0.08), { Size = baseSize }):Play()
+        end
+    end)
+
+    return b
+end
+
+local function makeDivider(parent: Instance, yPos: number, color: Color3?): Frame
+    local d = Instance.new("Frame"); d.Size = UDim2.new(1,-16,0,1)
+    d.Position = UDim2.new(0,8,0,yPos)
+    d.BackgroundColor3 = color or Color3.fromRGB(0,200,255)
+    d.BorderSizePixel = 0; d.Parent = parent
+    return d
+end
+
+local function makeBox(parent: Instance, pos: UDim2, size: UDim2, placeholder: string?, default: string?): TextBox
+    local b = Instance.new("TextBox")
+    b.Size = size; b.Position = pos
+    b.BackgroundColor3 = Color3.fromRGB(22,22,32)
+    b.PlaceholderText = placeholder or ""; b.PlaceholderColor3 = Color3.fromRGB(90,90,110)
+    b.Text = default or ""; b.TextColor3 = Color3.fromRGB(255,255,255)
+    b.ClearTextOnFocus = false; b.Font = Enum.Font.Code; b.TextSize = 11
+    b.Parent = parent; uiCorner(b); return b
+end
+
+local function makeSlider(parent: Instance, pos: UDim2, size: UDim2, minVal: number, maxVal: number, default: number, onChange: (number) -> ()): any
+    local track = Instance.new("Frame")
+    track.Size = size; track.Position = pos
+    track.BackgroundColor3 = Color3.fromRGB(28,28,42)
+    track.BorderSizePixel = 0; track.Active = true
+    track.Parent = parent; uiCorner(track, UDim.new(0,6))
+
+    local fill = Instance.new("Frame")
+    fill.BackgroundColor3 = Color3.fromRGB(255,80,180)
+    fill.BorderSizePixel = 0; fill.Size = UDim2.new(0,0,1,0)
+    fill.Parent = track; uiCorner(fill, UDim.new(0,6))
+    regBg(fill)
+
+    local handle = Instance.new("Frame")
+    handle.Size = UDim2.new(0,14,0,14)
+    handle.AnchorPoint = Vector2.new(0.5,0.5)
+    handle.Position = UDim2.new(0,0,0.5,0)
+    handle.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    handle.BorderSizePixel = 0; handle.ZIndex = 2
+    handle.Parent = track; uiCorner(handle, UDim.new(1,0))
+    local hStroke = uiStroke(handle, Color3.fromRGB(255,80,180), 2)
+    regStroke(hStroke)
+
+    local value: number = default
+    local dragging: boolean = false
+
+    local function setValue(v: number, fire: boolean)
+        v = math.clamp(v, minVal, maxVal)
+        value = v
+        local pct = (maxVal > minVal) and (v - minVal) / (maxVal - minVal) or 0
+        fill.Size = UDim2.new(pct, 0, 1, 0)
+        handle.Position = UDim2.new(pct, 0, 0.5, 0)
+        if fire and onChange then onChange(v) end
+    end
+
+    local function updateFromX(x: number)
+        local abs = track.AbsolutePosition.X
+        local w   = track.AbsoluteSize.X
+        if w <= 0 then return end
+        local pct = math.clamp((x - abs) / w, 0, 1)
+        setValue(minVal + pct * (maxVal - minVal), true)
+    end
+
+    local function tryBegin(input: InputObject)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            updateFromX(input.Position.X)
+        end
+    end
+
+    track.InputBegan:Connect(tryBegin)
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement
+            or input.UserInputType == Enum.UserInputType.Touch) then
+            updateFromX(input.Position.X)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+            or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    setValue(default, false)
+    return { track = track, fill = fill, handle = handle, setValue = setValue, getValue = function() return value end }
+end
+
+local function refreshRowAltList(row: Binding, listFrame: ScrollingFrame)
+    for _, c in ipairs(listFrame:GetChildren()) do
+        if c:IsA("Frame") or c:IsA("TextLabel") then c:Destroy() end
+    end
+    for j, alt in ipairs(row.alts) do
+        local entry = Instance.new("Frame")
+        entry.Size = UDim2.new(1,-4,0,20)
+        entry.BackgroundColor3 = Color3.fromRGB(24,24,36)
+        entry.BorderSizePixel = 0
+        entry.LayoutOrder = j
+        entry.Parent = listFrame
+        uiCorner(entry, UDim.new(0,4))
+        makeLabel(entry, string.format("⭐ %s — %d%%", alt.id, alt.chance),
+            UDim2.new(0,6,0,0), UDim2.new(1,-28,1,0), Color3.fromRGB(200,200,215), Enum.TextXAlignment.Left, 9)
+        local rem = makeBtn(entry, "✕", UDim2.new(1,-22,0,0), UDim2.new(0,20,0,20), Color3.fromRGB(170,35,35), nil, 9)
+        rem.MouseButton1Click:Connect(function()
+            table.remove(row.alts, j)
+            refreshRowAltList(row, listFrame)
+        end)
+    end
+    local total = 0
+    for _, a in ipairs(row.alts) do total = total + a.chance end
+    local footer = makeLabel(listFrame, string.format("Total: %d%% (remainder = primary anim)", total),
+        UDim2.new(1,-4,0,14), UDim2.new(1,-4,0,14),
+        (total > 100) and Color3.fromRGB(255,80,80) or Color3.fromRGB(140,140,160),
+        Enum.TextXAlignment.Right, 9)
+    footer.LayoutOrder = 9999
+end
+
+-- ============================================================
+--  ARROW HUD BUILD
+-- ============================================================
+local function refreshCustomDecals()
+    for dir, frameData in pairs(arrowHudFrames) do
+        local config = CUSTOM_DECALS[dir]
+        if config.useDecal and config.id ~= "" then
+            frameData.img.Image = "rbxassetid://" .. config.id
+            frameData.img.Visible = true
+            frameData.lbl.Visible = false
+            frameData.bg.BackgroundTransparency = 1 
+        else
+            frameData.img.Visible = false
+            frameData.lbl.Visible = true
+            frameData.bg.BackgroundTransparency = 0
+        end
+    end
+end
+
+local function buildArrowHud()
+    local old = SecureGuiParent:FindFirstChild("FNFArrowHud")
+    if old then old:Destroy() end
+
+    local sg = Instance.new("ScreenGui")
+    sg.Name = "FNFArrowHud"; sg.ResetOnSpawn = false
+    sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; sg.Parent = SecureGuiParent
+
+    local totalW = #ARROW_ORDER * ARROW_SIZE + (#ARROW_ORDER - 1) * ARROW_GAP
+    local bottomY = 50  
+
+    for i, dir in ipairs(ARROW_ORDER) do
+        local colors = ARROW_COLORS[dir]
+        local cx = -totalW/2 + (i-1)*(ARROW_SIZE + ARROW_GAP) + ARROW_SIZE/2
+        local cy = -(ARROW_SIZE/2 + bottomY)
+
+        local bg = Instance.new("Frame")
+        bg.AnchorPoint = Vector2.new(0.5, 0.5)
+        bg.Size = UDim2.new(0, ARROW_SIZE, 0, ARROW_SIZE)
+        bg.Position = UDim2.new(0.5, cx, 1, cy)
+        bg.BackgroundColor3 = colors.idle
+        bg.BorderSizePixel = 0; bg.Parent = sg
+        uiCorner(bg, UDim.new(0, 10))
+        local stroke = uiStroke(bg, Color3.fromRGB(255,255,255), 2)
+
+        local glow = Instance.new("Frame")
+        glow.Size = UDim2.new(1,0,1,0); glow.BackgroundTransparency = 0.7
+        glow.BackgroundColor3 = colors.hit; glow.BorderSizePixel = 0; glow.Parent = bg
+        uiCorner(glow, UDim.new(0,10))
+        glow.Visible = false
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1,0,1,0); lbl.BackgroundTransparency = 1
+        lbl.Text = ARROW_SYMBOLS[dir]
+        lbl.TextColor3 = Color3.fromRGB(255,255,255)
+        lbl.TextSize = 26; lbl.Font = Enum.Font.GothamBold; lbl.Parent = bg
+        
+        local img = Instance.new("ImageLabel")
+        img.Size = UDim2.new(1, -10, 1, -10); img.Position = UDim2.new(0, 5, 0, 5)
+        img.BackgroundTransparency = 1; img.ScaleType = Enum.ScaleType.Fit; img.Visible = false; img.Parent = bg
+
+        arrowHudFrames[dir] = { bg = bg, lbl = lbl, img = img, stroke = stroke, glow = glow }
+    end
+end
+
+-- ============================================================
+--  MIC SPECTROGRAM SETUP (V9 SAFE AUDIO API)
+-- ============================================================
+local function setupMicSpectrogram(): boolean
+    micAvailable = false
+    local ok = pcall(function()
+        micDeviceInput = Instance.new("AudioDeviceInput")
+        (micDeviceInput :: AudioDeviceInput).Player = LocalPlayer
+        (micDeviceInput :: AudioDeviceInput).Parent = workspace
+
+        micAnalyzer = Instance.new("AudioAnalyzer")
+        (micAnalyzer :: AudioAnalyzer).WindowSize = 1024
+        (micAnalyzer :: AudioAnalyzer).Parent = micDeviceInput
+
+        micWire = Instance.new("Wire")
+        (micWire :: Wire).SourceInstance = micDeviceInput
+        (micWire :: Wire).TargetInstance = micAnalyzer
+        (micWire :: Wire).Parent = micAnalyzer
+
+        (micDeviceInput :: AudioDeviceInput).Active = true
+    end)
+    micAvailable = ok and micDeviceInput ~= nil and micAnalyzer ~= nil
+    if not micAvailable then
+        log("Mic spectrogram unavailable on this client/game — using animation-synced fallback")
+    end
+    return micAvailable
+end
+
+-- ============================================================
+--  ADVANCED BEAT / VISUALIZER LOOPS
+-- ============================================================
+local eqBars: {Frame}?, waveBars: {Frame}?, beatDot: Frame?, notesLayer: Frame?, particleLayer: Frame? = nil, nil, nil, nil, nil
+local mainGuiRef: ScreenGui? = nil
+
+local function startVisualizerLoops()
+    task.spawn(function()
+        local lastTime = os.clock()
+        while true do
+            RunService.RenderStepped:Wait()
+            local currentTime = os.clock()
+            currentFPS = math.floor(1 / (currentTime - lastTime) + 0.5)
+            lastTime = currentTime
+        end
+    end)
+
+    task.spawn(function()
+        while true do
+            task.wait(FX_SETTINGS.VisualizerTickRate)
+            if mainGuiRef and not mainGuiRef.Parent then break end 
+            if not FX_SETTINGS.EnableEqualizer then continue end
+            
+            local speed = StatusState.playing and 0.08 or 0.22
+            if eqBars then
+                for _, bar in ipairs(eqBars) do
+                    local h = StatusState.playing and (0.25 + math.random() * 0.75) or (0.08 + math.random() * 0.2)
+                    TweenService:Create(bar, TweenInfo.new(speed, Enum.EasingStyle.Sine), {
+                        Size = UDim2.new(1, 0, h, 0)
+                    }):Play()
+                end
+            end
+        end
+    end)
+
+    task.spawn(function()
+        local t = 0
+        while true do
+            RunService.Heartbeat:Wait()
+            if mainGuiRef and not mainGuiRef.Parent then break end 
+
+            if not FX_SETTINGS.EnableWaveform then continue end
+            
+            t = t + (StatusState.bpm / 60) * 0.03
+            if waveBars then
+                for i, bar in ipairs(waveBars) do
+                    local h = 0.15 + 0.35 * (0.5 + 0.5 * math.sin(t + i * 0.6))
+                    bar.Size = UDim2.new(1, 0, h, 0)
+                end
+            end
+        end
+    end)
+
+    task.spawn(function()
+        while true do
+            local interval = 60 / math.max(1, StatusState.bpm)
+            task.wait(interval)
+            if mainGuiRef and not mainGuiRef.Parent then break end 
+
+            if not FX_SETTINGS.EnableBeatPulse then continue end
+            
+            if beatDot then
+                beatDot.Size = UDim2.new(0, 22, 0, 22)
+                TweenService:Create(beatDot, TweenInfo.new(interval * 0.85, Enum.EasingStyle.Quad), {
+                    Size = UDim2.new(0, 10, 0, 10)
+                }):Play()
+            end
+        end
+    end)
+
+    task.spawn(function()
+        local symbols = { "♪", "♫", "♬", "♩" }
+        while true do
+            task.wait(0.7 + math.random() * 0.8)
+            if mainGuiRef and not mainGuiRef.Parent then break end 
+            
+            if not FX_SETTINGS.EnableFloatingNotes then continue end
+            
+            if notesLayer then
+                local n = Instance.new("TextLabel")
+                n.Size = UDim2.new(0, 20, 0, 20)
+                n.Position = UDim2.new(math.random(), 0, 1, 0)
+                n.BackgroundTransparency = 1
+                n.Text = symbols[math.random(1, #symbols)]
+                n.TextColor3 = THEMES[currentThemeName].accent
+                n.TextTransparency = 0.2
+                n.Font = Enum.Font.GothamBold
+                n.TextSize = 14 + math.random(0, 10)
+                n.Parent = notesLayer
+                regText(n)
+                local tw = TweenService:Create(n, TweenInfo.new(3 + math.random()*2, Enum.EasingStyle.Linear), {
+                    Position = UDim2.new(n.Position.X.Scale, 0, -0.15, 0),
+                    TextTransparency = 1
+                })
+                tw:Play()
+                tw.Completed:Connect(function() n:Destroy() end)
+            end
+        end
+    end)
+
+    task.spawn(function()
+        while true do
+            task.wait(FX_SETTINGS.ParticleSpawnRate + (math.random() * 0.5))
+            if mainGuiRef and not mainGuiRef.Parent then break end 
+
+            if not FX_SETTINGS.EnableAmbientParticles then continue end
+            
+            if particleLayer then
+                local p = Instance.new("Frame")
+                local sz = math.random(2, 4)
+                p.Size = UDim2.new(0, sz, 0, sz)
+                p.Position = UDim2.new(math.random(), 0, 1, 0)
+                p.BackgroundColor3 = THEMES[currentThemeName].accent2
+                p.BackgroundTransparency = 0.3
+                p.BorderSizePixel = 0
+                p.Parent = particleLayer
+                uiCorner(p, UDim.new(1,0))
+                local tw = TweenService:Create(p, TweenInfo.new(1.5 + math.random(), Enum.EasingStyle.Sine), {
+                    Position = UDim2.new(p.Position.X.Scale + (math.random()-0.5)*0.1, 0, -0.05, 0),
+                    BackgroundTransparency = 1
+                })
+                tw:Play()
+                tw.Completed:Connect(function() p:Destroy() end)
+            end
+        end
+    end)
+
+    task.spawn(function()
+        while true do
+            RunService.Heartbeat:Wait()
+            if mainGuiRef and not mainGuiRef.Parent then break end 
+
+            if not FX_SETTINGS.EnableVinylSpin then continue end
+            
+            if vinylImage then
+                local rpm
+                if StatusState.playing and StatusState.speedMult then
+                    rpm = vinylBaseRPM * StatusState.speedMult
+                else
+                    rpm = vinylBaseRPM * idleSpeedFromBPM()
+                end
+                vinylRotation = (vinylRotation + (rpm / 60) * 360 * (1/60)) % 360
+                vinylImage.Rotation = vinylRotation
+            end
+        end
+    end)
+
+    task.spawn(function()
+        while true do
+            task.wait(FX_SETTINGS.VisualizerTickRate)
+            if mainGuiRef and not mainGuiRef.Parent then break end 
+            
+            if not FX_SETTINGS.EnableSpectrogram then continue end
+            
+            fallbackMicBump = math.max(0, fallbackMicBump - 0.1)
+
+            if #specBars > 0 then
+                if micAvailable and micAnalyzer then
+                    local ok, spectrum = pcall(function() return micAnalyzer:GetSpectrum() end)
+                    if ok and spectrum then
+                        local n = #spectrum
+                        for i, bar in ipairs(specBars) do
+                            local idx = math.max(1, math.floor((i / #specBars) * n))
+                            local mag = spectrum[idx] or 0
+                            local h = math.clamp(mag * 2, 0.05, 1)
+                            TweenService:Create(bar, TweenInfo.new(0.05), { Size = UDim2.new(1,0,h,0) }):Play()
+                        end
+                    else
+                        micAvailable = false 
+                    end
+                else
+                    for i, bar in ipairs(specBars) do
+                        local base = 0.08 + (fallbackMicBump * 0.4)
+                        local h = base + math.random() * (fallbackMicBump * 0.5)
+                        TweenService:Create(bar, TweenInfo.new(0.05), { Size = UDim2.new(1,0,h,0) }):Play()
+                    end
+                end
+            end
+        end
+    end)
+
+    task.spawn(function()
+        while true do
+            task.wait(0.08 + math.random() * 0.15)
+            if mainGuiRef and not mainGuiRef.Parent then break end 
+
+            if crtEnabled and FX_SETTINGS.EnableCRTMode and crtOverlay then
+                crtOverlay.BackgroundTransparency = 0.82 + math.random() * 0.08
+            end
+        end
+    end)
+end
+
+-- ============================================================
+--  MAIN GUI BUILD
+-- ============================================================
+local function buildGUI(): ScreenGui
+    local old = SecureGuiParent:FindFirstChild("FNFInjectorGui")
+    if old then old:Destroy() end
+
+    LoadConfig()
+
+    local sg = Instance.new("ScreenGui")
+    sg.Name = "FNFInjectorGui"
+    sg.ResetOnSpawn = false
+    sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    sg.Parent = SecureGuiParent
+    mainGuiRef = sg
+
+    notifyContainer = Instance.new("Frame")
+    (notifyContainer :: Frame).Size = UDim2.new(0, 260, 1, -20)
+    (notifyContainer :: Frame).Position = UDim2.new(1, -270, 0, 10)
+    (notifyContainer :: Frame).BackgroundTransparency = 1
+    (notifyContainer :: Frame).Parent = sg
+    local notifyLayout = Instance.new("UIListLayout")
+    notifyLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    notifyLayout.Padding = UDim.new(0, 6)
+    notifyLayout.Parent = notifyContainer
+
+    local MAIN_W, MAIN_H = 500, 600
+    local main = Instance.new("Frame")
+    main.Name = "Main"; main.Size = UDim2.new(0,MAIN_W,0,MAIN_H)
+    main.Position = UDim2.new(0,60,0,60)
+    main.BackgroundColor3 = Color3.fromRGB(13,13,18)
+    main.BorderSizePixel = 0; main.Active = true; main.Draggable = true
+    main.Parent = sg; uiCorner(main, UDim.new(0,10))
+    local mainStroke = uiStroke(main, Color3.fromRGB(255,80,180), 2)
+    regStroke(mainStroke)
+
+    uiBgImage = Instance.new("ImageLabel")
+    (uiBgImage :: ImageLabel).Size = UDim2.new(1,0,1,0)
+    (uiBgImage :: ImageLabel).BackgroundTransparency = 1
+    (uiBgImage :: ImageLabel).ImageTransparency = 0.65
+    (uiBgImage :: ImageLabel).ScaleType = Enum.ScaleType.Crop
+    (uiBgImage :: ImageLabel).ZIndex = 0
+    (uiBgImage :: ImageLabel).Parent = main
+    uiCorner((uiBgImage :: ImageLabel), UDim.new(0,10))
+    if BG_DECAL_ID ~= "" then (uiBgImage :: ImageLabel).Image = "rbxassetid://"..BG_DECAL_ID end
+
+    particleLayer = Instance.new("Frame")
+    (particleLayer :: Frame).Size = UDim2.new(1,0,1,0); (particleLayer :: Frame).BackgroundTransparency = 1
+    (particleLayer :: Frame).ClipsDescendants = true; (particleLayer :: Frame).ZIndex = 0; (particleLayer :: Frame).Parent = main
+    notesLayer = Instance.new("Frame")
+    (notesLayer :: Frame).Size = UDim2.new(1,0,1,0); (notesLayer :: Frame).BackgroundTransparency = 1
+    (notesLayer :: Frame).ClipsDescendants = true; (notesLayer :: Frame).ZIndex = 0; (notesLayer :: Frame).Parent = main
+
+    crtOverlay = Instance.new("Frame")
+    (crtOverlay :: Frame).Size = UDim2.new(1,0,1,0); (crtOverlay :: Frame).BackgroundColor3 = Color3.fromRGB(20,255,120)
+    (crtOverlay :: Frame).BackgroundTransparency = 0.88
+    (crtOverlay :: Frame).BorderSizePixel = 0; (crtOverlay :: Frame).ZIndex = 50
+    (crtOverlay :: Frame).Visible = false
+    (crtOverlay :: Frame).Parent = main
+    local crtOverlayCorner = Instance.new("UICorner"); crtOverlayCorner.CornerRadius = UDim.new(0,10); crtOverlayCorner.Parent = crtOverlay
+
+    local scanlineHolder = Instance.new("Frame")
+    scanlineHolder.Size = UDim2.new(1,0,1,0); scanlineHolder.BackgroundTransparency = 1
+    scanlineHolder.ClipsDescendants = true; scanlineHolder.ZIndex = 51
+    scanlineHolder.Parent = crtOverlay
+    local SCANLINE_GAP = 4
+    for y = 0, 700, SCANLINE_GAP do
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(1,0,0,1)
+        line.Position = UDim2.new(0,0,0,y)
+        line.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        line.BackgroundTransparency = 0.55
+        line.BorderSizePixel = 0
+        line.ZIndex = 51
+        line.Parent = scanlineHolder
+    end
+
+    local titleBar = Instance.new("Frame")
+    titleBar.Size = UDim2.new(1,0,0,36); titleBar.BackgroundColor3 = Color3.fromRGB(22,8,32)
+    titleBar.BorderSizePixel = 0; titleBar.Parent = main; uiCorner(titleBar, UDim.new(0,10))
+
+    local titleLbl = makeLabel(titleBar, "🎵  FNF INJECTOR  v9.0 ULTIMATE",
+        UDim2.new(0,12,0,0), UDim2.new(1,-80,1,0),
+        Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 13)
+    regText(titleLbl)
+
+    local toggleBtn = makeBtn(titleBar, "HIDE",
+        UDim2.new(1,-68,0,5), UDim2.new(0,60,0,26), Color3.fromRGB(255,80,180))
+    regBg(toggleBtn)
+
+    local TAB_H = 32
+    local tabBar = Instance.new("ScrollingFrame")
+    tabBar.Size = UDim2.new(1,0,0,TAB_H); tabBar.Position = UDim2.new(0,0,0,36)
+    tabBar.BackgroundColor3 = Color3.fromRGB(18,8,28)
+    tabBar.BorderSizePixel = 0; tabBar.ScrollBarThickness = 0
+    tabBar.CanvasSize = UDim2.new(1.5,0,0,0)
+    tabBar.Parent = main
+
+    local contentArea = Instance.new("Frame")
+    contentArea.Size = UDim2.new(1,0,1,-(36+TAB_H))
+    contentArea.Position = UDim2.new(0,0,0,36+TAB_H)
+    contentArea.BackgroundTransparency = 1; contentArea.Parent = main
+
+    -- ── Tabs ──
+    local tabNames   = { "📋 BINDS", "🎨 DECALS", "👯 SYNC", "🛸 MOVEMENT", "🎬 MAKER", "👁 PREVIEW", "❤ FAVES", "🎶 LIST", "🎛 FX", "⚙ SETTINGS", "📉 OPTIMIZE" }
+    local pages: { [string]: ScrollingFrame } = {}
+    local tabButtons: { [string]: TextButton } = {}
+    local tabW = math.floor((MAIN_W * 1.5) / #tabNames)
+
+    for i, name in ipairs(tabNames) do
+        local page = Instance.new("ScrollingFrame")
+        page.Size = UDim2.new(1,0,1,0); page.BackgroundTransparency = 1
+        page.ScrollBarThickness = 4
+        page.CanvasSize = UDim2.new(0,0,0,0)
+        page.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        page.Visible = (i == 1); page.Parent = contentArea
+        pages[name] = page
+
+        local tb = makeBtn(tabBar, name,
+            UDim2.new(0,(i-1)*tabW,0,0), UDim2.new(0,tabW,1,0),
+            i == 1 and Color3.fromRGB(255,80,180) or Color3.fromRGB(28,12,42), nil, 9)
+        tabButtons[name] = tb
+        if i == 1 then regBg(tb) end
+        tb.MouseButton1Click:Connect(function()
+            for n, p in pairs(pages) do
+                p.Visible = (n == name)
+            end
+            for n, btn in pairs(tabButtons) do
+                local isActive = (n == name)
+                btn.BackgroundColor3 = isActive and THEMES[currentThemeName].accent or Color3.fromRGB(28,12,42)
+                for j = #themedBgs, 1, -1 do if themedBgs[j] == btn then table.remove(themedBgs, j) end end
+                if isActive then regBg(btn) end
+            end
+        end)
+    end
+
+    -- ============================================================
+    -- TAB 1 : BINDS + IDLE + BPM
+    -- ============================================================
+    local pg1 = pages["📋 BINDS"]
+
+    makeLabel(pg1, "DIR",     UDim2.new(0,8,0,6),   UDim2.new(0,36,0,20), Color3.fromRGB(255,80,180))
+    makeLabel(pg1, "KEY",     UDim2.new(0,48,0,6),  UDim2.new(0,62,0,20), Color3.fromRGB(255,80,180))
+    makeLabel(pg1, "ANIM ID", UDim2.new(0,116,0,6), UDim2.new(0,180,0,20),Color3.fromRGB(255,80,180))
+    makeLabel(pg1, "TEST",    UDim2.new(0,308,0,6), UDim2.new(0,90,0,20), Color3.fromRGB(255,80,180))
+    makeDivider(pg1, 28, Color3.fromRGB(0,200,255))
+
+    local ROW_H  = 150
+    local startY = 36
+    for i, row in ipairs(CurrentBindings) do
+        local y = startY + (i-1)*ROW_H
+        local dirColor = ARROW_COLORS[row.dir] and ARROW_COLORS[row.dir].hit or Color3.fromRGB(255,255,255)
+        makeLabel(pg1, row.dir, UDim2.new(0,8,0,y), UDim2.new(0,36,0,28), dirColor)
+
+        local keyBtn = makeBtn(pg1, row.key, UDim2.new(0,48,0,y), UDim2.new(0,60,0,28), Color3.fromRGB(25,35,48))
+        row.keyBtn = keyBtn
+        keyBtn.MouseButton1Click:Connect(function()
+            rebindingRow = row; keyBtn.Text = "..."
+            keyBtn.BackgroundColor3 = Color3.fromRGB(0,200,255)
+        end)
+
+        local idBox = makeBox(pg1, UDim2.new(0,116,0,y), UDim2.new(0,250,0,28), "anim id", row.id)
+        idBox.FocusLost:Connect(function()
+            local n = idBox.Text:gsub("%D","")
+            if n ~= "" then row.id = n; destroyTrack(row.key); SaveConfig() else idBox.Text = row.id end
+        end)
+
+        local testBtn = makeBtn(pg1, "▶ TEST", UDim2.new(0,380,0,y), UDim2.new(0,90,0,28), Color3.fromRGB(0,180,230), nil, 11)
+        testBtn.MouseButton1Down:Connect(function()
+            local chosenId = rollBindingAnimId(row)
+            playAnim(row.key, chosenId, row.speedMult, row.holdLoop); hitArrow(row.dir); swapFace(row.dir)
+        end)
+        testBtn.MouseButton1Up:Connect(function()   stopAnim(row.key); releaseArrow(row.dir); restoreFace() end)
+
+        local sy = y + 30
+        makeLabel(pg1, "SPD", UDim2.new(0,8,0,sy), UDim2.new(0,32,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+        local spdValLbl = makeLabel(pg1, string.format("x%.2f", row.speedMult),
+            UDim2.new(0,280,0,sy), UDim2.new(0,112,0,22), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 10)
+        regText(spdValLbl)
+        makeSlider(pg1, UDim2.new(0,42,0,sy+2), UDim2.new(0,300,0,14), 0.25, 3, row.speedMult, function(v)
+            row.speedMult = v
+            spdValLbl.Text = string.format("x%.2f", v)
+            if StatusState.currentAnimName == row.key then
+                StatusState.speedMult = v
+            end
+        end)
+
+        local sy2 = y + 58
+        local holdBtn = makeBtn(pg1, "🔁 HOLD-LOOP: OFF", UDim2.new(0,8,0,sy2), UDim2.new(0,140,0,24), Color3.fromRGB(35,35,55), nil, 9)
+        holdBtn.MouseButton1Click:Connect(function()
+            row.holdLoop = not row.holdLoop
+            holdBtn.Text = row.holdLoop and "🔁 HOLD-LOOP: ON" or "🔁 HOLD-LOOP: OFF"
+            holdBtn.BackgroundColor3 = row.holdLoop and Color3.fromRGB(0,180,230) or Color3.fromRGB(35,35,55)
+            SaveConfig()
+        end)
+
+        local altIdBox   = makeBox(pg1, UDim2.new(0,154,0,sy2), UDim2.new(0,142,0,24), "alt anim id")
+        local altPctBox  = makeBox(pg1, UDim2.new(0,300,0,sy2), UDim2.new(0,52,0,24), "%")
+        local addAltBtn  = makeBtn(pg1, "+", UDim2.new(0,356,0,sy2), UDim2.new(0,40,0,24), Color3.fromRGB(60,190,120), nil, 12)
+
+        local sy3 = y + 86
+        local altListFrame = Instance.new("ScrollingFrame")
+        altListFrame.Size = UDim2.new(1,-16,0,56)
+        altListFrame.Position = UDim2.new(0,8,0,sy3)
+        altListFrame.BackgroundColor3 = Color3.fromRGB(18,18,26)
+        altListFrame.BorderSizePixel = 0
+        altListFrame.ScrollBarThickness = 3
+        altListFrame.CanvasSize = UDim2.new(0,0,0,0)
+        altListFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+        altListFrame.Parent = pg1
+        uiCorner(altListFrame, UDim.new(0,6))
+        local altListLayout = Instance.new("UIListLayout")
+        altListLayout.Padding = UDim.new(0,2)
+        altListLayout.Parent = altListFrame
+        local altListPad = Instance.new("UIPadding")
+        altListPad.PaddingTop = UDim.new(0,2); altListPad.PaddingLeft = UDim.new(0,2); altListPad.PaddingRight = UDim.new(0,2)
+        altListPad.Parent = altListFrame
+
+        addAltBtn.MouseButton1Click:Connect(function()
+            local id = altIdBox.Text:gsub("%D","")
+            local chance = tonumber(altPctBox.Text)
+            if id == "" or not chance then notify("Enter an alt anim ID + % chance", "warn"); return end
+            table.insert(row.alts, { id = id, chance = math.clamp(chance, 0, 100) })
+            altIdBox.Text = ""; altPctBox.Text = ""
+            refreshRowAltList(row, altListFrame)
+            SaveConfig()
+        end)
+
+        refreshRowAltList(row, altListFrame)
+    end
+
+    local idleY = startY + #CurrentBindings * ROW_H + 6
+    makeDivider(pg1, idleY, Color3.fromRGB(255,80,180))
+    local idleTitleLbl = makeLabel(pg1, "🎵 IDLE ANIMATION",
+        UDim2.new(0,8,0,idleY+6), UDim2.new(0,200,0,20),
+        Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left)
+    regText(idleTitleLbl)
+    local statusLbl = makeLabel(pg1, "● OFF",
+        UDim2.new(0,200,0,idleY+6), UDim2.new(0,270,0,20),
+        Color3.fromRGB(160,80,80), Enum.TextXAlignment.Right)
+
+    local idleIdBox = makeBox(pg1, UDim2.new(0,8,0,idleY+30), UDim2.new(1,-16,0,28), "Paste idle anim ID...")
+    local loopBtn  = makeBtn(pg1, "⟳ LOOP",  UDim2.new(0,8,0,idleY+64), UDim2.new(0,120,0,28), Color3.fromRGB(70,120,255))
+    local onceBtn  = makeBtn(pg1, "▶ ONCE",  UDim2.new(0,136,0,idleY+64), UDim2.new(0,120,0,28), Color3.fromRGB(60,190,120))
+    local idleStop = makeBtn(pg1, "■ STOP",  UDim2.new(0,264,0,idleY+64), UDim2.new(0,200,0,28), Color3.fromRGB(190,50,50))
+
+    local function getIdleId(): string return idleIdBox.Text:gsub("%D","") end
+    loopBtn.MouseButton1Click:Connect(function()
+        local id = getIdleId(); if id == "" then notify("Enter an idle anim ID first", "warn"); return end
+        playIdleLoop(id); statusLbl.Text = "● LOOPING"; statusLbl.TextColor3 = Color3.fromRGB(80,220,120)
+        notify("Idle looping started", "success")
+    end)
+    onceBtn.MouseButton1Click:Connect(function()
+        local id = getIdleId(); if id == "" then notify("Enter an idle anim ID first", "warn"); return end
+        playIdleOnce(id, function()
+            if not idleLooping then statusLbl.Text = "● OFF"; statusLbl.TextColor3 = Color3.fromRGB(160,80,80) end
+        end)
+        statusLbl.Text = "▶ PLAYING"; statusLbl.TextColor3 = Color3.fromRGB(0,200,255)
+    end)
+    idleStop.MouseButton1Click:Connect(function()
+        stopIdle(); statusLbl.Text = "● OFF"; statusLbl.TextColor3 = Color3.fromRGB(160,80,80)
+    end)
+
+    local bpmY = idleY + 98
+    makeLabel(pg1, "BPM", UDim2.new(0,8,0,bpmY), UDim2.new(0,38,0,28),
+        Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 11)
+    local bpmBox = makeBox(pg1, UDim2.new(0,44,0,bpmY), UDim2.new(0,68,0,28), "100", tostring(idleBPM))
+
+    makeLabel(pg1, "BASE", UDim2.new(0,120,0,bpmY), UDim2.new(0,44,0,28),
+        Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    local baseBox = makeBox(pg1, UDim2.new(0,164,0,bpmY), UDim2.new(0,68,0,28), "100", tostring(BASE_BPM))
+
+    local applyBpmBtn = makeBtn(pg1, "✓ APPLY", UDim2.new(0,240,0,bpmY), UDim2.new(0,224,0,28), Color3.fromRGB(70,120,255), nil, 11)
+
+    local bpmSliderY = bpmY + 36
+    makeLabel(pg1, "DRAG", UDim2.new(0,8,0,bpmSliderY), UDim2.new(0,50,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    local bpmValLbl = makeLabel(pg1, string.format("%d BPM", idleBPM),
+        UDim2.new(0,300,0,bpmSliderY), UDim2.new(0,164,0,22), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 11)
+    regText(bpmValLbl)
+    local bpmSlider = makeSlider(pg1, UDim2.new(0,62,0,bpmSliderY+2), UDim2.new(0,300,0,14), 40, 300, idleBPM, function(v)
+        v = math.floor(v + 0.5)
+        setIdleBPM(v)
+        bpmBox.Text = tostring(v)
+        bpmValLbl.Text = string.format("%d BPM", v)
+    end)
+
+    bpmBox.FocusLost:Connect(function()
+        local n = tonumber(bpmBox.Text)
+        if n and n > 0 then
+            idleBPM = n
+            bpmSlider.setValue(n, false)
+            bpmValLbl.Text = string.format("%d BPM", n)
+            setIdleBPM(n)
+        else
+            bpmBox.Text = tostring(idleBPM)
+        end
+    end)
+    baseBox.FocusLost:Connect(function()
+        local n = tonumber(baseBox.Text)
+        if n and n > 0 then BASE_BPM = n else baseBox.Text = tostring(BASE_BPM) end
+        setIdleBPM(idleBPM)
+    end)
+    applyBpmBtn.MouseButton1Click:Connect(function()
+        local n = tonumber(bpmBox.Text)
+        local b = tonumber(baseBox.Text)
+        if n and n > 0 then idleBPM = n; bpmSlider.setValue(n, false); bpmValLbl.Text = string.format("%d BPM", n) end
+        if b and b > 0 then BASE_BPM = b end
+        setIdleBPM(idleBPM)
+        notify("BPM settings applied", "info")
+        SaveConfig()
+    end)
+
+    -- Status & Simple Visualizer display
+    local vizY = bpmSliderY + 34
+    makeDivider(pg1, vizY, Color3.fromRGB(0,200,255))
+    makeLabel(pg1, "BEAT SYNC", UDim2.new(0,8,0,vizY+6), UDim2.new(0,90,0,18), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    beatDot = Instance.new("Frame")
+    (beatDot :: Frame).AnchorPoint = Vector2.new(0.5,0.5)
+    (beatDot :: Frame).Size = UDim2.new(0,10,0,10)
+    (beatDot :: Frame).Position = UDim2.new(0,100,0,vizY+15)
+    (beatDot :: Frame).BackgroundColor3 = Color3.fromRGB(255,80,180)
+    (beatDot :: Frame).BorderSizePixel = 0; (beatDot :: Frame).Parent = pg1
+    uiCorner((beatDot :: Frame), UDim.new(1,0))
+    regBg((beatDot :: Frame))
+
+    makeLabel(pg1, "EQUALIZER", UDim2.new(0,140,0,vizY+6), UDim2.new(0,100,0,18), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    local eqHolder = Instance.new("Frame")
+    eqHolder.Size = UDim2.new(0,120,0,26); eqHolder.Position = UDim2.new(0,140,0,vizY+22)
+    eqHolder.BackgroundTransparency = 1; eqHolder.Parent = pg1
+    local eqLayout = Instance.new("UIListLayout")
+    eqLayout.FillDirection = Enum.FillDirection.Horizontal
+    eqLayout.Padding = UDim.new(0,3)
+    eqLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+    eqLayout.Parent = eqHolder
+    eqBars = {}
+    for i = 1, 10 do
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.new(0, 10, 0.2, 0)
+        bar.BackgroundColor3 = THEMES[currentThemeName].accent
+        bar.BorderSizePixel = 0
+        bar.Parent = eqHolder
+        uiCorner(bar, UDim.new(0,2))
+        regBg(bar)
+        if eqBars then table.insert(eqBars, bar) end
+    end
+
+    makeLabel(pg1, "WAVEFORM", UDim2.new(0,300,0,vizY+6), UDim2.new(0,120,0,18), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    local waveHolder = Instance.new("Frame")
+    waveHolder.Size = UDim2.new(0,160,0,26); waveHolder.Position = UDim2.new(0,300,0,vizY+22)
+    waveHolder.BackgroundTransparency = 1; waveHolder.Parent = pg1
+    local waveLayout = Instance.new("UIListLayout")
+    waveLayout.FillDirection = Enum.FillDirection.Horizontal
+    waveLayout.Padding = UDim.new(0,2)
+    waveLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    waveLayout.Parent = waveHolder
+    waveBars = {}
+    for i = 1, 20 do
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.new(0, 5, 0.3, 0)
+        bar.BackgroundColor3 = THEMES[currentThemeName].accent2
+        bar.BorderSizePixel = 0
+        bar.Parent = waveHolder
+        uiCorner(bar, UDim.new(0,2))
+        if waveBars then table.insert(waveBars, bar) end
+    end
+
+    -- ============================================================
+    -- TAB: DECALS
+    -- ============================================================
+    local pgDecals = pages["🎨 DECALS"]
+    makeLabel(pgDecals, "🖌 CUSTOM ARROW DECALS", UDim2.new(0,8,0,10), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    makeDivider(pgDecals, 35, Color3.fromRGB(0,200,255))
+    makeLabel(pgDecals, "Replace the default arrows with custom image IDs. (Make sure to enable 'USE DECAL').", UDim2.new(0,8,0,40), UDim2.new(1,-16,0,20), Color3.fromRGB(150,150,150), Enum.TextXAlignment.Left, 10)
+
+    for i, dir in ipairs(ARROW_ORDER) do
+        local y = 70 + (i-1)*50
+        makeLabel(pgDecals, dir, UDim2.new(0,8,0,y), UDim2.new(0,50,0,28), ARROW_COLORS[dir].hit, Enum.TextXAlignment.Left, 11)
+        
+        local idBox = makeBox(pgDecals, UDim2.new(0,70,0,y), UDim2.new(0,250,0,28), "Image Decal ID", CUSTOM_DECALS[dir].id)
+        idBox.FocusLost:Connect(function()
+            CUSTOM_DECALS[dir].id = idBox.Text:gsub("%D","")
+            refreshCustomDecals()
+            SaveConfig()
+        end)
+        
+        local useBtn = makeBtn(pgDecals, CUSTOM_DECALS[dir].useDecal and "USE DECAL: ON" or "USE DECAL: OFF", UDim2.new(0,330,0,y), UDim2.new(0,110,0,28), CUSTOM_DECALS[dir].useDecal and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50))
+        useBtn.MouseButton1Click:Connect(function()
+            CUSTOM_DECALS[dir].useDecal = not CUSTOM_DECALS[dir].useDecal
+            useBtn.Text = CUSTOM_DECALS[dir].useDecal and "USE DECAL: ON" or "USE DECAL: OFF"
+            useBtn.BackgroundColor3 = CUSTOM_DECALS[dir].useDecal and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50)
+            refreshCustomDecals()
+            SaveConfig()
+        end)
+    end
+
+    -- ============================================================
+    -- TAB: SYNC
+    -- ============================================================
+    local pgSync = pages["👯 SYNC"]
+    makeLabel(pgSync, "👯 DOUBLE TROUBLE MULTIPLAYER SYNC", UDim2.new(0,8,0,10), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    makeDivider(pgSync, 35, Color3.fromRGB(0,200,255))
+    makeLabel(pgSync, "Target a player to perfectly mirror their animations and get pushed back when they attack.", UDim2.new(0,8,0,40), UDim2.new(1,-16,0,30), Color3.fromRGB(150,150,150), Enum.TextXAlignment.Left, 10)
+    
+    local syncBox = makeBox(pgSync, UDim2.new(0,8,0,80), UDim2.new(0,300,0,32), "Target Username...")
+    
+    local syncBtn = makeBtn(pgSync, "LINK 🔗", UDim2.new(0,320,0,80), UDim2.new(0,70,0,32), Color3.fromRGB(60,190,120))
+    local syncStop = makeBtn(pgSync, "UNLINK ✖", UDim2.new(0,400,0,80), UDim2.new(0,75,0,32), Color3.fromRGB(190,50,50))
+    
+    syncBtn.MouseButton1Click:Connect(function()
+        startDoubleTrouble(syncBox.Text)
+        if SYNC_STATE.Enabled then
+            syncBtn.Text = "LINKED ✔"
+            syncBtn.BackgroundColor3 = Color3.fromRGB(200,180,30)
+        end
+    end)
+    
+    syncStop.MouseButton1Click:Connect(function()
+        stopDoubleTrouble()
+        syncBtn.Text = "LINK 🔗"
+        syncBtn.BackgroundColor3 = Color3.fromRGB(60,190,120)
+    end)
+
+    makeLabel(pgSync, "REACTION DELAY (Seconds)", UDim2.new(0,8,0,130), UDim2.new(0,180,0,20), Color3.fromRGB(200,200,200), Enum.TextXAlignment.Left, 10)
+    local delayBox = makeBox(pgSync, UDim2.new(0,190,0,126), UDim2.new(0,80,0,28), "0.05", tostring(SYNC_STATE.MimicDelay))
+    delayBox.FocusLost:Connect(function()
+        SYNC_STATE.MimicDelay = tonumber(delayBox.Text) or 0.05
+    end)
+
+    makeDivider(pgSync, 165, Color3.fromRGB(0,200,255))
+    makeLabel(pgSync, "⚔ SYNC COMBAT (PUSHBACK)", UDim2.new(0,8,0,170), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    
+    local syncRpBtn = makeBtn(pgSync, "SYNC PUSHBACK: OFF", UDim2.new(0,8,0,200), UDim2.new(0,180,0,32), Color3.fromRGB(35,35,55))
+    syncRpBtn.MouseButton1Click:Connect(function()
+        SYNC_STATE.PushbackEnabled = not SYNC_STATE.PushbackEnabled
+        syncRpBtn.Text = SYNC_STATE.PushbackEnabled and "SYNC PUSHBACK: ON" or "SYNC PUSHBACK: OFF"
+        syncRpBtn.BackgroundColor3 = SYNC_STATE.PushbackEnabled and Color3.fromRGB(255,150,0) or Color3.fromRGB(35,35,55)
+    end)
+
+    -- ============================================================
+    -- TAB: MOVEMENT
+    -- ============================================================
+    local pgMove = pages["🛸 MOVEMENT"]
+
+    makeLabel(pgMove, "⚔ DASH ON NOTE HIT (ATTACK MODE)", UDim2.new(0,8,0,10), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    makeDivider(pgMove, 35, Color3.fromRGB(0,200,255))
+    
+    local dashTargetBox = makeBox(pgMove, UDim2.new(0,8,0,45), UDim2.new(0,250,0,32), "Dash Target Username...")
+    dashTargetBox.FocusLost:Connect(function() setTargetPlayer(dashTargetBox.Text, true) end)
+
+    local dashBtn = makeBtn(pgMove, "DASH ON HIT: OFF", UDim2.new(0,270,0,45), UDim2.new(0,180,0,32), Color3.fromRGB(35,35,55))
+    dashBtn.MouseButton1Click:Connect(function()
+        MOVEMENT_STATE.DashEnabled = not MOVEMENT_STATE.DashEnabled
+        dashBtn.Text = MOVEMENT_STATE.DashEnabled and "DASH ON HIT: ON" or "DASH ON HIT: OFF"
+        dashBtn.BackgroundColor3 = MOVEMENT_STATE.DashEnabled and Color3.fromRGB(255,80,80) or Color3.fromRGB(35,35,55)
+    end)
+    
+    makeLabel(pgMove, "🛸 CINEMATIC FLIGHT ENGINE", UDim2.new(0,8,0,100), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    makeDivider(pgMove, 125, Color3.fromRGB(0,200,255))
+    
+    local styleBtn = makeBtn(pgMove, "STYLE: GOD EATER", UDim2.new(0,8,0,140), UDim2.new(0,200,0,32), Color3.fromRGB(150, 40, 200))
+    styleBtn.MouseButton1Click:Connect(function()
+        if MOVEMENT_STATE.Style == "GodEater" then
+            MOVEMENT_STATE.Style = "Fleetway"
+            styleBtn.Text = "STYLE: FLEETWAY"
+            styleBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
+        else
+            MOVEMENT_STATE.Style = "GodEater"
+            styleBtn.Text = "STYLE: GOD EATER"
+            styleBtn.BackgroundColor3 = Color3.fromRGB(150, 40, 200)
+        end
+    end)
+
+    local togFlightBtn = makeBtn(pgMove, "FLIGHT: OFF", UDim2.new(0,220,0,140), UDim2.new(0,150,0,32), Color3.fromRGB(190,50,50))
+    togFlightBtn.MouseButton1Click:Connect(function()
+        local newState = not MOVEMENT_STATE.Enabled
+        toggleMovement(newState)
+        togFlightBtn.Text = newState and "FLIGHT: ON" or "FLIGHT: OFF"
+        togFlightBtn.BackgroundColor3 = newState and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50)
+    end)
+
+    makeLabel(pgMove, "FLIGHT SPEED", UDim2.new(0,8,0,190), UDim2.new(0,100,0,20), Color3.fromRGB(200,200,200), Enum.TextXAlignment.Left, 10)
+    makeSlider(pgMove, UDim2.new(0,110,0,193), UDim2.new(0,200,0,14), 10, 200, MOVEMENT_STATE.FlightSpeed, function(v)
+        MOVEMENT_STATE.FlightSpeed = v
+    end)
+
+    makeLabel(pgMove, "HOVER BOUNCE", UDim2.new(0,8,0,220), UDim2.new(0,100,0,20), Color3.fromRGB(200,200,200), Enum.TextXAlignment.Left, 10)
+    makeSlider(pgMove, UDim2.new(0,110,0,223), UDim2.new(0,200,0,14), 0, 15, MOVEMENT_STATE.HoverHeight, function(v)
+        MOVEMENT_STATE.HoverHeight = v
+    end)
+
+    makeDivider(pgMove, 260, Color3.fromRGB(0,200,255))
+    makeLabel(pgMove, "🔄 ADVANCED ROTATION", UDim2.new(0,8,0,270), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+
+    local shiftlockBtn = makeBtn(pgMove, "SHIFTLOCK: OFF", UDim2.new(0,8,0,300), UDim2.new(0,150,0,32), Color3.fromRGB(35,35,55))
+    shiftlockBtn.MouseButton1Click:Connect(function()
+        MOVEMENT_STATE.Shiftlock = not MOVEMENT_STATE.Shiftlock
+        shiftlockBtn.Text = "SHIFTLOCK: " .. (MOVEMENT_STATE.Shiftlock and "ON" or "OFF")
+        shiftlockBtn.BackgroundColor3 = MOVEMENT_STATE.Shiftlock and Color3.fromRGB(0,200,255) or Color3.fromRGB(35,35,55)
+    end)
+    
+    local spinBtn = makeBtn(pgMove, "SPIN IN PLACE: OFF", UDim2.new(0,170,0,300), UDim2.new(0,170,0,32), Color3.fromRGB(35,35,55))
+    spinBtn.MouseButton1Click:Connect(function()
+        MOVEMENT_STATE.Spinning = not MOVEMENT_STATE.Spinning
+        spinBtn.Text = "SPIN IN PLACE: " .. (MOVEMENT_STATE.Spinning and "ON" or "OFF")
+        spinBtn.BackgroundColor3 = MOVEMENT_STATE.Spinning and Color3.fromRGB(255,150,0) or Color3.fromRGB(35,35,55)
+    end)
+
+    makeLabel(pgMove, "SPIN SPEED", UDim2.new(0,8,0,350), UDim2.new(0,80,0,20), Color3.fromRGB(200,200,200), Enum.TextXAlignment.Left, 10)
+    makeSlider(pgMove, UDim2.new(0,100,0,353), UDim2.new(0,200,0,14), 1, 100, MOVEMENT_STATE.SpinSpeed, function(v)
+        MOVEMENT_STATE.SpinSpeed = v
+    end)
+
+    -- ============================================================
+    -- TAB : ANIMATION SEQUENCE MAKER
+    -- ============================================================
+    local pg2 = pages["🎬 MAKER"]
+
+    local makerTitle = makeLabel(pg2, "🎬 ANIMATION SEQUENCE MAKER",
+        UDim2.new(0,8,0,6), UDim2.new(1,-16,0,20),
+        Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(makerTitle)
+    makeDivider(pg2, 28, Color3.fromRGB(0,200,255))
+    makeLabel(pg2, "ANIM ID",   UDim2.new(0,8,0,34),   UDim2.new(0,220,0,16), Color3.fromRGB(160,160,160))
+    makeLabel(pg2, "DELAY (s)", UDim2.new(0,232,0,34), UDim2.new(0,80,0,16),  Color3.fromRGB(160,160,160))
+
+    local seqScroll = Instance.new("ScrollingFrame")
+    seqScroll.Size = UDim2.new(1,-16,0,182); seqScroll.Position = UDim2.new(0,8,0,52)
+    seqScroll.BackgroundColor3 = Color3.fromRGB(18,18,26); seqScroll.BorderSizePixel = 0
+    seqScroll.ScrollBarThickness = 4; seqScroll.CanvasSize = UDim2.new(0,0,0,0)
+    seqScroll.Parent = pg2; uiCorner(seqScroll)
+
+    local seqLayout = Instance.new("UIListLayout")
+    seqLayout.SortOrder = Enum.SortOrder.LayoutOrder; seqLayout.Padding = UDim.new(0,4)
+    seqLayout.Parent = seqScroll
+    local seqPad = Instance.new("UIPadding")
+    seqPad.PaddingTop = UDim.new(0,4); seqPad.PaddingLeft = UDim.new(0,4); seqPad.PaddingRight = UDim.new(0,4)
+    seqPad.Parent = seqScroll
+
+    local function updateCanvas()
+        seqScroll.CanvasSize = UDim2.new(0,0,0, seqLayout.AbsoluteContentSize.Y + 10)
+    end
+    seqLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
+
+    local seqStatusLbl = makeLabel(pg2, "● IDLE",
+        UDim2.new(0,8,0,310), UDim2.new(1,-16,0,18), Color3.fromRGB(160,80,80), Enum.TextXAlignment.Left)
+
+    local function addSeqRow(id: string?, delay: number?)
+        local step = { id = id or "", delay = delay or 0.5 }
+        table.insert(sequence, step)
+
+        local row = Instance.new("Frame")
+        row.Size = UDim2.new(1,-8,0,30); row.BackgroundColor3 = Color3.fromRGB(24,24,36)
+        row.BorderSizePixel = 0; row.LayoutOrder = #sequence; row.Parent = seqScroll
+        uiCorner(row, UDim.new(0,6))
+
+        local idIn = makeBox(row, UDim2.new(0,4,0,3), UDim2.new(0,250,0,24), "Animation ID", step.id)
+        idIn.FocusLost:Connect(function() step.id = idIn.Text:gsub("%D","") end)
+
+        local dlIn = makeBox(row, UDim2.new(0,270,0,3), UDim2.new(0,64,0,24), "0.5", tostring(step.delay))
+        dlIn.FocusLost:Connect(function() step.delay = tonumber(dlIn.Text) or 0.5 end)
+
+        local rem = makeBtn(row, "✕", UDim2.new(1,-32,0,3), UDim2.new(0,28,0,24), Color3.fromRGB(170,35,35), nil, 12)
+        rem.MouseButton1Click:Connect(function()
+            for j, s in ipairs(sequence) do if s == step then table.remove(sequence, j); break end end
+            for j, r in ipairs(seqRowFrames) do if r == row then table.remove(seqRowFrames, j); break end end
+            row:Destroy(); updateCanvas()
+        end)
+
+        table.insert(seqRowFrames, row); updateCanvas()
+    end
+
+    makeBtn(pg2, "+ ADD STEP", UDim2.new(0,8,0,240), UDim2.new(1,-16,0,26), Color3.fromRGB(35,35,55))
+        .MouseButton1Click:Connect(function() addSeqRow("", 0.5) end)
+
+    local seqPlay  = makeBtn(pg2, "▶ PLAY SEQUENCE", UDim2.new(0,8,0,272),  UDim2.new(0,176,0,30), Color3.fromRGB(60,190,120))
+    local seqStop  = makeBtn(pg2, "■ STOP",          UDim2.new(0,192,0,272), UDim2.new(0,90,0,30),  Color3.fromRGB(190,50,50))
+    local seqClear = makeBtn(pg2, "🗑 CLEAR",         UDim2.new(0,290,0,272), UDim2.new(0,170,0,30), Color3.fromRGB(70,25,70))
+
+    seqPlay.MouseButton1Click:Connect(function()
+        if #sequence == 0 then seqStatusLbl.Text = "⚠ Add steps first"; notify("Add a step first", "warn"); return end
+        playSequence()
+        seqStatusLbl.Text = "▶ RUNNING"; seqStatusLbl.TextColor3 = Color3.fromRGB(80,220,120)
+        notify("Sequence started", "info")
+        task.spawn(function()
+            while seqPlaying do task.wait(0.1) end
+            seqStatusLbl.Text = "● IDLE"; seqStatusLbl.TextColor3 = Color3.fromRGB(160,80,80)
+        end)
+    end)
+    seqStop.MouseButton1Click:Connect(function()
+        stopSequence(); seqStatusLbl.Text = "● IDLE"; seqStatusLbl.TextColor3 = Color3.fromRGB(160,80,80)
+    end)
+    seqClear.MouseButton1Click:Connect(function()
+        stopSequence(); sequence = {}
+        for _, r in ipairs(seqRowFrames) do pcall(function() r:Destroy() end) end
+        seqRowFrames = {}; updateCanvas()
+        seqStatusLbl.Text = "● IDLE"; seqStatusLbl.TextColor3 = Color3.fromRGB(160,80,80)
+    end)
+
+    makeDivider(pg2, 330, Color3.fromRGB(0,200,255))
+    local presetTitle = makeLabel(pg2, "⚡ QUICK PRESETS", UDim2.new(0,8,0,336), UDim2.new(1,-16,0,18), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 11)
+    regText(presetTitle)
+    for i, preset in ipairs(PRESETS) do
+        local py = 356 + (i-1)*32
+        local pbtn = makeBtn(pg2, "📥 "..preset.name, UDim2.new(0,8,0,py), UDim2.new(1,-16,0,26), Color3.fromRGB(28,12,42), nil, 11)
+        pbtn.MouseButton1Click:Connect(function()
+            for _, row in ipairs(CurrentBindings) do
+                local newId = preset.ids[row.dir]
+                if newId then
+                    row.id = newId
+                    if row.keyBtn then destroyTrack(row.key) end
+                end
+            end
+            notify("Loaded preset: "..preset.name, "success")
+        end)
+    end
+
+    -- ============================================================
+    -- TAB : LIVE PREVIEW
+    -- ============================================================
+    local pg3v = pages["👁 PREVIEW"]
+    local pvTitle = makeLabel(pg3v, "👁 LIVE CHARACTER PREVIEW", UDim2.new(0,8,0,6), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(pvTitle)
+    makeDivider(pg3v, 28, Color3.fromRGB(0,200,255))
+
+    local viewport = Instance.new("ViewportFrame")
+    viewport.Size = UDim2.new(1,-16,0,260); viewport.Position = UDim2.new(0,8,0,36)
+    viewport.BackgroundColor3 = Color3.fromRGB(10,10,16)
+    viewport.Ambient = Color3.fromRGB(140,140,150)
+    viewport.LightColor = Color3.fromRGB(255,255,255)
+    viewport.LightDirection = Vector3.new(-0.6, -1, -0.4)
+    viewport.Parent = pg3v
+    uiCorner(viewport)
+    local vpStroke = uiStroke(viewport, Color3.fromRGB(255,80,180), 2)
+    regStroke(vpStroke)
+
+    previewCloneContainer = Instance.new("WorldModel")
+    (previewCloneContainer :: WorldModel).Parent = viewport
+
+    previewCam = Instance.new("Camera")
+    (previewCam :: Camera).FieldOfView = 60
+    (previewCam :: Camera).CFrame = CFrame.new(Vector3.new(0, 3, 6), Vector3.new(0, 3, 0))
+    viewport.CurrentCamera = previewCam
+    (previewCam :: Camera).Parent = viewport
+
+    task.spawn(function()
+        while true do
+            RunService.Heartbeat:Wait()
+            if mainGuiRef and not mainGuiRef.Parent then break end 
+            if previewCam then
+                previewAngle = previewAngle + 0.3
+                local rad = math.rad(previewAngle)
+                local dist = 6
+                local pos = Vector3.new(math.sin(rad) * dist, 4, math.cos(rad) * dist)
+                previewCam.CFrame = CFrame.new(pos, Vector3.new(0, 3, 0))
+            end
+        end
+    end)
+
+    local pvHint = makeLabel(pg3v, "Rotates automatically. Plays whatever anim you last triggered.",
+        UDim2.new(0,8,0,300), UDim2.new(1,-16,0,18), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
+
+    local pvRefreshBtn = makeBtn(pg3v, "🔄 REFRESH CLONE", UDim2.new(0,8,0,324), UDim2.new(1,-16,0,28), Color3.fromRGB(70,120,255))
+    pvRefreshBtn.MouseButton1Click:Connect(function()
+        if character then buildPreviewClone(character); notify("Preview clone refreshed", "info") end
+    end)
+
+    makeDivider(pg3v, 362, Color3.fromRGB(255,80,180))
+    local pvStat1 = makeLabel(pg3v, "Anim: —", UDim2.new(0,8,0,370), UDim2.new(1,-16,0,16), Color3.fromRGB(210,210,220), Enum.TextXAlignment.Left, 10)
+    local pvStat2 = makeLabel(pg3v, "Speed: x1.00   BPM: 100   State: STOPPED", UDim2.new(0,8,0,388), UDim2.new(1,-16,0,16), Color3.fromRGB(160,160,180), Enum.TextXAlignment.Left, 10)
+    
+    local function refreshStatusUI()
+        pvStat1.Text = string.format("Anim: %s (%s)", StatusState.currentAnimName, StatusState.currentAnimId ~= "" and StatusState.currentAnimId or "—")
+        pvStat2.Text = string.format("Speed: x%.2f   BPM: %d   State: %s",
+            StatusState.speedMult, StatusState.bpm, StatusState.playing and "PLAYING" or "STOPPED")
+    end
+
+    makeDivider(pg3v, 414, Color3.fromRGB(0,200,255))
+    local recentsTitle = makeLabel(pg3v, "🕐 RECENT ANIMATIONS", UDim2.new(0,8,0,420), UDim2.new(1,-16,0,18), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 11)
+    regText(recentsTitle)
+    local recentsScroll = Instance.new("ScrollingFrame")
+    recentsScroll.Size = UDim2.new(1,-16,0,120); recentsScroll.Position = UDim2.new(0,8,0,442)
+    recentsScroll.BackgroundColor3 = Color3.fromRGB(18,18,26); recentsScroll.BorderSizePixel = 0
+    recentsScroll.ScrollBarThickness = 4; recentsScroll.CanvasSize = UDim2.new(0,0,0,0)
+    recentsScroll.Parent = pg3v; uiCorner(recentsScroll)
+    local recentsLayout = Instance.new("UIListLayout")
+    recentsLayout.Padding = UDim.new(0,4); recentsLayout.Parent = recentsScroll
+
+    local function refreshRecentsUI()
+        for _, c in ipairs(recentsScroll:GetChildren()) do
+            if c:IsA("Frame") then c:Destroy() end
+        end
+        for i, r in ipairs(recents) do
+            local row = Instance.new("Frame")
+            row.Size = UDim2.new(1,-8,0,26); row.BackgroundColor3 = Color3.fromRGB(24,24,36)
+            row.BorderSizePixel = 0; row.LayoutOrder = i; row.Parent = recentsScroll
+            uiCorner(row, UDim.new(0,6))
+            makeLabel(row, r.label.." — "..r.id, UDim2.new(0,8,0,0), UDim2.new(1,-90,1,0), Color3.fromRGB(200,200,215), Enum.TextXAlignment.Left, 10)
+            local playBtn = makeBtn(row, "▶", UDim2.new(1,-40,0,2), UDim2.new(0,32,0,22), Color3.fromRGB(60,190,120), nil, 11)
+            playBtn.MouseButton1Click:Connect(function()
+                updatePreviewAnimation(r.id, r.label)
+                notify("Previewing "..r.label, "info")
+            end)
+        end
+    end
+    refreshRecentsUI()
+
+    -- ============================================================
+    -- TAB : FAVORITES
+    -- ============================================================
+    local pg4 = pages["❤ FAVES"]
+    local favTitle = makeLabel(pg4, "❤ FAVORITE ANIMATIONS", UDim2.new(0,8,0,6), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(favTitle)
+    makeDivider(pg4, 28, Color3.fromRGB(0,200,255))
+
+    local favNameBox = makeBox(pg4, UDim2.new(0,8,0,36), UDim2.new(0,200,0,28), "Name")
+    local favIdBox   = makeBox(pg4, UDim2.new(0,216,0,36), UDim2.new(0,168,0,28), "Anim ID")
+    local favAddBtn  = makeBtn(pg4, "＋ SAVE", UDim2.new(0,392,0,36), UDim2.new(0,84,0,28), Color3.fromRGB(60,190,120), nil, 11)
+
+    local favScroll = Instance.new("ScrollingFrame")
+    favScroll.Size = UDim2.new(1,-16,0,300); favScroll.Position = UDim2.new(0,8,0,72)
+    favScroll.BackgroundColor3 = Color3.fromRGB(18,18,26); favScroll.BorderSizePixel = 0
+    favScroll.ScrollBarThickness = 4; favScroll.CanvasSize = UDim2.new(0,0,0,0)
+    favScroll.Parent = pg4; uiCorner(favScroll)
+    local favLayout = Instance.new("UIListLayout")
+    favLayout.Padding = UDim.new(0,4); favLayout.Parent = favScroll
+    local favPad = Instance.new("UIPadding")
+    favPad.PaddingTop = UDim.new(0,4); favPad.PaddingLeft = UDim.new(0,4); favPad.PaddingRight = UDim.new(0,4)
+    favPad.Parent = favScroll
+
+    local function refreshFavUI()
+        for _, c in ipairs(favScroll:GetChildren()) do
+            if c:IsA("Frame") then c:Destroy() end
+        end
+        for i, f in ipairs(favorites) do
+            local row = Instance.new("Frame")
+            row.Size = UDim2.new(1,-8,0,32); row.BackgroundColor3 = Color3.fromRGB(24,24,36)
+            row.BorderSizePixel = 0; row.LayoutOrder = i; row.Parent = favScroll
+            uiCorner(row, UDim.new(0,6))
+            makeLabel(row, f.name.." — "..f.id, UDim2.new(0,8,0,0), UDim2.new(1,-116,1,0), Color3.fromRGB(200,200,215), Enum.TextXAlignment.Left, 10)
+            local playBtn = makeBtn(row, "▶", UDim2.new(1,-146,0,3), UDim2.new(0,34,0,26), Color3.fromRGB(0,180,230), nil, 11)
+            local addPlBtn = makeBtn(row, "➕LIST", UDim2.new(1,-108,0,3), UDim2.new(0,58,0,26), Color3.fromRGB(70,120,255), nil, 9)
+            local delBtn = makeBtn(row, "✕", UDim2.new(1,-42,0,3), UDim2.new(0,34,0,26), Color3.fromRGB(170,35,35), nil, 11)
+
+            playBtn.MouseButton1Click:Connect(function()
+                updatePreviewAnimation(f.id, f.name)
+                pushRecent(f.id, f.name)
+                notify("Previewing favorite: "..f.name, "info")
+            end)
+            addPlBtn.MouseButton1Click:Connect(function()
+                table.insert(playlist, { name = f.name, id = f.id, delay = 1 })
+                notify(f.name.." added to playlist", "success")
+            end)
+            delBtn.MouseButton1Click:Connect(function()
+                table.remove(favorites, i)
+                refreshFavUI()
+            end)
+        end
+    end
+
+    favAddBtn.MouseButton1Click:Connect(function()
+        local id = favIdBox.Text:gsub("%D","")
+        local nm = favNameBox.Text ~= "" and favNameBox.Text or ("Fav "..(#favorites+1))
+        if id == "" then notify("Enter an anim ID to save", "warn"); return end
+        table.insert(favorites, { name = nm, id = id })
+        favNameBox.Text = ""; favIdBox.Text = ""
+        refreshFavUI()
+        notify("Saved to favorites: "..nm, "success")
+    end)
+    refreshFavUI()
+
+    -- ============================================================
+    -- TAB : PLAYLIST MANAGER
+    -- ============================================================
+    local pg5 = pages["🎶 LIST"]
+    local plTitle = makeLabel(pg5, "🎶 PLAYLIST MANAGER", UDim2.new(0,8,0,6), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(plTitle)
+    makeDivider(pg5, 28, Color3.fromRGB(0,200,255))
+
+    local plScroll = Instance.new("ScrollingFrame")
+    plScroll.Size = UDim2.new(1,-16,0,260); plScroll.Position = UDim2.new(0,8,0,36)
+    plScroll.BackgroundColor3 = Color3.fromRGB(18,18,26); plScroll.BorderSizePixel = 0
+    plScroll.ScrollBarThickness = 4; plScroll.CanvasSize = UDim2.new(0,0,0,0)
+    plScroll.Parent = pg5; uiCorner(plScroll)
+    local plLayout = Instance.new("UIListLayout")
+    plLayout.Padding = UDim.new(0,4); plLayout.Parent = plScroll
+    local plPad = Instance.new("UIPadding")
+    plPad.PaddingTop = UDim.new(0,4); plPad.PaddingLeft = UDim.new(0,4); plPad.PaddingRight = UDim.new(0,4)
+    plPad.Parent = plScroll
+
+    local function refreshPlaylistUI()
+        for _, c in ipairs(plScroll:GetChildren()) do
+            if c:IsA("Frame") then c:Destroy() end
+        end
+        for i, item in ipairs(playlist) do
+            local row = Instance.new("Frame")
+            row.Size = UDim2.new(1,-8,0,30)
+            row.BackgroundColor3 = (i == playlistIndex and playlistPlaying) and Color3.fromRGB(50,30,60) or Color3.fromRGB(24,24,36)
+            row.BorderSizePixel = 0; row.LayoutOrder = i; row.Parent = plScroll
+            uiCorner(row, UDim.new(0,6))
+            makeLabel(row, string.format("%d. %s — %s", i, item.name or item.id, item.id),
+                UDim2.new(0,8,0,0), UDim2.new(1,-40,1,0), Color3.fromRGB(200,200,215), Enum.TextXAlignment.Left, 10)
+            local rem = makeBtn(row, "✕", UDim2.new(1,-34,0,3), UDim2.new(0,26,0,24), Color3.fromRGB(170,35,35), nil, 11)
+            rem.MouseButton1Click:Connect(function()
+                table.remove(playlist, i)
+                refreshPlaylistUI()
+            end)
+        end
+    end
+    refreshPlaylistUI()
+
+    local plAddBox = makeBox(pg5, UDim2.new(0,8,0,300), UDim2.new(0,220,0,26), "Animation ID to add")
+    local plAddBtn = makeBtn(pg5, "+ ADD", UDim2.new(0,236,0,300), UDim2.new(0,80,0,26), Color3.fromRGB(35,35,55))
+    plAddBtn.MouseButton1Click:Connect(function()
+        local id = plAddBox.Text:gsub("%D","")
+        if id == "" then notify("Enter an anim ID", "warn"); return end
+        table.insert(playlist, { name = "Track "..(#playlist+1), id = id, delay = 1 })
+        plAddBox.Text = ""
+        refreshPlaylistUI()
+    end)
+
+    local plPlay = makeBtn(pg5, "▶ PLAY", UDim2.new(0,8,0,332), UDim2.new(0,96,0,28), Color3.fromRGB(60,190,120), nil, 11)
+    local plPrev = makeBtn(pg5, "⏮ PREV", UDim2.new(0,110,0,332), UDim2.new(0,86,0,28), Color3.fromRGB(70,120,255), nil, 11)
+    local plNext = makeBtn(pg5, "NEXT ⏭", UDim2.new(0,202,0,332), UDim2.new(0,86,0,28), Color3.fromRGB(70,120,255), nil, 11)
+    local plStop = makeBtn(pg5, "■ STOP", UDim2.new(0,294,0,332), UDim2.new(0,180,0,28), Color3.fromRGB(190,50,50), nil, 11)
+
+    plPlay.MouseButton1Click:Connect(function()
+        if #playlist == 0 then notify("Playlist is empty", "warn"); return end
+        playPlaylist(); notify("Playlist started", "info")
+    end)
+    plPrev.MouseButton1Click:Connect(prevPlaylistTrack)
+    plNext.MouseButton1Click:Connect(nextPlaylistTrack)
+    plStop.MouseButton1Click:Connect(function() stopPlaylist(); refreshPlaylistUI() end)
+
+    -- ============================================================
+    -- TAB : FX 
+    -- ============================================================
+    local pgFx = pages["🎛 FX"]
+
+    local vinylTitle = makeLabel(pgFx, "💿 VINYL RECORD", UDim2.new(0,8,0,6), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(vinylTitle)
+    makeDivider(pgFx, 28, Color3.fromRGB(0,200,255))
+    makeLabel(pgFx, "Spins faster the higher the current speed / BPM is.",
+        UDim2.new(0,8,0,34), UDim2.new(1,-16,0,18), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
+
+    local vinylHolder = Instance.new("Frame")
+    vinylHolder.Size = UDim2.new(0,120,0,120); vinylHolder.Position = UDim2.new(0,8,0,56)
+    vinylHolder.BackgroundColor3 = Color3.fromRGB(8,8,10); vinylHolder.BorderSizePixel = 0
+    vinylHolder.Parent = pgFx; uiCorner(vinylHolder, UDim.new(1,0))
+    local vinylHolderStroke = uiStroke(vinylHolder, Color3.fromRGB(255,80,180), 2)
+    regStroke(vinylHolderStroke)
+
+    vinylImage = Instance.new("ImageLabel")
+    (vinylImage :: ImageLabel).Size = UDim2.new(1,-8,1,-8); (vinylImage :: ImageLabel).Position = UDim2.new(0,4,0,4)
+    (vinylImage :: ImageLabel).BackgroundTransparency = 1
+    (vinylImage :: ImageLabel).Image = VINYL_DECAL_ID ~= "" and ("rbxassetid://"..VINYL_DECAL_ID) or ""
+    (vinylImage :: ImageLabel).ScaleType = Enum.ScaleType.Fit
+    (vinylImage :: ImageLabel).Parent = vinylHolder
+    
+    local vinylRing = Instance.new("Frame")
+    vinylRing.Size = UDim2.new(1,0,1,0); vinylRing.BackgroundTransparency = 1
+    vinylRing.Parent = vinylHolder
+    uiCorner(vinylRing, UDim.new(1,0))
+    uiStroke(vinylRing, Color3.fromRGB(60,60,65), 1)
+    local vinylCenter = Instance.new("Frame")
+    vinylCenter.Size = UDim2.new(0,14,0,14); vinylCenter.AnchorPoint = Vector2.new(0.5,0.5)
+    vinylCenter.Position = UDim2.new(0.5,0,0.5,0); vinylCenter.BackgroundColor3 = Color3.fromRGB(255,80,180)
+    vinylCenter.BorderSizePixel = 0; vinylCenter.Parent = vinylHolder
+    uiCorner(vinylCenter, UDim.new(1,0)); regBg(vinylCenter)
+
+    local vinylIdBox = makeBox(pgFx, UDim2.new(0,140,0,56), UDim2.new(1,-148,0,28), "Vinyl decal asset ID", VINYL_DECAL_ID)
+    vinylIdBox.FocusLost:Connect(function()
+        local id = vinylIdBox.Text:gsub("%D","")
+        VINYL_DECAL_ID = id
+        if vinylImage then (vinylImage :: ImageLabel).Image = id ~= "" and ("rbxassetid://"..id) or "" end
+        SaveConfig()
+    end)
+
+    makeLabel(pgFx, "BASE RPM", UDim2.new(0,140,0,124), UDim2.new(0,70,0,24), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    local vinylRpmBox = makeBox(pgFx, UDim2.new(0,214,0,124), UDim2.new(0,70,0,24), "33.3", tostring(vinylBaseRPM))
+    vinylRpmBox.FocusLost:Connect(function()
+        local n = tonumber(vinylRpmBox.Text)
+        if n and n > 0 then vinylBaseRPM = n else vinylRpmBox.Text = tostring(vinylBaseRPM) end
+    end)
+
+    makeDivider(pgFx, 284, Color3.fromRGB(0,200,255))
+    local specTitle = makeLabel(pgFx, "🎙 SPECTROGRAM (MIC)", UDim2.new(0,8,0,290), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(specTitle)
+    local specStatusLbl = makeLabel(pgFx, "● not connected", UDim2.new(0,200,0,290), UDim2.new(1,-208,0,20), Color3.fromRGB(160,80,80), Enum.TextXAlignment.Right, 10)
+
+    makeLabel(pgFx, "Uses Roblox's mic Audio API if supported; otherwise reacts to animation.",
+        UDim2.new(0,8,0,312), UDim2.new(1,-16,0,28), Color3.fromRGB(130,130,150), Enum.TextXAlignment.Left, 10)
+
+    local specHolder = Instance.new("Frame")
+    specHolder.Size = UDim2.new(1,-16,0,60); specHolder.Position = UDim2.new(0,8,0,346)
+    specHolder.BackgroundColor3 = Color3.fromRGB(18,18,26); specHolder.BorderSizePixel = 0
+    specHolder.Parent = pgFx; uiCorner(specHolder)
+    local specLayout = Instance.new("UIListLayout")
+    specLayout.FillDirection = Enum.FillDirection.Horizontal
+    specLayout.Padding = UDim.new(0,3)
+    specLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+    specLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    specLayout.Parent = specHolder
+    specBars = {}
+    for i = 1, SPEC_BAR_COUNT do
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.new(0, 6, 0.15, 0)
+        bar.BackgroundColor3 = THEMES[currentThemeName].accent2
+        bar.BorderSizePixel = 0
+        bar.Parent = specHolder
+        uiCorner(bar, UDim.new(0,2))
+        table.insert(specBars, bar)
+    end
+
+    local micBtn = makeBtn(pgFx, "🎙 REQUEST MIC ACCESS", UDim2.new(0,8,0,414), UDim2.new(1,-16,0,30), Color3.fromRGB(70,120,255), nil, 11)
+    micBtn.MouseButton1Click:Connect(function()
+        local success = setupMicSpectrogram()
+        if success then
+            specStatusLbl.Text = "● mic connected"; specStatusLbl.TextColor3 = Color3.fromRGB(80,220,120)
+            notify("Mic spectrogram connected", "success")
+        else
+            specStatusLbl.Text = "● using fallback"; specStatusLbl.TextColor3 = Color3.fromRGB(255,180,60)
+            notify("Mic unavailable here — using robust synced fallback", "warn")
+        end
+    end)
+
+    makeDivider(pgFx, 456, Color3.fromRGB(255,80,180))
+    local bpmDetectTitle = makeLabel(pgFx, "🎯 BPM DETECTOR", UDim2.new(0,8,0,462), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(bpmDetectTitle)
+    makeLabel(pgFx, "Tap mode reads the rhythm of your Z/X/C/V presses.",
+        UDim2.new(0,8,0,484), UDim2.new(1,-16,0,28), Color3.fromRGB(130,130,150), Enum.TextXAlignment.Left, 10)
+
+    local detectedLbl = makeLabel(pgFx, "Detected: — BPM", UDim2.new(0,8,0,516), UDim2.new(1,-16,0,22), Color3.fromRGB(0,200,255), Enum.TextXAlignment.Left, 13)
+
+    local function refreshBpmDetectorUI()
+        if detectedBPM then
+            detectedLbl.Text = string.format("Detected: %d BPM  (from %d taps)", detectedBPM, #bpmDetectTaps)
+        end
+    end
+
+    makeLabel(pgFx, "BEATS/LOOP", UDim2.new(0,8,0,542), UDim2.new(0,80,0,26), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    local beatsBox = makeBox(pgFx, UDim2.new(0,90,0,542), UDim2.new(0,50,0,26), "4", tostring(beatsPerIdleLoop))
+    beatsBox.FocusLost:Connect(function()
+        local n = tonumber(beatsBox.Text)
+        if n and n > 0 then beatsPerIdleLoop = n else beatsBox.Text = tostring(beatsPerIdleLoop) end
+    end)
+
+    local idleDetectBtn = makeBtn(pgFx, "📐 FROM IDLE LENGTH", UDim2.new(0,148,0,542), UDim2.new(0,150,0,26), Color3.fromRGB(70,120,255), nil, 10)
+    idleDetectBtn.MouseButton1Click:Connect(function()
+        local bpm = detectBpmFromIdleLength(beatsPerIdleLoop)
+        if bpm then
+            refreshBpmDetectorUI()
+            notify("Detected "..bpm.." BPM from idle length", "success")
+        else
+            notify("Load an idle animation first", "warn")
+        end
+    end)
+
+    local resetTapBtn = makeBtn(pgFx, "↺ RESET TAPS", UDim2.new(0,306,0,542), UDim2.new(0,116,0,26), Color3.fromRGB(170,35,35), nil, 10)
+    resetTapBtn.MouseButton1Click:Connect(function()
+        bpmDetectTaps = {}; detectedBPM = nil
+        detectedLbl.Text = "Detected: — BPM"
+        notify("Tap history cleared", "info")
+    end)
+
+    local applyDetectedBtn = makeBtn(pgFx, "✓ APPLY DETECTED BPM TO IDLE", UDim2.new(0,8,0,574), UDim2.new(1,-16,0,28), Color3.fromRGB(60,190,120), nil, 11)
+    applyDetectedBtn.MouseButton1Click:Connect(function()
+        if detectedBPM then
+            setIdleBPM(detectedBPM)
+            notify("Idle BPM set to "..detectedBPM, "success")
+            SaveConfig()
+        else
+            notify("No BPM detected yet — tap some keys or use idle length", "warn")
+        end
+    end)
+
+    makeDivider(pgFx, 616, Color3.fromRGB(0,200,255))
+    local musicTitle = makeLabel(pgFx, "🎵 MUSIC PLAYER (NO VC)", UDim2.new(0,8,0,622), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(musicTitle)
+    makeLabel(pgFx, "Plays an uploaded audio asset for the whole server directly.",
+        UDim2.new(0,8,0,644), UDim2.new(1,-16,0,30), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
+
+    local musicIdBox = makeBox(pgFx, UDim2.new(0,8,0,698), UDim2.new(1,-16,0,28), "Audio asset ID (e.g. 1234567890)")
+
+    local musicPlayBtn = makeBtn(pgFx, "▶ PLAY FOR EVERYONE", UDim2.new(0,8,0,730), UDim2.new(0,220,0,30), Color3.fromRGB(60,190,120), nil, 11)
+    local musicStopBtn = makeBtn(pgFx, "■ STOP", UDim2.new(0,236,0,730), UDim2.new(0,160,0,30), Color3.fromRGB(190,50,50), nil, 11)
+
+    musicStatusLbl = makeLabel(pgFx, "● idle", UDim2.new(0,8,0,766), UDim2.new(1,-16,0,20), Color3.fromRGB(160,80,80), Enum.TextXAlignment.Left, 11)
+
+    musicPlayBtn.MouseButton1Click:Connect(function()
+        local id = musicIdBox.Text:gsub("%D","")
+        if id == "" then notify("Enter an audio asset ID first", "warn"); return end
+        playMusicTrack(id)
+        notify("Requested track "..id.." for the whole server", "info")
+    end)
+    musicStopBtn.MouseButton1Click:Connect(function()
+        stopMusicTrack()
+        notify("Stopped shared music", "info")
+    end)
+
+    -- ============================================================
+    -- TAB : SETTINGS 
+    -- ============================================================
+    local pg6 = pages["⚙ SETTINGS"]
+
+    local saveTitle = makeLabel(pg6, "💾 SAVE DATA SYSTEM", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    makeDivider(pg6, 30, Color3.fromRGB(0,200,255))
+    
+    local saveBtn = makeBtn(pg6, "SAVE CONFIG NOW", UDim2.new(0,8,0,40), UDim2.new(0,150,0,32), Color3.fromRGB(60,190,120))
+    saveBtn.MouseButton1Click:Connect(function()
+        SaveConfig(); notify("Configuration Saved manually!", "success")
+    end)
+    
+    makeDivider(pg6, 85, Color3.fromRGB(255,80,180))
+    makeLabel(pg6, "🎨 UI BACKGROUND DECAL", UDim2.new(0,8,0,90), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    
+    local bgBox = makeBox(pg6, UDim2.new(0,8,0,120), UDim2.new(0,250,0,32), "Decal Image ID", BG_DECAL_ID)
+    bgBox.FocusLost:Connect(function()
+        BG_DECAL_ID = bgBox.Text:gsub("%D","")
+        if BG_DECAL_ID ~= "" then
+            if uiBgImage then (uiBgImage :: ImageLabel).Image = "rbxassetid://"..BG_DECAL_ID end
+        else
+            if uiBgImage then (uiBgImage :: ImageLabel).Image = "" end
+        end
+        SaveConfig()
+    end)
+
+    makeDivider(pg6, 165, Color3.fromRGB(255,80,180))
+
+    local legsTitle = makeLabel(pg6, "🦵 LEGS ON GROUND (Optional)",
+        UDim2.new(0,8,0,175), UDim2.new(1,-16,0,20),
+        Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(legsTitle)
+    
+    makeLabel(pg6, "Prevents walking and jumping — character stays planted.",
+        UDim2.new(0,8,0,195), UDim2.new(1,-16,0,28),
+        Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
+
+    local legsBtn = makeBtn(pg6, "🔓  LEGS UNLOCKED  (OFF)",
+        UDim2.new(0,8,0,230), UDim2.new(1,-16,0,32), Color3.fromRGB(35,35,55), nil, 11)
+    legsBtn.MouseButton1Click:Connect(function()
+        legsLocked = not legsLocked
+        applyLegsLock(legsLocked)
+        if legsLocked then
+            legsBtn.Text = "🔒  LEGS LOCKED  (ON)"
+            legsBtn.BackgroundColor3 = THEMES[currentThemeName].accent
+        else
+            legsBtn.Text = "🔓  LEGS UNLOCKED  (OFF)"
+            legsBtn.BackgroundColor3 = Color3.fromRGB(35,35,55)
+        end
+        notify(legsLocked and "Legs locked" or "Legs unlocked", "info")
+    end)
+
+    makeDivider(pg6, 280, Color3.fromRGB(255,80,180))
+    local faceTitle = makeLabel(pg6, "😊 DYNAMIC FACE IDs",
+        UDim2.new(0,8,0,286), UDim2.new(1,-16,0,20),
+        Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(faceTitle)
+
+    local faceOrder = { "LEFT", "DOWN", "UP", "RIGHT" }
+    for i, dir in ipairs(faceOrder) do
+        local y = 320 + (i-1)*38
+        local col = ARROW_COLORS[dir] and ARROW_COLORS[dir].hit or Color3.fromRGB(255,255,255)
+        makeLabel(pg6, dir, UDim2.new(0,8,0,y), UDim2.new(0,52,0,28), col, Enum.TextXAlignment.Left)
+        local fb = makeBox(pg6, UDim2.new(0,66,0,y), UDim2.new(1,-74,0,28), "Face decal ID for "..dir, faceIds[dir])
+        local capturedDir = dir
+        fb.FocusLost:Connect(function()
+            faceIds[capturedDir] = fb.Text:gsub("%D","")
+            SaveConfig()
+        end)
+    end
+
+    makeDivider(pg6, 480, Color3.fromRGB(0,200,255))
+    local themeTitle = makeLabel(pg6, "🎨 THEME", UDim2.new(0,8,0,486), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(themeTitle)
+
+    local themeNames = { "Pink", "Cyan", "Purple", "RGB" }
+    local themeSwatch = { Pink = Color3.fromRGB(255,80,180), Cyan = Color3.fromRGB(0,200,255),
+                          Purple = Color3.fromRGB(165,85,255), RGB = Color3.fromRGB(255,255,255) }
+    for i, tn in ipairs(themeNames) do
+        local tx = 8 + (i-1) * 115
+        local tbtn = makeBtn(pg6, tn, UDim2.new(0, tx, 0, 510), UDim2.new(0, 106, 0, 32), themeSwatch[tn], Color3.fromRGB(20,20,20), 11)
+        tbtn.MouseButton1Click:Connect(function() setTheme(tn) end)
+    end
+    
+    makeDivider(pg6, 560, Color3.fromRGB(0,200,255))
+    local rpTitle = makeLabel(pg6, "⚔ RP TUG-OF-WAR & AUTO-DODGE", UDim2.new(0,8,0,566), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(rpTitle)
+
+    local rpBtn = makeBtn(pg6, "📴  RP MODE OFF", UDim2.new(0,8,0,600), UDim2.new(0,160,0,32), Color3.fromRGB(35,35,55), nil, 11)
+    rpBtn.MouseButton1Click:Connect(function()
+        rpModeEnabled = not rpModeEnabled
+        if rpModeEnabled then
+            rpBtn.Text = "⚔  RP MODE ON"
+            rpBtn.BackgroundColor3 = THEMES[currentThemeName].accent
+        else
+            rpBtn.Text = "📴  RP MODE OFF"
+            rpBtn.BackgroundColor3 = Color3.fromRGB(35,35,55)
+        end
+    end)
+
+    local targetBox = makeBox(pg6, UDim2.new(0,176,0,600), UDim2.new(1,-184,0,32), "Target Player Name...")
+    targetBox.FocusLost:Connect(function()
+        setTargetPlayer(targetBox.Text, false)
+    end)
+    
+    local dodgeBtn = makeBtn(pg6, "AUTO-DODGE: OFF", UDim2.new(0,8,0,640), UDim2.new(0,200,0,32), Color3.fromRGB(35,35,55))
+    dodgeBtn.MouseButton1Click:Connect(function()
+        rpDodgeEnabled = not rpDodgeEnabled
+        dodgeBtn.Text = rpDodgeEnabled and "AUTO-DODGE: ON" or "AUTO-DODGE: OFF"
+        dodgeBtn.BackgroundColor3 = rpDodgeEnabled and Color3.fromRGB(255,150,0) or Color3.fromRGB(35,35,55)
+    end)
+
+    makeLabel(pg6, "SPEED", UDim2.new(0,8,0,680), UDim2.new(0,40,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    local rpValLbl = makeLabel(pg6, string.format("%.1f studs", rpMoveStep), UDim2.new(0,300,0,680), UDim2.new(0,94,0,22), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 11)
+    regText(rpValLbl)
+    
+    makeSlider(pg6, UDim2.new(0,50,0,684), UDim2.new(0,250,0,14), 0.5, 5, rpMoveStep, function(v)
+        rpMoveStep = v
+        rpValLbl.Text = string.format("%.1f studs", v)
+    end)
+
+    -- ============================================================
+    -- TAB : ADVANCED PERFORMANCE OPTIMIZATION 
+    -- ============================================================
+    local pgOpt = pages["📉 OPTIMIZE"]
+
+    local optTitle = makeLabel(pgOpt, "⚡ ADVANCED PERFORMANCE OPTIMIZATION", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(optTitle)
+    makeDivider(pgOpt, 30, Color3.fromRGB(0,200,255))
+    makeLabel(pgOpt, "Toggle these settings off to drastically increase FPS and prevent lag spikes while note mashing.", UDim2.new(0,8,0,36), UDim2.new(1,-16,0,28), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
+    
+    local fpsDisplay = makeLabel(pgOpt, "CURRENT FPS: 60", UDim2.new(0,320,0,8), UDim2.new(0,150,0,20), Color3.fromRGB(80, 255, 120), Enum.TextXAlignment.Right, 13)
+    task.spawn(function()
+        while true do
+            task.wait(0.5)
+            if not mainGuiRef or not mainGuiRef.Parent then break end 
+
+            if not guiVisible then continue end
+            fpsDisplay.Text = "CURRENT FPS: " .. currentFPS
+            if currentFPS < 30 then
+                fpsDisplay.TextColor3 = Color3.fromRGB(255, 60, 60)
+            elseif currentFPS < 50 then
+                fpsDisplay.TextColor3 = Color3.fromRGB(255, 180, 60)
+            else
+                fpsDisplay.TextColor3 = Color3.fromRGB(80, 255, 120)
+            end
+        end
+    end)
+
+    local function makeToggleRow(parent: Instance, y: number, label: string, desc: string, configKey: any, callback: ((boolean) -> ())?)
+        makeLabel(parent, label, UDim2.new(0,8,0,y), UDim2.new(0,250,0,20), Color3.fromRGB(220,220,230), Enum.TextXAlignment.Left, 11)
+        makeLabel(parent, desc, UDim2.new(0,8,0,y+16), UDim2.new(0,350,0,16), Color3.fromRGB(130,130,140), Enum.TextXAlignment.Left, 9)
+        
+        local isEnabled: boolean = (FX_SETTINGS :: any)[configKey]
+        local btn = makeBtn(parent, isEnabled and "ON" or "OFF", UDim2.new(1,-70,0,y+4), UDim2.new(0,60,0,24), isEnabled and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50), nil, 10)
+        btn.MouseButton1Click:Connect(function()
+            (FX_SETTINGS :: any)[configKey] = not (FX_SETTINGS :: any)[configKey]
+            isEnabled = (FX_SETTINGS :: any)[configKey]
+            btn.Text = isEnabled and "ON" or "OFF"
+            btn.BackgroundColor3 = isEnabled and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50)
+            if callback then callback(isEnabled) end
+            notify(label .. (isEnabled and " Enabled" or " Disabled"), "info")
+        end)
+    end
+
+    local optY = 70
+    makeToggleRow(pgOpt, optY, "👻 Clone Afterimages", "Spawns a ghostly trail when hitting double notes.", "EnableAfterimages", nil)
+    
+    optY = optY + 45
+    makeLabel(pgOpt, "MAX CLONE LIMIT", UDim2.new(0,8,0,optY), UDim2.new(0,120,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    local gcValLbl = makeLabel(pgOpt, tostring(FX_SETTINGS.MaxActiveAfterimages) .. " Clones", UDim2.new(0,300,0,optY), UDim2.new(0,170,0,22), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 11)
+    regText(gcValLbl)
+    makeSlider(pgOpt, UDim2.new(0,130,0,optY+4), UDim2.new(0,200,0,14), 1, 10, FX_SETTINGS.MaxActiveAfterimages, function(v)
+        v = math.floor(v + 0.5)
+        FX_SETTINGS.MaxActiveAfterimages = v
+        gcValLbl.Text = tostring(v) .. " Clones"
+    end)
+    
+    makeDivider(pgOpt, optY + 35, Color3.fromRGB(100,100,120))
+    optY = optY + 45
+
+    makeToggleRow(pgOpt, optY, "✨ Advanced Aura System", "Visual emission with fixed continuous duration.", "EnableAuraSystem", nil)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "✨ Ambient Particles", "Spawns floating particles behind the UI.", "EnableAmbientParticles", nil)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "🎵 Floating Notes", "Spawns musical notes that float upwards.", "EnableFloatingNotes", nil)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "📺 CRT Monitor Overlay", "Renders scanlines and screen flicker.", "EnableCRTMode", function(state)
+        crtEnabled = state
+        if crtOverlay then crtOverlay.Visible = crtEnabled end
+    end)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "🔘 Arrow Glows", "Bright aura when hitting arrow keys.", "EnableArrowGlows", nil)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "💫 Arrow Tweens", "Smooth resizing strokes for the HUD.", "EnableArrowStrokeTweens", nil)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "🎚 Equalizer Bars", "Bouncing bars in the Binds tab.", "EnableEqualizer", nil)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "〰 Waveform", "Sine wave animation in the Binds tab.", "EnableWaveform", nil)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "🫀 Beat Pulse", "Flashing dot perfectly synced to BPM.", "EnableBeatPulse", nil)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "🎙 Mic Spectrogram", "Audio visualization array in the FX tab.", "EnableSpectrogram", nil)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "💿 Vinyl Spin", "Rotating disc in the FX tab.", "EnableVinylSpin", nil)
+
+    -- ============================================================
+    -- HIDE/SHOW TOGGLE logic
+    -- ============================================================
+    toggleBtn.MouseButton1Click:Connect(function()
+        guiVisible = not guiVisible
+        contentArea.Visible = guiVisible
+        tabBar.Visible = guiVisible
+        toggleBtn.Text = guiVisible and "HIDE" or "SHOW"
+    end)
+
+    startVisualizerLoops()
+    notify("FNF Injector v9.0 Ultimate Loaded!", "success")
+
+    return sg
+end
+
+-- ============================================================
+--  LAUNCH
+-- ============================================================
+task.spawn(setupMusicRemote)
+buildArrowHud()
+buildGUI()
+
+--[[
+    ╔══════════════════════════════════════════════════════╗
+    ║      FNF CINEMATIC STANDOFF INTRO — v1.1 (OPT)       ║
+    ║  Back-to-back walk-off → turn → local VS split-cam   ║
+    ╚══════════════════════════════════════════════════════╝
+]]
+
+local standoffCamera: Camera = workspace.CurrentCamera
+local standoffActive: boolean = false
+local rigConns: {RBXScriptConnection} = {}
+
+type StandoffConfig = {
+    TriggerKey: Enum.KeyCode,
+    AltUsername: string,
+    SpotDistance: number,      
+    CenterGap: number,         
+    WalkDuration: number,
+    TurnDuration: number,
+    HoldBeforeSplit: number,
+    SplitCamDuration: number,      
+    CountdownEnabled: boolean,     
+    WalkAnimId: string,   
+    IdleStanceAnimId: string,  
+    Role: string,      
+    EnableCameraShake: boolean,
+}
+
+local Config: StandoffConfig = {
+    TriggerKey        = Enum.KeyCode.B,
+    AltUsername       = "mentransmigrasilo",
+    SpotDistance      = 14,      
+    CenterGap         = 3,       
+    WalkDuration      = 2.4,
+    TurnDuration      = 0.55,
+    HoldBeforeSplit   = 0.35,
+    SplitCamDuration  = 2.6,     
+    CountdownEnabled  = true,    
+
+    WalkAnimId        = "180426354",  
+    IdleStanceAnimId  = "507766388",  
+    Role              = "A",     
+    
+    EnableCameraShake = true,
+}
+
+local syncRemote: RemoteEvent? = nil
+task.spawn(function()
+    pcall(function()
+        syncRemote = ReplicatedStorage:WaitForChild("StandoffSyncRemote", 3) :: RemoteEvent?
     end)
 end)
+
+type HumanoidBits = { hum: Humanoid, root: BasePart, animator: Animator }
+local function getHumanoidBits(char: Model?): HumanoidBits?
+    if not char then return nil end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    local root = char:FindFirstChild("HumanoidRootPart") :: BasePart?
+    if not hum or not root then return nil end
+    local anm = hum:FindFirstChildOfClass("Animator") or Instance.new("Animator", hum)
+    return { hum = hum, root = root, animator = anm }
+end
+
+local function loadAnim(animator: Animator, id: string, looped: boolean, priority: Enum.AnimationPriority?): AnimationTrack?
+    local ok, track = pcall(function()
+        local anim = Instance.new("Animation")
+        anim.AnimationId = "rbxassetid://"..id
+        local t = animator:LoadAnimation(anim)
+        t.Looped = looped
+        t.Priority = priority or Enum.AnimationPriority.Action
+        return t
+    end)
+    if ok then return track end
+    return nil
+end
+
+local function tweenRoot(root: BasePart, targetCFrame: CFrame, duration: number, style: Enum.EasingStyle?, direction: Enum.EasingDirection?): boolean
+    local wasAnchored = root.Anchored
+    root.Anchored = true
+    local tw = TweenService:Create(root, TweenInfo.new(duration, style or Enum.EasingStyle.Sine, direction or Enum.EasingDirection.InOut), {
+        CFrame = targetCFrame
+    })
+    tw:Play()
+    tw.Completed:Wait()
+    root.Anchored = wasAnchored
+    return true
+end
+
+local function showCountdown(cb: () -> ())
+    local sg = Instance.new("ScreenGui")
+    sg.Name = "StandoffCountdown"; sg.ResetOnSpawn = false; sg.Parent = SecureGuiParent
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0,300,0,150)
+    lbl.AnchorPoint = Vector2.new(0.5,0.5)
+    lbl.Position = UDim2.new(0.5,0,0.5,0)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamBlack
+    lbl.TextSize = 90
+    lbl.TextColor3 = Color3.fromRGB(255,80,180)
+    lbl.TextStrokeTransparency = 0
+    lbl.TextStrokeColor3 = Color3.new(0,0,0)
+    lbl.Parent = sg
+
+    task.spawn(function()
+        for _, n in ipairs({"3","2","1","GO"}) do
+            lbl.Text = n
+            lbl.Size = UDim2.new(0,420,0,210)
+            TweenService:Create(lbl, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0,300,0,150)
+            }):Play()
+            task.wait(0.7)
+        end
+        sg:Destroy()
+        if cb then cb() end
+    end)
+end
+
+local savedCamType: Enum.CameraType, savedCamCFrame: CFrame
+local function lockCinematicCamera(startCFrame: CFrame)
+    savedCamType   = standoffCamera.CameraType
+    savedCamCFrame = standoffCamera.CFrame
+    standoffCamera.CameraType = Enum.CameraType.Scriptable
+    standoffCamera.CFrame = startCFrame
+end
+
+local function restoreCamera()
+    standoffCamera.CameraType = savedCamType or Enum.CameraType.Custom
+end
+
+local function dollyCamera(fromCFrame: CFrame, toCFrame: CFrame, duration: number): Tween
+    local tw = TweenService:Create(standoffCamera, TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+        CFrame = toCFrame
+    })
+    standoffCamera.CFrame = fromCFrame
+    tw:Play()
+    return tw
+end
+
+local shakeConn: RBXScriptConnection? = nil
+local function startCameraShake(intensity: number)
+    if not Config.EnableCameraShake then return end
+    if shakeConn then shakeConn:Disconnect() end
+    shakeConn = RunService.RenderStepped:Connect(function()
+        if standoffCamera.CameraType == Enum.CameraType.Scriptable then
+            local ox = (math.random() - 0.5) * intensity
+            local oy = (math.random() - 0.5) * intensity
+            standoffCamera.CFrame = standoffCamera.CFrame * CFrame.new(ox, oy, 0)
+        end
+    end)
+end
+local function stopCameraShake()
+    if shakeConn then shakeConn:Disconnect(); shakeConn = nil end
+end
+
+local function buildFaceViewport(char: Model, parent: Instance, position: UDim2, size: UDim2): ViewportFrame
+    local vp = Instance.new("ViewportFrame")
+    vp.Size = size; vp.Position = position
+    vp.BackgroundColor3 = Color3.fromRGB(6,6,10)
+    vp.Ambient = Color3.fromRGB(160,160,170)
+    vp.LightColor = Color3.fromRGB(255,255,255)
+    vp.LightDirection = Vector3.new(-0.4,-0.6,-0.6)
+    vp.Parent = parent
+
+    local world = Instance.new("WorldModel")
+    world.Parent = vp
+
+    local wasArchivable = char.Archivable
+    if not wasArchivable then char.Archivable = true end
+    local ok, clone = pcall(function() return char:Clone() end)
+    if not wasArchivable then char.Archivable = wasArchivable end
+    if not ok or not clone then return vp end
+
+    for _, d in ipairs(clone:GetDescendants()) do
+        if d:IsA("Script") or d:IsA("LocalScript") then d:Destroy() end
+    end
+    clone.Parent = world
+
+    local head = clone:FindFirstChild("Head") :: BasePart?
+    local hrp  = clone:FindFirstChild("HumanoidRootPart") or clone.PrimaryPart
+    if hrp then (hrp :: BasePart).Anchored = true end
+
+    local cam = Instance.new("Camera")
+    if head then
+        cam.CFrame = CFrame.new(head.Position + Vector3.new(0,0,2.2), head.Position)
+    else
+        cam.CFrame = CFrame.new(Vector3.new(0,3,4), Vector3.new(0,3,0))
+    end
+    cam.FieldOfView = 45
+    cam.Parent = vp
+    vp.CurrentCamera = cam
+
+    return vp
+end
+
+local function playVSFaceCam(myChar: Model, altChar: Model, holdTime: number)
+    local sg = Instance.new("ScreenGui")
+    sg.Name = "StandoffVS"; sg.ResetOnSpawn = false; sg.IgnoreGuiInset = true
+    sg.Parent = SecureGuiParent
+
+    local root = Instance.new("Frame")
+    root.Size = UDim2.new(1,0,1,0); root.BackgroundColor3 = Color3.new(0,0,0)
+    root.BackgroundTransparency = 1; root.ClipsDescendants = true; root.Parent = sg
+
+    local leftHalf = Instance.new("Frame")
+    leftHalf.Size = UDim2.new(0.5,0,1,0); leftHalf.Position = UDim2.new(-0.5,0,0,0)
+    leftHalf.BackgroundTransparency = 1; leftHalf.ClipsDescendants = true; leftHalf.Parent = root
+
+    local rightHalf = Instance.new("Frame")
+    rightHalf.Size = UDim2.new(0.5,0,1,0); rightHalf.Position = UDim2.new(1,0,0,0)
+    rightHalf.BackgroundTransparency = 1; rightHalf.ClipsDescendants = true; rightHalf.Parent = root
+
+    local isRoleA = (Config.Role == "A")
+    local myHalf, altHalf = (isRoleA and rightHalf or leftHalf), (isRoleA and leftHalf or rightHalf)
+
+    buildFaceViewport(altChar, altHalf, UDim2.new(0,0,0,0), UDim2.new(1,0,1,0))
+    buildFaceViewport(myChar,  myHalf,  UDim2.new(0,0,0,0), UDim2.new(1,0,1,0))
+
+    local seam = Instance.new("Frame")
+    seam.Size = UDim2.new(0,10,2.4,0)
+    seam.AnchorPoint = Vector2.new(0.5,0.5)
+    seam.Position = UDim2.new(0.5,0,0.5,0)
+    seam.Rotation = 18
+    seam.BackgroundColor3 = Color3.fromRGB(255,80,180)
+    seam.BorderSizePixel = 0; seam.ZIndex = 5; seam.Parent = root
+
+    local vsLbl = Instance.new("TextLabel")
+    vsLbl.Size = UDim2.new(0,140,0,70)
+    vsLbl.AnchorPoint = Vector2.new(0.5,0.5)
+    vsLbl.Position = UDim2.new(0.5,0,0.5,0)
+    vsLbl.BackgroundTransparency = 1
+    vsLbl.Text = "VS"; vsLbl.Font = Enum.Font.GothamBlack; vsLbl.TextSize = 0
+    vsLbl.TextColor3 = Color3.fromRGB(255,255,255)
+    vsLbl.TextStrokeTransparency = 0; vsLbl.TextStrokeColor3 = Color3.fromRGB(255,80,180)
+    vsLbl.ZIndex = 6; vsLbl.Parent = root
+
+    TweenService:Create(leftHalf,  TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Position = UDim2.new(0,0,0,0) }):Play()
+    local rightTw = TweenService:Create(rightHalf, TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Position = UDim2.new(0.5,0,0,0) })
+    rightTw:Play()
+    task.wait(0.25)
+    TweenService:Create(vsLbl, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { TextSize = 64 }):Play()
+
+    startCameraShake(0.02)
+    task.wait(holdTime)
+    stopCameraShake()
+
+    local fadeTime = 0.4
+    TweenService:Create(leftHalf,  TweenInfo.new(fadeTime, Enum.EasingStyle.Quad), { Position = UDim2.new(-0.5,0,0,0) }):Play()
+    TweenService:Create(rightHalf, TweenInfo.new(fadeTime, Enum.EasingStyle.Quad), { Position = UDim2.new(1,0,0,0) }):Play()
+    TweenService:Create(vsLbl, TweenInfo.new(fadeTime, Enum.EasingStyle.Quad), { TextSize = 0 }):Play()
+    task.wait(fadeTime + 0.1)
+    sg:Destroy()
+end
+
+local function runStandoff()
+    if standoffActive then return end
+    standoffActive = true
+
+    local altPlayer = Players:FindFirstChild(Config.AltUsername)
+    if not altPlayer or not altPlayer.Character then
+        warn("[Standoff] Alt player not found or has no character.")
+        standoffActive = false
+        return
+    end
+
+    local myChar  = LocalPlayer.Character
+    local altChar = altPlayer.Character
+    if not myChar or not altChar then 
+        standoffActive = false 
+        return 
+    end
+    
+    local myBits  = getHumanoidBits(myChar)
+    local altBits = getHumanoidBits(altChar)
+    if not myBits or not altBits then
+        warn("[Standoff] Missing Humanoid/HumanoidRootPart on one of the rigs.")
+        standoffActive = false
+        return
+    end
+
+    local function begin()
+        local originCFrame = CFrame.new(myBits.root.Position, myBits.root.Position + myBits.root.CFrame.LookVector)
+        local isRoleA = (Config.Role == "A")
+
+        local halfGap = Config.CenterGap / 2
+        local myStart  = originCFrame * CFrame.new(isRoleA and halfGap or -halfGap, 0, 0)
+                            * (isRoleA and CFrame.Angles(0, math.rad(90), 0) or CFrame.Angles(0, math.rad(-90), 0))
+        tweenRoot(myBits.root, myStart, 0.01, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut)
+
+        local camStart = originCFrame * CFrame.new(0, 5, 10)
+        local camEnd   = originCFrame * CFrame.new(0, 4, Config.SpotDistance * 0.9)
+        lockCinematicCamera(camStart)
+        local camTw = dollyCamera(camStart, camEnd, Config.WalkDuration + Config.TurnDuration)
+
+        local walkTrack = loadAnim(myBits.animator, Config.WalkAnimId, true, Enum.AnimationPriority.Movement)
+        if walkTrack then walkTrack:Play(0.15) end
+
+        local mySpot = originCFrame * CFrame.new(isRoleA and Config.SpotDistance/2 or -Config.SpotDistance/2, 0, 0)
+                            * (isRoleA and CFrame.Angles(0, math.rad(90), 0) or CFrame.Angles(0, math.rad(-90), 0))
+        tweenRoot(myBits.root, mySpot, Config.WalkDuration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+
+        if walkTrack then walkTrack:Stop(0.15) end
+
+        local turnCFrame = mySpot * (isRoleA and CFrame.Angles(0, math.rad(-90), 0) or CFrame.Angles(0, math.rad(90), 0))
+        local lookTarget = originCFrame.Position + Vector3.new(isRoleA and -1 or 1, 0, 0)
+        turnCFrame = CFrame.new(mySpot.Position, Vector3.new(lookTarget.X, mySpot.Position.Y, mySpot.Position.Z))
+        tweenRoot(myBits.root, turnCFrame, Config.TurnDuration, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+        local idleTrack = loadAnim(myBits.animator, Config.IdleStanceAnimId, true, Enum.AnimationPriority.Idle)
+        if idleTrack then idleTrack:Play(0.2) end
+
+        task.wait(Config.HoldBeforeSplit)
+
+        playVSFaceCam(myChar, altChar, Config.SplitCamDuration)
+
+        restoreCamera()
+        standoffActive = false
+    end
+
+    if Config.CountdownEnabled and not syncRemote then
+        showCountdown(begin)
+    elseif syncRemote then
+        syncRemote:FireServer("ready")
+        local conn: RBXScriptConnection
+        conn = syncRemote.OnClientEvent:Connect(function(cmd)
+            if cmd == "go" then
+                conn:Disconnect()
+                task.spawn(begin)
+            end
+        end)
+        table.insert(rigConns, conn)
+    else
+        task.spawn(begin)
+    end
+end
+
+table.insert(rigConns, UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    if input.KeyCode == Config.TriggerKey then
+        runStandoff()
+    end
+end))
+
+print("[Standoff] Loaded. Role: "..Config.Role.." — press "..Config.TriggerKey.Name.." to start.")
