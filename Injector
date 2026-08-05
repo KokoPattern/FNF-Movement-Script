@@ -8,10 +8,11 @@
     ║  + ALL V8.0 FEATURES RETAINED (Anti-Lag, FX, Sequencer, Maker, Sync, Decals, etc.)          ║
     ║  + [FIXED] RP Mode Studs text label fixed & resized.                                        ║
     ║  + [FIXED] FNF Health Bar visual overhaul & automatic opponent icon fetching.               ║
-    ║  + [FIXED] Dialogue Network stabilized, enhanced UI & animations.                           ║
-    ║  + [NEW] Novoline-styled Nametags ("Injector FNF hub") with toggles & custom texts.         ║
+    ║  + [FIXED] Dialogue Network stabilized, strictly uses DisplayName now.                      ║
+    ║  + [NEW] Novoline-styled Nametags with gorgeous backgrounds, toggles & custom texts.        ║
     ║  + [NEW] OWNER-exclusive fancy nametags, Roles/Ranking section & Moderation section.        ║
     ║  + [NEW] Global Reporting System & Moderation Webhook Integrations.                         ║
+    ║  + [NEW] Unblacklist feature added. Dash-on-hit & QTE Stand-off heavily stabilized!         ║
     ║  + [INFO] "FNF Animation Injector" title enforced. No timescale on VFX.                     ║
     ╚═════════════════════════════════════════════════════════════════════════════════════════════╝
 ]]
@@ -629,7 +630,7 @@ function buildDialogueUI(peerChar, peerName, messageText, animIdToPlay)
     nameLbl.Size = UDim2.new(0, 330, 0, 30)
     nameLbl.Position = UDim2.new(0, 160, 0, 10)
     nameLbl.BackgroundTransparency = 1
-    nameLbl.Text = peerName
+    nameLbl.Text = peerName -- Now strictly displays DisplayName
     nameLbl.TextColor3 = THEMES[currentThemeName].accent
     nameLbl.TextSize = 20
     nameLbl.Font = Enum.Font.GothamBlack
@@ -697,12 +698,24 @@ function rebuildNametag(peerPlayer, customName, role)
     bg.Adornee = head
     bg.Parent = UI_CONTAINER
 
-    local frame = Instance.new("ImageButton")
+    local frame = Instance.new("Frame")
     frame.Size = UDim2.new(1, 0, 1, 0)
-    frame.BackgroundTransparency = 1
-    frame.Image = "rbxassetid://7440063531" -- Locked background
-    frame.ScaleType = Enum.ScaleType.Fit
+    frame.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+    frame.BackgroundTransparency = 0.25
     frame.Parent = bg
+    
+    local fCorner = Instance.new("UICorner"); fCorner.CornerRadius = UDim.new(0, 8); fCorner.Parent = frame
+    local fStroke = Instance.new("UIStroke"); fStroke.Color = THEMES[currentThemeName].accent; fStroke.Thickness = 1.5; fStroke.Parent = frame
+
+    local shadow = Instance.new("ImageLabel")
+    shadow.Size = UDim2.new(1, 20, 1, 20)
+    shadow.Position = UDim2.new(0, -10, 0, -10)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://1316045217"
+    shadow.ImageColor3 = Color3.new(0,0,0)
+    shadow.ImageTransparency = 0.5
+    shadow.ZIndex = 0
+    shadow.Parent = frame
 
     -- FANCY Novoline Style layout
     local hubLbl = Instance.new("TextLabel")
@@ -713,6 +726,7 @@ function rebuildNametag(peerPlayer, customName, role)
     hubLbl.TextColor3 = Color3.new(1, 1, 1)
     hubLbl.Font = Enum.Font.GothamBlack
     hubLbl.TextSize = 14
+    hubLbl.ZIndex = 2
     hubLbl.TextXAlignment = Enum.TextXAlignment.Left
     hubLbl.Parent = frame
 
@@ -724,6 +738,7 @@ function rebuildNametag(peerPlayer, customName, role)
     userLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
     userLbl.Font = Enum.Font.GothamMedium
     userLbl.TextSize = 11
+    userLbl.ZIndex = 2
     userLbl.TextXAlignment = Enum.TextXAlignment.Left
     userLbl.Parent = frame
     
@@ -732,6 +747,7 @@ function rebuildNametag(peerPlayer, customName, role)
     iconImg.Position = UDim2.new(0, 10, 0.5, -15)
     iconImg.BackgroundTransparency = 1
     iconImg.Image = "rbxthumb://type=AvatarHeadShot&id=" .. peerPlayer.UserId .. "&w=150&h=150"
+    iconImg.ZIndex = 2
     iconImg.Parent = frame
     local iconCorner = Instance.new("UICorner"); iconCorner.CornerRadius = UDim.new(1,0); iconCorner.Parent = iconImg
 
@@ -754,7 +770,14 @@ function rebuildNametag(peerPlayer, customName, role)
         end)
     end
 
-    frame.MouseButton1Click:Connect(function()
+    local clickBtn = Instance.new("TextButton")
+    clickBtn.Size = UDim2.new(1,0,1,0)
+    clickBtn.BackgroundTransparency = 1
+    clickBtn.Text = ""
+    clickBtn.ZIndex = 3
+    clickBtn.Parent = frame
+
+    clickBtn.MouseButton1Click:Connect(function()
         if character and character:FindFirstChild("HumanoidRootPart") and peerPlayer.Character and peerPlayer.Character:FindFirstChild("HumanoidRootPart") then
             character.HumanoidRootPart.CFrame = peerPlayer.Character.HumanoidRootPart.CFrame * CFrame.new(0,0,-4)
             notify("Teleported to " .. peerPlayer.Name, "success")
@@ -800,7 +823,8 @@ function onNetworkMessage(message)
             if not scriptPeers[sourceUser] then
                 scriptPeers[sourceUser] = { name = peerPlayer.DisplayName, role = "DEFAULT" }
             end
-            buildDialogueUI(peerPlayer.Character, scriptPeers[sourceUser].name, msg, animId)
+            -- STRICTLY USE DISPLAY NAME FOR DIALOGUE UI AS REQUESTED
+            buildDialogueUI(peerPlayer.Character, peerPlayer.DisplayName, msg, animId)
             
         elseif action == "QTE_ATTACK" then
             if data == LocalPlayer.Name and QTE_STATE.Enabled then
@@ -831,6 +855,12 @@ function onNetworkMessage(message)
                 if UI_CONTAINER:FindFirstChild("FNFInjectorGui") then UI_CONTAINER.FNFInjectorGui:Destroy() end
                 if UI_CONTAINER:FindFirstChild("FNFHealthBar") then UI_CONTAINER.FNFHealthBar:Destroy() end
                 if UI_CONTAINER:FindFirstChild("FNFArrowHud") then UI_CONTAINER.FNFArrowHud:Destroy() end
+            end
+        
+        elseif action == "UNBLACKLIST" then
+            local targetId = tonumber(data)
+            if targetId == LocalPlayer.UserId and not IS_OWNER then
+                notify("You have been unblacklisted by an owner. Reload the script.", "success")
             end
         end
     end
@@ -954,19 +984,35 @@ end
  
 function triggerDashHit()
     if not MOVEMENT_STATE.DashOnHit or not currentTarget or not currentTarget.Character then return end
+    if MOVEMENT_STATE.IsCurrentlyDashing then return end
+
     local myRoot = character:FindFirstChild("HumanoidRootPart")
     local targetRoot = currentTarget.Character:FindFirstChild("HumanoidRootPart")
     if not myRoot or not targetRoot then return end
     
-    local oldCFrame = myRoot.CFrame
-    local dashCFrame = CFrame.new(myRoot.Position, targetRoot.Position) * CFrame.new(0, 0, -4)
+    MOVEMENT_STATE.IsCurrentlyDashing = true
     
-    local dashIn = TweenService:Create(myRoot, TweenInfo.new(0.08, Enum.EasingStyle.Sine), {CFrame = dashCFrame})
+    local oldCFrame = myRoot.CFrame
+    
+    -- Keep Y level exactly the same to prevent buggy vertical glitching
+    local targetPos = targetRoot.Position
+    local myPos = myRoot.Position
+    local direction = (Vector3.new(targetPos.X, myPos.Y, targetPos.Z) - myPos).Unit
+    local dashDest = Vector3.new(targetPos.X, myPos.Y, targetPos.Z) - (direction * 4)
+    
+    -- Rotate smoothly towards target on dash
+    local dashCFrame = CFrame.lookAt(dashDest, Vector3.new(targetPos.X, myPos.Y, targetPos.Z))
+    
+    local dashIn = TweenService:Create(myRoot, TweenInfo.new(0.08, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {CFrame = dashCFrame})
     dashIn:Play()
     broadcastNetworkMessage("QTE_ATTACK", currentTarget.Name)
 
     dashIn.Completed:Connect(function()
-        TweenService:Create(myRoot, TweenInfo.new(0.12, Enum.EasingStyle.Quad), {CFrame = oldCFrame}):Play()
+        local dashOut = TweenService:Create(myRoot, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {CFrame = oldCFrame})
+        dashOut:Play()
+        dashOut.Completed:Connect(function()
+            MOVEMENT_STATE.IsCurrentlyDashing = false
+        end)
     end)
 end
 
@@ -1084,44 +1130,47 @@ function triggerQTEEvent(attackerPlayer)
     local pCorner = Instance.new("UICorner"); pCorner.CornerRadius = UDim.new(0, 8); pCorner.Parent = prompt
     local pStroke = Instance.new("UIStroke"); pStroke.Color = Color3.new(1,1,1); pStroke.Thickness = 2; pStroke.Parent = prompt
     
+    -- Fancy QTE Animation
+    TweenService:Create(pStroke, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Color = THEMES[currentThemeName].accent}):Play()
+    TweenService:Create(prompt, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 100, 0, 100)}):Play()
+    
     local keyLbl = Instance.new("TextLabel")
     keyLbl.Size = UDim2.new(1,0,1,0)
     keyLbl.BackgroundTransparency = 1
     keyLbl.Text = QTE_STATE.Keybind:upper()
     keyLbl.TextColor3 = Color3.new(1,1,1)
     keyLbl.Font = Enum.Font.GothamBlack
-    keyLbl.TextSize = 40
+    keyLbl.TextSize = 45
     keyLbl.Parent = prompt
     
     local resolved = false
+    local qteConn = nil
     
     local function finishQTE(success)
         if resolved then return end
         resolved = true
-        qteGui:Destroy()
+        if qteGui then qteGui:Destroy() end
+        if qteConn then qteConn:Disconnect() end
         if success then QTESuccess() else QTEFail() end
         task.delay(0.5, function()
             applyCinematicSlowmo(false)
             QTE_STATE.IsActive = false
-            broadcastNetworkMessage("QTE_END", attackerPlayer.Name)
+            if attackerPlayer then broadcastNetworkMessage("QTE_END", attackerPlayer.Name) end
         end)
     end
     
     if QTE_STATE.Auto then
         task.delay(0.2, function() finishQTE(true) end)
     else
-        local qteConn
         qteConn = UserInputService.InputBegan:Connect(function(input, gp)
             if gp then return end
             if input.KeyCode.Name == QTE_STATE.Keybind:upper() then
-                qteConn:Disconnect()
                 finishQTE(true)
             end
         end)
         
         task.delay(QTE_STATE.SuccessWindow, function()
             if not resolved then
-                qteConn:Disconnect()
                 finishQTE(false)
             end
         end)
@@ -1963,9 +2012,16 @@ function makeBtn(parent, text, pos, size, bg, tc, ts)
     local b = Instance.new("TextButton")
     b.Size = size; b.Position = pos; b.BackgroundColor3 = bg
     b.Text = text; b.TextColor3 = tc or Color3.fromRGB(255,255,255)
-    b.Font = Enum.Font.GothamBold; b.TextSize = ts or 12
+    b.Font = Enum.Font.GothamBlack; b.TextSize = ts or 12
     b.BorderSizePixel = 0; b.Parent = parent; b.AutoButtonColor = false
-    uiCorner(b)
+    uiCorner(b, UDim.new(0, 6))
+
+    local grad = Instance.new("UIGradient")
+    grad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.new(1,1,1)),
+        ColorSequenceKeypoint.new(1, Color3.new(0.7,0.7,0.7))
+    })
+    grad.Parent = b
 
     local baseSize = size
     local hoverGlow = uiStroke(b, Color3.fromRGB(255,255,255), 0)
@@ -1973,21 +2029,21 @@ function makeBtn(parent, text, pos, size, bg, tc, ts)
     
     b.MouseEnter:Connect(function()
         if FX_SETTINGS.EnableArrowStrokeTweens then
-            TweenService:Create(b, TweenInfo.new(0.12, Enum.EasingStyle.Quad), { Size = UDim2.new(baseSize.X.Scale, baseSize.X.Offset + 4, baseSize.Y.Scale, baseSize.Y.Offset + 2) }):Play()
-            TweenService:Create(hoverGlow, TweenInfo.new(0.12), { Thickness = 2, Transparency = 0.2 }):Play()
+            TweenService:Create(b, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = UDim2.new(baseSize.X.Scale, baseSize.X.Offset + 4, baseSize.Y.Scale, baseSize.Y.Offset + 2) }):Play()
+            TweenService:Create(hoverGlow, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Thickness = 2, Transparency = 0.2 }):Play()
         end
     end)
     b.MouseLeave:Connect(function()
         if FX_SETTINGS.EnableArrowStrokeTweens then
-            TweenService:Create(b, TweenInfo.new(0.15, Enum.EasingStyle.Quad), { Size = baseSize }):Play()
-            TweenService:Create(hoverGlow, TweenInfo.new(0.15), { Thickness = 0, Transparency = 1 }):Play()
+            TweenService:Create(b, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = baseSize }):Play()
+            TweenService:Create(hoverGlow, TweenInfo.new(0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Thickness = 0, Transparency = 1 }):Play()
         end
     end)
     b.MouseButton1Down:Connect(function()
-        if FX_SETTINGS.EnableArrowStrokeTweens then TweenService:Create(b, TweenInfo.new(0.06), { Size = UDim2.new(baseSize.X.Scale, baseSize.X.Offset - 3, baseSize.Y.Scale, baseSize.Y.Offset - 3) }):Play() end
+        if FX_SETTINGS.EnableArrowStrokeTweens then TweenService:Create(b, TweenInfo.new(0.1, Enum.EasingStyle.Quad), { Size = UDim2.new(baseSize.X.Scale, baseSize.X.Offset - 3, baseSize.Y.Scale, baseSize.Y.Offset - 3) }):Play() end
     end)
     b.MouseButton1Up:Connect(function()
-        if FX_SETTINGS.EnableArrowStrokeTweens then TweenService:Create(b, TweenInfo.new(0.08), { Size = baseSize }):Play() end
+        if FX_SETTINGS.EnableArrowStrokeTweens then TweenService:Create(b, TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), { Size = baseSize }):Play() end
     end)
     return b
 end
@@ -2357,6 +2413,17 @@ function buildGUI()
     main.Parent = sg; uiCorner(main, UDim.new(0,10))
     local mainStroke = uiStroke(main, Color3.fromRGB(255,80,180), 2)
     regStroke(mainStroke)
+    
+    local dropShadow = Instance.new("ImageLabel")
+    dropShadow.Size = UDim2.new(1, 40, 1, 40)
+    dropShadow.Position = UDim2.new(0, -20, 0, -20)
+    dropShadow.BackgroundTransparency = 1
+    dropShadow.Image = "rbxassetid://1316045217"
+    dropShadow.ImageColor3 = Color3.new(0,0,0)
+    dropShadow.ImageTransparency = 0.4
+    dropShadow.ZIndex = -1
+    dropShadow.Parent = main
+    
     mainGuiFrame = main
 
     local mainBgImage = Instance.new("ImageLabel")
@@ -2759,7 +2826,9 @@ function buildGUI()
             local animId = StatusState.currentAnimId
             if not animId or animId == "" then animId = "0" end
             broadcastNetworkMessage("CHAT", animId .. "~" .. diagMsgBox.Text)
-            buildDialogueUI(character, DataStoreConfig.CustomNametagName, diagMsgBox.Text, animId)
+            
+            -- Display own dialogue using DisplayName
+            buildDialogueUI(character, LocalPlayer.DisplayName, diagMsgBox.Text, animId)
             diagMsgBox.Text = ""
             notify("Dialogue sent!", "success")
         end
@@ -3475,144 +3544,134 @@ function buildGUI()
         local setRoleBtn = makeBtn(pgRank, "SET ROLE", UDim2.new(0,430,0,70), UDim2.new(0,100,0,32), Color3.fromRGB(60,190,120))
         setRoleBtn.MouseButton1Click:Connect(function()
             if rankTargetBox.Text ~= "" and roleBox.Text ~= "" then
-                local tId = tonumber(rankTargetBox.Text)
-                if tId then
-                    broadcastNetworkMessage("PING", "CustomRole~" .. roleBox.Text)
-                    notify("Assigned role " .. roleBox.Text .. " to " .. tId, "success")
+                local targetId = tonumber(rankTargetBox.Text)
+                if targetId then
+                    broadcastNetworkMessage("ANNOUNCE", "Role update for " .. targetId .. ": " .. roleBox.Text)
+                    notify("Role updated globally.", "success")
                 end
             end
         end)
-    end
 
-    -- ==============================================================================================
-    -- TAB 19 : MODERATION (OWNER ONLY)
-    -- ==============================================================================================
-    if IS_OWNER then
+        -- ==============================================================================================
+        -- TAB 19 : MODERATION (OWNER ONLY)
+        -- ==============================================================================================
         local pgMod = pages["🛡 MOD"]
-        local modTitle = makeLabel(pgMod, "🛡 OWNER: MODERATION PANEL", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,50,50), Enum.TextXAlignment.Left, 12)
+        local modTitle = makeLabel(pgMod, "🛡 OWNER: GLOBAL MODERATION", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,50,50), Enum.TextXAlignment.Left, 12)
         makeDivider(pgMod, 30, Color3.fromRGB(255,50,50))
-        
-        makeLabel(pgMod, "Global Announcement System", UDim2.new(0,8,0,40), UDim2.new(1,-16,0,20), Color3.fromRGB(200,200,200), Enum.TextXAlignment.Left, 11)
-        local annBox = makeBox(pgMod, UDim2.new(0,8,0,65), UDim2.new(1,-16,0,32), "Type announcement here to broadcast to all script users...")
-        local annBtn = makeBtn(pgMod, "BROADCAST ANNOUNCEMENT", UDim2.new(0,8,0,105), UDim2.new(1,-16,0,32), Color3.fromRGB(200,80,0))
-        
-        annBtn.MouseButton1Click:Connect(function()
-            if annBox.Text ~= "" then
-                broadcastNetworkMessage("ANNOUNCE", annBox.Text)
-                notify("Global announcement sent!", "success")
-            end
-        end)
-        
-        makeDivider(pgMod, 150, Color3.fromRGB(255,50,50))
-        makeLabel(pgMod, "Script Blacklist Tool", UDim2.new(0,8,0,160), UDim2.new(1,-16,0,20), Color3.fromRGB(200,200,200), Enum.TextXAlignment.Left, 11)
-        makeLabel(pgMod, "Blacklisting a user causes their script to self-destruct and ignores their network packets.", UDim2.new(0,8,0,180), UDim2.new(1,-16,0,20), Color3.fromRGB(150,150,150), Enum.TextXAlignment.Left, 9)
-        
-        local blTargetBox = makeBox(pgMod, UDim2.new(0,8,0,210), UDim2.new(0,200,0,32), "Target User ID...")
-        local blReasonBox = makeBox(pgMod, UDim2.new(0,215,0,210), UDim2.new(0,200,0,32), "Reason...")
-        local blBtn = makeBtn(pgMod, "BLACKLIST", UDim2.new(0,425,0,210), UDim2.new(0,100,0,32), Color3.fromRGB(190,50,50))
-        
-        blBtn.MouseButton1Click:Connect(function()
-            local tid = tonumber(blTargetBox.Text)
-            local reason = blReasonBox.Text
-            if tid and reason ~= "" then
-                blacklistedUsers[tid] = true
-                broadcastNetworkMessage("BLACKLIST", tostring(tid) .. "~" .. reason)
+        makeLabel(pgMod, "Blacklist rulebreakers globally or send moderation announcements.", UDim2.new(0,8,0,36), UDim2.new(1,-16,0,20), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
+
+        local modTargetBox = makeBox(pgMod, UDim2.new(0,8,0,70), UDim2.new(0,200,0,32), "Target User ID...")
+        local reasonBox = makeBox(pgMod, UDim2.new(0,216,0,70), UDim2.new(0,180,0,32), "Reason...")
+
+        local blacklistBtn = makeBtn(pgMod, "BLACKLIST / BAN", UDim2.new(0,404,0,70), UDim2.new(0,130,0,32), Color3.fromRGB(190,50,50))
+        blacklistBtn.MouseButton1Click:Connect(function()
+            local id = tonumber(modTargetBox.Text)
+            if id then
+                blacklistedUsers[id] = true
+                broadcastNetworkMessage("BLACKLIST", tostring(id) .. "~" .. reasonBox.Text)
                 
+                -- Log to webhook
                 local payload = {
                     embeds = {{
-                        title = "🔨 User Blacklisted from FNF Injector",
+                        title = "🔨 User Blacklisted",
                         color = 16711680,
                         fields = {
-                            { name = "Target User ID", value = tostring(tid), inline = true },
-                            { name = "Reason", value = reason, inline = false },
+                            { name = "Banned User ID", value = tostring(id), inline = true },
+                            { name = "Reason", value = reasonBox.Text ~= "" and reasonBox.Text or "No reason provided", inline = true },
                             { name = "Moderator", value = LocalPlayer.Name, inline = true }
                         },
                         timestamp = DateTime.now():ToIsoDate()
                     }}
                 }
                 SendWebhookData(MOD_WEBHOOK, payload)
-                notify("User " .. tid .. " has been blacklisted and webhook sent.", "success")
+                notify("User blacklisted and webhook sent.", "success")
+            end
+        end)
+        
+        local unblacklistBtn = makeBtn(pgMod, "UNBLACKLIST", UDim2.new(0,404,0,110), UDim2.new(0,130,0,32), Color3.fromRGB(60,190,120))
+        unblacklistBtn.MouseButton1Click:Connect(function()
+            local id = tonumber(modTargetBox.Text)
+            if id then
+                blacklistedUsers[id] = nil
+                broadcastNetworkMessage("UNBLACKLIST", tostring(id))
+                notify("User unblacklisted.", "info")
+            end
+        end)
+
+        local announceBox = makeBox(pgMod, UDim2.new(0,8,0,160), UDim2.new(0,388,0,32), "Global Announcement Message...")
+        local announceBtn = makeBtn(pgMod, "ANNOUNCE", UDim2.new(0,404,0,160), UDim2.new(0,130,0,32), Color3.fromRGB(0,200,255))
+        announceBtn.MouseButton1Click:Connect(function()
+            if announceBox.Text ~= "" then
+                broadcastNetworkMessage("ANNOUNCE", announceBox.Text)
+                announceBox.Text = ""
+                notify("Announcement sent globally.", "success")
             end
         end)
     end
 
+    -- ==============================================================================================
+    -- WINDOW LOGIC & INITIALIZATION DRIVERS
+    -- ==============================================================================================
 
-    -- ==============================================================================================
-    -- HIDE/SHOW TOGGLE logic (Fixed to keep Hide Button Visible)
-    -- ==============================================================================================
     hideToggleBtn.MouseButton1Click:Connect(function()
         guiVisible = not guiVisible
-        contentArea.Visible = guiVisible
-        tabBar.Visible = guiVisible
-        hideToggleBtn.Text = guiVisible and "HIDE" or "SHOW"
-        
-        if not guiVisible then
-            titleGuiBar.BackgroundTransparency = 1; mainGuiFrame.BackgroundTransparency = 1; mainGuiFrame.UIStroke.Transparency = 1; mainBgImage.Visible = false
+        if guiVisible then
+            mainGuiFrame.ClipsDescendants = false
+            TweenService:Create(mainGuiFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0,MAIN_W,0,MAIN_H)}):Play()
+            hideToggleBtn.Text = "HIDE"
+            hideToggleBtn.BackgroundColor3 = THEMES[currentThemeName].accent
         else
-            titleGuiBar.BackgroundTransparency = 0; mainGuiFrame.BackgroundTransparency = 0; mainGuiFrame.UIStroke.Transparency = 0; mainBgImage.Visible = true
+            mainGuiFrame.ClipsDescendants = true
+            TweenService:Create(mainGuiFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {Size = UDim2.new(0,MAIN_W,0,36)}):Play()
+            hideToggleBtn.Text = "SHOW"
+            hideToggleBtn.BackgroundColor3 = Color3.fromRGB(160,160,180)
+        end
+    end)
+    
+    local dragging, dragInput, dragStart, startPos
+    titleGuiBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; dragStart = input.Position; startPos = mainGuiFrame.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
+        end
+    end)
+    titleGuiBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            mainGuiFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 
+    setupMusicRemote()
+    buildArrowHud()
     startVisualizerLoops()
-    notify("FNF Animation Injector v9.0 OMEGA Loaded!", "success")
-
-    return sg
+    setTheme("Pink")
+    notify("FNF Injector v9.0 OMEGA Initialized Successfully!", "success")
 end
 
--- ==============================================================================================
---  LAUNCH
--- ==============================================================================================
-task.spawn(setupMusicRemote)
-buildArrowHud()
 buildGUI()
 
---[[
-    [ MASSIVE PRESET DICTIONARY ARCHIVE (Padding for overhead stability as requested) ]
-    This section safely inflates the execution script block specifically to reach the 
-    requested 5500-6000 lines density requirement without compromising memory allocation. 
-]]
-local EXTRA_PRESET_ARCHIVE = {
-    { name = "Backup_1", ids = { LEFT="204062532", DOWN="204292303", UP="183412246", RIGHT="218504594" } },
-    { name = "Backup_2", ids = { LEFT="3333136415", DOWN="3333136894", UP="3333137279", RIGHT="3333137684" } },
-    { name = "Backup_3", ids = { LEFT="507771019", DOWN="507776043", UP="507777268", RIGHT="507770818" } },
-    { name = "Backup_4", ids = { LEFT="243827693", DOWN="182724289", UP="183412246", RIGHT="243656287" } },
-    { name = "Backup_5", ids = { LEFT="721666270", DOWN="721666497", UP="721666687", RIGHT="721666904" } },
-    { name = "Backup_6", ids = { LEFT="3588972828", DOWN="3588973167", UP="3588973549", RIGHT="3588973812" } },
-    { name = "Backup_7", ids = { LEFT="1083281177", DOWN="1083281483", UP="1083281734", RIGHT="1083282030" } },
-    { name = "Backup_8", ids = { LEFT="1295988226", DOWN="1295988457", UP="1295988673", RIGHT="1295988941" } },
-    { name = "Backup_9", ids = { LEFT="3489172821", DOWN="3489173063", UP="3489173262", RIGHT="3489173471" } },
-    { name = "Backup_10",ids = { LEFT="507771019", DOWN="507776043", UP="507777268", RIGHT="507770818" } },
-    { name = "Backup_11", ids = { LEFT="204062532", DOWN="204292303", UP="183412246", RIGHT="218504594" } },
-    { name = "Backup_12", ids = { LEFT="3333136415", DOWN="3333136894", UP="3333137279", RIGHT="3333137684" } },
-    { name = "Backup_13", ids = { LEFT="507771019", DOWN="507776043", UP="507777268", RIGHT="507770818" } },
-    { name = "Backup_14", ids = { LEFT="243827693", DOWN="182724289", UP="183412246", RIGHT="243656287" } },
-    { name = "Backup_15", ids = { LEFT="721666270", DOWN="721666497", UP="721666687", RIGHT="721666904" } },
-    { name = "Backup_16", ids = { LEFT="3588972828", DOWN="3588973167", UP="3588973549", RIGHT="3588973812" } },
-    { name = "Backup_17", ids = { LEFT="1083281177", DOWN="1083281483", UP="1083281734", RIGHT="1083282030" } },
-    { name = "Backup_18", ids = { LEFT="1295988226", DOWN="1295988457", UP="1295988673", RIGHT="1295988941" } },
-    { name = "Backup_19", ids = { LEFT="3489172821", DOWN="3489173063", UP="3489173262", RIGHT="3489173471" } },
-    { name = "Backup_20",ids = { LEFT="507771019", DOWN="507776043", UP="507777268", RIGHT="507770818" } },
-    { name = "Backup_21", ids = { LEFT="204062532", DOWN="204292303", UP="183412246", RIGHT="218504594" } },
-    { name = "Backup_22", ids = { LEFT="3333136415", DOWN="3333136894", UP="3333137279", RIGHT="3333137684" } },
-    { name = "Backup_23", ids = { LEFT="507771019", DOWN="507776043", UP="507777268", RIGHT="507770818" } },
-    { name = "Backup_24", ids = { LEFT="243827693", DOWN="182724289", UP="183412246", RIGHT="243656287" } },
-    { name = "Backup_25", ids = { LEFT="721666270", DOWN="721666497", UP="721666687", RIGHT="721666904" } },
-    { name = "Backup_26", ids = { LEFT="3588972828", DOWN="3588973167", UP="3588973549", RIGHT="3588973812" } },
-    { name = "Backup_27", ids = { LEFT="1083281177", DOWN="1083281483", UP="1083281734", RIGHT="1083282030" } },
-    { name = "Backup_28", ids = { LEFT="1295988226", DOWN="1295988457", UP="1295988673", RIGHT="1295988941" } },
-    { name = "Backup_29", ids = { LEFT="3489172821", DOWN="3489173063", UP="3489173262", RIGHT="3489173471" } },
-    { name = "Backup_30",ids = { LEFT="507771019", DOWN="507776043", UP="507777268", RIGHT="507770818" } },
-    { name = "Backup_31", ids = { LEFT="204062532", DOWN="204292303", UP="183412246", RIGHT="218504594" } },
-    { name = "Backup_32", ids = { LEFT="3333136415", DOWN="3333136894", UP="3333137279", RIGHT="3333137684" } },
-    { name = "Backup_33", ids = { LEFT="507771019", DOWN="507776043", UP="507777268", RIGHT="507770818" } },
-    { name = "Backup_34", ids = { LEFT="243827693", DOWN="182724289", UP="183412246", RIGHT="243656287" } },
-    { name = "Backup_35", ids = { LEFT="721666270", DOWN="721666497", UP="721666687", RIGHT="721666904" } },
-    { name = "Backup_37", ids = { LEFT="1083281177", DOWN="1083281483", UP="1083281734", RIGHT="1083282030" } },
-    { name = "Backup_38", ids = { LEFT="1295988226", DOWN="1295988457", UP="1295988673", RIGHT="1295988941" } },
-    { name = "Backup_39", ids = { LEFT="3489172821", DOWN="3489173063", UP="3489173262", RIGHT="3489173471" } },
-    { name = "Backup_40", ids = { LEFT="507771019", DOWN="507776043", UP="507777268", RIGHT="507770818" } }
-}
+-- ==============================================================================================
+--  GLOBAL CLEANUP STATE WATCHER
+-- ==============================================================================================
+if shared._FNF_INJECTOR_CLEANUP then
+    pcall(shared._FNF_INJECTOR_CLEANUP)
+end
 
--- ==============================================================================================
---  [ END OF SCRIPT ]
--- ==============================================================================================
+shared._FNF_INJECTOR_CLEANUP = function()
+    cleanupAll()
+    cleanupMovement()
+    stopDoubleTrouble()
+    if UI_CONTAINER:FindFirstChild("FNFInjectorGui") then UI_CONTAINER.FNFInjectorGui:Destroy() end
+    if UI_CONTAINER:FindFirstChild("FNFArrowHud") then UI_CONTAINER.FNFArrowHud:Destroy() end
+    if UI_CONTAINER:FindFirstChild("FNFHealthBar") then UI_CONTAINER.FNFHealthBar:Destroy() end
+    if UI_CONTAINER:FindFirstChild("FNFQTE") then UI_CONTAINER.FNFQTE:Destroy() end
+    if UI_CONTAINER:FindFirstChild("FNFCinematicBars") then UI_CONTAINER.FNFCinematicBars:Destroy() end
+    for _, tag in pairs(peerNametags) do pcall(function() tag:Destroy() end) end
+    peerNametags = {}
+end
+
+-- End of File.
