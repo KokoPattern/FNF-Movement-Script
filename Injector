@@ -1,11 +1,11 @@
 --[[
     ╔═════════════════════════════════════════════════════════════════════════════════════════════╗
     ║                                                                                             ║
-    ║                           FNF ANIMATION INJECTOR v9.1 (ULTIMATE OMEGA)                      ║
+    ║                           FNF ANIMATION INJECTOR v9.2 (ULTIMATE OMEGA)                      ║
     ║                                   [ ERROR-FREE / FATAL-PATCHED ]                            ║
     ║                                                                                             ║
     ╠═════════════════════════════════════════════════════════════════════════════════════════════╣
-    ║  + ALL V9.0 FEATURES RETAINED (Anti-Lag, FX, Sequencer, Maker, Sync, Decals, etc.)          ║
+    ║  + ALL V9.1 FEATURES RETAINED (Anti-Lag, FX, Sequencer, Maker, Sync, Decals, etc.)          ║
     ║  + [NEW] Auto-Update System (Checks GitHub, auto-restarts if updated).                      ║
     ║  + [NEW] Dynamic URL/GIF Fetching for Backgrounds and Arrow Decals!                         ║
     ║  + [NEW] Z-Index Rendering fixes (Notes explicitly render above Health Bars).               ║
@@ -13,6 +13,8 @@
     ║  + [NEW] Synchronized Cinematic Bars and Flash-on-Hit Effects.                              ║
     ║  + [NEW] Complete Save-State persistence across all settings/colors/features.               ║
     ║  + [NEW] Instant Dialogue Peer-Discovery with Green Highlights & 3-min intervals.           ║
+    ║  + [NEW] Classic FNF Hit Notes System (SICK!, GOOD!, etc.) with customizable text.          ║
+    ║  + [FIX] Pushback Speed UI squishing resolved with advanced scaling frames.                 ║
     ╚═════════════════════════════════════════════════════════════════════════════════════════════╝
 ]]
 
@@ -136,7 +138,14 @@ local DataStoreConfig = {
     RP_MyIcon = "",
     RP_OppIcon = "",
     MiscCinematic = false,
-    MiscFlash = false
+    MiscFlash = false,
+    EnableHitTexts = true,
+    HitTexts = {
+        LEFT = "SICK!",
+        DOWN = "GOOD!",
+        UP = "BADD!",
+        RIGHT = "SHIT!"
+    }
 }
 
 local CUSTOM_DECALS = {
@@ -179,7 +188,9 @@ function SaveData()
             FX = FX_SETTINGS,
             Decals = CUSTOM_DECALS,
             MiscCinematic = DataStoreConfig.MiscCinematic,
-            MiscFlash = DataStoreConfig.MiscFlash
+            MiscFlash = DataStoreConfig.MiscFlash,
+            EnableHitTexts = DataStoreConfig.EnableHitTexts,
+            HitTexts = DataStoreConfig.HitTexts
         }
         pcall(function() writefile(SAVE_FILE_NAME, HttpService:JSONEncode(dataToSave)) end)
     end
@@ -199,6 +210,11 @@ function LoadData()
                 DataStoreConfig.ThemeName = decoded.Theme or "Pink"
                 DataStoreConfig.MiscCinematic = decoded.MiscCinematic or false
                 DataStoreConfig.MiscFlash = decoded.MiscFlash or false
+                
+                if decoded.EnableHitTexts ~= nil then DataStoreConfig.EnableHitTexts = decoded.EnableHitTexts end
+                if decoded.HitTexts then
+                    for k, v in pairs(decoded.HitTexts) do DataStoreConfig.HitTexts[k] = v end
+                end
                 
                 if decoded.FX then
                     for k, v in pairs(decoded.FX) do FX_SETTINGS[k] = v end
@@ -1496,6 +1512,81 @@ function rollBindingAnimId(row)
 end
 
 -- ==============================================================================================
+--  CLASSIC FNF HIT NOTES SYSTEM (NEW)
+-- ==============================================================================================
+local hitTextContainer = nil
+local notesCombo = 0
+
+function initHitTextContainer()
+    if hitTextContainer then return end
+    hitTextContainer = Instance.new("ScreenGui")
+    hitTextContainer.Name = "FNFHitTextNotes"
+    hitTextContainer.ResetOnSpawn = false
+    hitTextContainer.DisplayOrder = 105 -- Above everything else
+    hitTextContainer.Parent = UI_CONTAINER
+end
+
+function spawnHitText(dir)
+    if not DataStoreConfig.EnableHitTexts then return end
+    initHitTextContainer()
+    notesCombo = notesCombo + 1
+    
+    local hitString = DataStoreConfig.HitTexts[dir] or "SICK!"
+    local baseColor = ARROW_COLORS[dir] and ARROW_COLORS[dir].hit or Color3.fromRGB(255,255,255)
+    
+    -- Randomizer for flair
+    local xOffset = math.random(-60, 60)
+    local yOffset = math.random(-30, 30)
+    local rot = math.random(-15, 15)
+    
+    local hitLbl = Instance.new("TextLabel")
+    hitLbl.Text = hitString
+    hitLbl.Font = Enum.Font.GothamBlack
+    hitLbl.TextSize = 55
+    hitLbl.TextColor3 = baseColor
+    hitLbl.BackgroundTransparency = 1
+    hitLbl.Size = UDim2.new(0, 250, 0, 80)
+    hitLbl.Position = UDim2.new(0.5, -125 + xOffset, 0.35, yOffset)
+    hitLbl.Rotation = rot
+    hitLbl.ZIndex = 10
+    hitLbl.Parent = hitTextContainer
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(15, 15, 20)
+    stroke.Thickness = 5
+    stroke.Parent = hitLbl
+    
+    local uiscale = Instance.new("UIScale")
+    uiscale.Scale = 0
+    uiscale.Parent = hitLbl
+    
+    -- Elastic Pop-in Animation
+    TweenService:Create(uiscale, TweenInfo.new(0.2, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out), {Scale = 1.1}):Play()
+    
+    -- Float and fade out advanced sequence
+    task.delay(0.25, function()
+        if not hitLbl then return end
+        local floatTw = TweenService:Create(hitLbl, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0.5, -125 + xOffset, 0.25, yOffset - 50),
+            TextTransparency = 1
+        })
+        local scaleTw = TweenService:Create(uiscale, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Scale = 1.3
+        })
+        local strokeTw = TweenService:Create(stroke, TweenInfo.new(0.3), {Transparency = 1})
+        
+        floatTw:Play()
+        scaleTw:Play()
+        strokeTw:Play()
+        
+        floatTw.Completed:Connect(function()
+            hitLbl:Destroy()
+        end)
+    end)
+end
+
+
+-- ==============================================================================================
 --  ARROW HUD REACTIONS
 -- ==============================================================================================
 function hitArrow(dir)
@@ -1894,6 +1985,7 @@ function startDoubleTrouble(playerName)
             task.delay(SYNC_STATE.MimicDelay, function()
                 playAnim("SYNC_MIMIC", id, 1, false)
                 hitArrow(randomDir)
+                spawnHitText(randomDir) -- Spawn text on Sync hit
                 if SYNC_STATE.SyncPushback then triggerRetreat() end
                 if BAR_STATE.Enabled then updateFNFBarHealth(BAR_STATE.Health + 5) end
                 
@@ -2124,6 +2216,7 @@ function onInput(input, _gp)
                 triggerDashHit()
                 registerBpmTap()
                 triggerHitFlash()
+                spawnHitText(row.dir) -- Spawn Classic Hit Text on input
                 
                 if BAR_STATE.Enabled then updateFNFBarHealth(BAR_STATE.Health + 2) end
                 
@@ -2669,7 +2762,7 @@ function buildGUI()
     titleBar.BorderSizePixel = 0; titleBar.ZIndex = 2; titleBar.Parent = main; uiCorner(titleBar, UDim.new(0,10))
     titleGuiBar = titleBar
 
-    local titleLbl = makeLabel(titleBar, "🎵 FNF ANIMATION INJECTOR v9.1 OMEGA", UDim2.new(0,12,0,0), UDim2.new(1,-80,1,0), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 13)
+    local titleLbl = makeLabel(titleBar, "🎵 FNF ANIMATION INJECTOR v9.2 OMEGA", UDim2.new(0,12,0,0), UDim2.new(1,-80,1,0), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 13)
     titleLbl.ZIndex = 3; regText(titleLbl)
 
     local toggleBtn = makeBtn(titleBar, "HIDE", UDim2.new(1,-68,0,5), UDim2.new(0,60,0,26), Color3.fromRGB(255,80,180))
@@ -2687,7 +2780,7 @@ function buildGUI()
     local contentArea = Instance.new("Frame")
     contentArea.Size = UDim2.new(1,0,1,-(36+TAB_H)); contentArea.Position = UDim2.new(0,0,0,36+TAB_H); contentArea.BackgroundTransparency = 1; contentArea.ZIndex = 2; contentArea.Parent = main
 
-    local tabNames = { "📋 BINDS", "🎨 DECALS", "📛 NAMETAG", "👯 SYNC", "💬 DIALOGUE", "🛸 MOVEMENT", "🏋 TRAINING", "🎬 MAKER", "👁 PREVIEW", "❤ FAVES", "🎶 LIST", "🎛 FX", "🎮 QTE", "🎭 FUN/MISC", "⚙ SETTINGS", "📉 OPTIMIZE", "🚩 REPORT" }
+    local tabNames = { "📋 BINDS", "🎨 DECALS", "📛 NAMETAG", "👯 SYNC", "💬 DIALOGUE", "🛸 MOVEMENT", "🏋 TRAINING", "🎬 MAKER", "👁 PREVIEW", "❤ FAVES", "🎶 LIST", "🎛 FX", "🎮 QTE", "🎭 FUN/MISC", "📝 HIT TEXT", "⚙ SETTINGS", "📉 OPTIMIZE", "🚩 REPORT" }
     
     if IS_OWNER then
         table.insert(tabNames, "👑 RANKING")
@@ -2752,6 +2845,7 @@ function buildGUI()
         testBtn.MouseButton1Down:Connect(function()
             local chosenId = rollBindingAnimId(row)
             playAnim(row.key, chosenId, row.speedMult, row.holdLoop); hitArrow(row.dir); swapFace(row.dir)
+            spawnHitText(row.dir)
         end)
         testBtn.MouseButton1Up:Connect(function()   stopAnim(row.key); releaseArrow(row.dir); restoreFace() end)
 
@@ -3529,8 +3623,9 @@ function buildGUI()
     local targetBox = makeBox(pgFun, UDim2.new(0,8,0,85), UDim2.new(1,-16,0,32), "Target Player Name for RP Tracking...")
     targetBox.FocusLost:Connect(function() setTargetPlayer(targetBox.Text) end)
 
+    -- [FIX APPLIED]: Adjusted Width and Position to prevent squishing the Pushback string display.
     makeLabel(pgFun, "PUSHBACK SPEED", UDim2.new(0,8,0,135), UDim2.new(0,120,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-    local rpValLbl = makeLabel(pgFun, string.format("%.1f studs", rpMoveStep), UDim2.new(0,300,0,135), UDim2.new(0,94,0,22), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 11)
+    local rpValLbl = makeLabel(pgFun, string.format("%.1f studs", rpMoveStep), UDim2.new(0,250,0,135), UDim2.new(0,140,0,22), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 11)
     regText(rpValLbl)
     makeSlider(pgFun, UDim2.new(0,130,0,139), UDim2.new(0,250,0,14), 0.5, 5, rpMoveStep, function(v)
         rpMoveStep = v; rpValLbl.Text = string.format("%.1f studs", v)
@@ -3652,6 +3747,51 @@ function buildGUI()
 
 
     -- ==============================================================================================
+    -- TAB 14.5 : HIT TEXTS SYSTEM (NEW)
+    -- ==============================================================================================
+    local pgHitTexts = pages["📝 HIT TEXT"]
+    
+    local hTitle = makeLabel(pgHitTexts, "📝 CLASSIC FNF HIT NOTES SYSTEM", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    regText(hTitle)
+    makeDivider(pgHitTexts, 30, Color3.fromRGB(0,200,255))
+    makeLabel(pgHitTexts, "Spawns bouncing text pop-ups ('SICK!', 'GOOD!') exactly like OG Friday Night Funkin'. Customize the text for each directional note below.", UDim2.new(0,8,0,36), UDim2.new(1,-16,0,35), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
+
+    local toggleHitTextBtn = makeBtn(pgHitTexts, "HIT TEXTS: OFF", UDim2.new(0,8,0,85), UDim2.new(0,200,0,32), Color3.fromRGB(35,35,55))
+    if DataStoreConfig.EnableHitTexts then 
+        toggleHitTextBtn.Text = "HIT TEXTS: ON"
+        toggleHitTextBtn.BackgroundColor3 = THEMES[currentThemeName].accent 
+    end
+    
+    toggleHitTextBtn.MouseButton1Click:Connect(function()
+        DataStoreConfig.EnableHitTexts = not DataStoreConfig.EnableHitTexts
+        toggleHitTextBtn.Text = "HIT TEXTS: " .. (DataStoreConfig.EnableHitTexts and "ON" or "OFF")
+        toggleHitTextBtn.BackgroundColor3 = DataStoreConfig.EnableHitTexts and THEMES[currentThemeName].accent or Color3.fromRGB(35,35,55)
+        SaveData()
+        notify("Hit Texts System toggled " .. (DataStoreConfig.EnableHitTexts and "On" or "Off"), "info")
+    end)
+    
+    makeLabel(pgHitTexts, "CUSTOMIZE DIRECTIONAL HIT STRINGS", UDim2.new(0,8,0,135), UDim2.new(1,-16,0,20), Color3.fromRGB(255,255,255), Enum.TextXAlignment.Left, 11)
+    
+    for i, dir in ipairs(ARROW_ORDER) do
+        local hy = 165 + (i-1)*45
+        local col = ARROW_COLORS[dir] and ARROW_COLORS[dir].hit or Color3.fromRGB(255,255,255)
+        makeLabel(pgHitTexts, dir, UDim2.new(0,8,0,hy), UDim2.new(0,60,0,32), col, Enum.TextXAlignment.Left, 11)
+        
+        local hBox = makeBox(pgHitTexts, UDim2.new(0,75,0,hy), UDim2.new(1,-90,0,32), "E.g. SICK!, GOOD!, BAD!", DataStoreConfig.HitTexts[dir])
+        
+        local dirCaptured = dir
+        hBox.FocusLost:Connect(function()
+            local t = hBox.Text
+            if t == "" then t = "SICK!" end
+            DataStoreConfig.HitTexts[dirCaptured] = t
+            hBox.Text = t
+            SaveData()
+            notify(dirCaptured .. " hit text saved!", "success")
+        end)
+    end
+
+
+    -- ==============================================================================================
     -- TAB 15 : SETTINGS 
     -- ==============================================================================================
     local pg6 = pages["⚙ SETTINGS"]
@@ -3680,272 +3820,214 @@ function buildGUI()
     local faceOrder = { "LEFT", "DOWN", "UP", "RIGHT" }
     for i, dir in ipairs(faceOrder) do
         local y = 164 + (i-1)*38
-        local col = ARROW_COLORS[dir] and ARROW_COLORS[dir].hit or Color3.fromRGB(255,255,255)
-        makeLabel(pg6, dir, UDim2.new(0,8,0,y), UDim2.new(0,52,0,28), col, Enum.TextXAlignment.Left)
-        local fb = makeBox(pg6, UDim2.new(0,66,0,y), UDim2.new(1,-74,0,28), "Face decal ID for "..dir, faceIds[dir])
-        local capturedDir = dir
-        fb.FocusLost:Connect(function() faceIds[capturedDir] = fb.Text:gsub("%D","") end)
+makeLabel(pg6, dir, UDim2.new(0,8,0,y), UDim2.new(0,50,0,28), ARROW_COLORS[dir].hit, Enum.TextXAlignment.Left, 11)
+        local fBox = makeBox(pg6, UDim2.new(0,60,0,y), UDim2.new(1,-68,0,28), "Face Decal ID", faceIds[dir])
+        fBox.FocusLost:Connect(function() faceIds[dir] = fBox.Text:gsub("%D","") end)
     end
 
     makeDivider(pg6, 320, Color3.fromRGB(0,200,255))
-    local themeTitle = makeLabel(pg6, "🎨 THEME LIST", UDim2.new(0,8,0,326), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12); regText(themeTitle)
+    local themeTitle = makeLabel(pg6, "🎨 UI THEME COLOR", UDim2.new(0,8,0,330), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12); regText(themeTitle)
+    
+    local themeScroll = Instance.new("ScrollingFrame")
+    themeScroll.Size = UDim2.new(1,-16,0,80); themeScroll.Position = UDim2.new(0,8,0,360)
+    themeScroll.BackgroundColor3 = Color3.fromRGB(18,18,26); themeScroll.BorderSizePixel = 0
+    themeScroll.ScrollBarThickness = 3; themeScroll.CanvasSize = UDim2.new(0,0,0,0)
+    themeScroll.AutomaticCanvasSize = Enum.AutomaticSize.X; themeScroll.Parent = pg6; uiCorner(themeScroll)
+    local tLayout = Instance.new("UIListLayout"); tLayout.FillDirection = Enum.FillDirection.Horizontal; tLayout.Padding = UDim.new(0,6); tLayout.Parent = themeScroll
+    local tPad = Instance.new("UIPadding"); tPad.PaddingTop = UDim.new(0,6); tPad.PaddingLeft = UDim.new(0,6); tPad.Parent = themeScroll
 
-    local themeNames1 = { "Pink", "Cyan", "Purple", "RGB" }
-    local themeNames2 = { "Matrix", "Gold", "Crimson", "Vaporwave", "Abyss" }
-    local themeNames3 = { "NeonGreen", "Ocean", "Fire", "Shadow", "Sakura" }
-    
-    for i, tn in ipairs(themeNames1) do
-        local tx = 8 + (i-1) * 125
-        local tbtn = makeBtn(pg6, tn, UDim2.new(0, tx, 0, 356), UDim2.new(0, 115, 0, 32), THEMES[tn] and THEMES[tn].accent or Color3.new(1,1,1), Color3.fromRGB(20,20,20), 11)
-        tbtn.MouseButton1Click:Connect(function() setTheme(tn) end)
+    for tName, tData in pairs(THEMES) do
+        local tb = makeBtn(themeScroll, tName, UDim2.new(0,0,0,0), UDim2.new(0,90,0,32), Color3.fromRGB(25,25,35), tData.accent, 10)
+        local tbStroke = uiStroke(tb, tData.accent, 1)
+        tb.MouseButton1Click:Connect(function() setTheme(tName) end)
     end
-    for i, tn in ipairs(themeNames2) do
-        local tx = 8 + (i-1) * 100
-        local tbtn = makeBtn(pg6, tn, UDim2.new(0, tx, 0, 396), UDim2.new(0, 92, 0, 32), THEMES[tn] and THEMES[tn].accent or Color3.new(1,1,1), Color3.fromRGB(20,20,20), 10)
-        tbtn.MouseButton1Click:Connect(function() setTheme(tn) end)
-    end
-    for i, tn in ipairs(themeNames3) do
-        local tx = 8 + (i-1) * 100
-        local tbtn = makeBtn(pg6, tn, UDim2.new(0, tx, 0, 436), UDim2.new(0, 92, 0, 32), THEMES[tn] and THEMES[tn].accent or Color3.new(1,1,1), Color3.fromRGB(20,20,20), 10)
-        tbtn.MouseButton1Click:Connect(function() setTheme(tn) end)
-    end
-    
-    makeDivider(pg6, 480, Color3.fromRGB(255,80,180))
-    local customUiTitle = makeLabel(pg6, "🖼 CUSTOM UI BACKGROUND DECAL", UDim2.new(0,8,0,490), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
-    regText(customUiTitle)
-    makeLabel(pg6, "Paste any Image/GIF link or ID. It will instantly download and apply.", UDim2.new(0,8,0,510), UDim2.new(1,-16,0,20), Color3.fromRGB(130,130,150), Enum.TextXAlignment.Left, 10)
-    
-    local customBgBox = makeBox(pg6, UDim2.new(0,8,0,535), UDim2.new(0,250,0,32), "Paste Link or ID...", DataStoreConfig.CustomBackgroundId)
-    local applyBgBtn = makeBtn(pg6, "APPLY", UDim2.new(0,270,0,535), UDim2.new(0,60,0,32), Color3.fromRGB(60,190,120))
-    local clearBgBtn = makeBtn(pg6, "CLEAR", UDim2.new(0,340,0,535), UDim2.new(0,60,0,32), Color3.fromRGB(190,50,50))
-    local isGifTog   = makeBtn(pg6, "IS GIF: OFF", UDim2.new(0,410,0,535), UDim2.new(0,90,0,32), Color3.fromRGB(35,35,55))
-    
-    if DataStoreConfig.IsBackgroundGIF then isGifTog.Text = "IS GIF: ON"; isGifTog.BackgroundColor3 = Color3.fromRGB(200, 100, 255) end
 
-    applyBgBtn.MouseButton1Click:Connect(function()
-        local id = customBgBox.Text
-        if id ~= "" then
-            DataStoreConfig.CustomBackgroundId = id
-            SaveData()
-            
-            if DataStoreConfig.IsBackgroundGIF or id:match("^http") then
-                mainBgImage.Image = getCustomAssetFromURL(id)
-            else
-                mainBgImage.Image = "rbxassetid://" .. id:gsub("%D", "")
-            end
-            notify("Custom Background Applied!", "success")
-        end
-    end)
+    makeDivider(pg6, 460, Color3.fromRGB(0,200,255))
+    local bgTitle = makeLabel(pg6, "🖼 CUSTOM BACKGROUND (URL / ID)", UDim2.new(0,8,0,470), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12); regText(bgTitle)
+
+    local bgInput = makeBox(pg6, UDim2.new(0,8,0,500), UDim2.new(1,-16,0,32), "Image/GIF URL or Asset ID", DataStoreConfig.CustomBackgroundId)
+    local bgGifBtn = makeBtn(pg6, "IS GIF: OFF", UDim2.new(0,8,0,540), UDim2.new(0,100,0,28), Color3.fromRGB(35,35,55))
+    local bgTransSlider, bgTransLbl
     
-    clearBgBtn.MouseButton1Click:Connect(function()
-        DataStoreConfig.CustomBackgroundId = ""
-        customBgBox.Text = ""
-        mainBgImage.Image = ""
-        SaveData()
-        notify("Custom Background Cleared", "info")
-    end)
-    
-    isGifTog.MouseButton1Click:Connect(function()
+    if DataStoreConfig.IsBackgroundGIF then bgGifBtn.Text = "IS GIF: ON"; bgGifBtn.BackgroundColor3 = Color3.fromRGB(200, 100, 255) end
+
+    bgGifBtn.MouseButton1Click:Connect(function()
         DataStoreConfig.IsBackgroundGIF = not DataStoreConfig.IsBackgroundGIF
-        isGifTog.Text = DataStoreConfig.IsBackgroundGIF and "IS GIF: ON" or "IS GIF: OFF"
-        isGifTog.BackgroundColor3 = DataStoreConfig.IsBackgroundGIF and Color3.fromRGB(200, 100, 255) or Color3.fromRGB(35,35,55)
-        SaveData()
+        bgGifBtn.Text = DataStoreConfig.IsBackgroundGIF and "IS GIF: ON" or "IS GIF: OFF"
+        bgGifBtn.BackgroundColor3 = DataStoreConfig.IsBackgroundGIF and Color3.fromRGB(200, 100, 255) or Color3.fromRGB(35,35,55)
     end)
     
-    makeLabel(pg6, "TRANSPARENCY", UDim2.new(0,8,0,580), UDim2.new(0,100,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-    makeSlider(pg6, UDim2.new(0,110,0,584), UDim2.new(0,250,0,14), 0, 1, DataStoreConfig.CustomBackgroundTransparency, function(v)
+    local bgApply = makeBtn(pg6, "APPLY BACKGROUND", UDim2.new(0,116,0,540), UDim2.new(0,200,0,28), Color3.fromRGB(60,190,120))
+    bgApply.MouseButton1Click:Connect(function()
+        local txt = bgInput.Text
+        DataStoreConfig.CustomBackgroundId = txt
+        if txt == "" then
+            mainBgImage.Image = ""
+        else
+            if DataStoreConfig.IsBackgroundGIF or txt:match("^http") then
+                mainBgImage.Image = getCustomAssetFromURL(txt)
+            else
+                mainBgImage.Image = "rbxassetid://" .. txt:gsub("%D", "")
+            end
+        end
+        SaveData(); notify("Background updated!", "success")
+    end)
+    
+    makeLabel(pg6, "TRANSPARENCY", UDim2.new(0,8,0,580), UDim2.new(0,100,0,20), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    bgTransLbl = makeLabel(pg6, string.format("%.2f", DataStoreConfig.CustomBackgroundTransparency), UDim2.new(0,250,0,580), UDim2.new(0,60,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 11)
+    makeSlider(pg6, UDim2.new(0,110,0,584), UDim2.new(0,140,0,14), 0, 1, DataStoreConfig.CustomBackgroundTransparency, function(v)
         DataStoreConfig.CustomBackgroundTransparency = v
+        bgTransLbl.Text = string.format("%.2f", v)
         mainBgImage.ImageTransparency = v
         SaveData()
     end)
 
     -- ==============================================================================================
-    -- TAB 16 : ADVANCED PERFORMANCE OPTIMIZATION 
+    -- TAB 16 : OPTIMIZE (FX TOGGLES)
     -- ==============================================================================================
     local pgOpt = pages["📉 OPTIMIZE"]
+    local optTitle = makeLabel(pgOpt, "📉 OPTIMIZATION & TOGGLES", UDim2.new(0,8,0,6), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12); regText(optTitle)
+    makeDivider(pgOpt, 28, Color3.fromRGB(0,200,255))
+    makeLabel(pgOpt, "Disable features to reduce lag. All settings save automatically.", UDim2.new(0,8,0,34), UDim2.new(1,-16,0,18), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
 
-    local optTitle = makeLabel(pgOpt, "⚡ ADVANCED PERFORMANCE OPTIMIZATION", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12); regText(optTitle)
-    makeDivider(pgOpt, 30, Color3.fromRGB(0,200,255))
-    makeLabel(pgOpt, "Toggle these settings off to drastically increase FPS and prevent lag spikes while note mashing.", UDim2.new(0,8,0,36), UDim2.new(1,-16,0,28), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
-    
-    local fpsDisplay = makeLabel(pgOpt, "CURRENT FPS: 60", UDim2.new(0,320,0,8), UDim2.new(0,150,0,20), Color3.fromRGB(80, 255, 120), Enum.TextXAlignment.Right, 13)
-    task.spawn(function()
-        while true do
-            task.wait(0.5)
-            if not guiVisible then continue end
-            fpsDisplay.Text = "CURRENT FPS: " .. currentFPS
-            if currentFPS < 30 then fpsDisplay.TextColor3 = Color3.fromRGB(255, 60, 60)
-            elseif currentFPS < 50 then fpsDisplay.TextColor3 = Color3.fromRGB(255, 180, 60)
-            else fpsDisplay.TextColor3 = Color3.fromRGB(80, 255, 120) end
-        end
-    end)
-
-    local function makeToggleRow(parent, y, label, desc, configKey, callback)
-        makeLabel(parent, label, UDim2.new(0,8,0,y), UDim2.new(0,250,0,20), Color3.fromRGB(220,220,230), Enum.TextXAlignment.Left, 11)
-        makeLabel(parent, desc, UDim2.new(0,8,0,y+16), UDim2.new(0,350,0,16), Color3.fromRGB(130,130,140), Enum.TextXAlignment.Left, 9)
-        
-        local isEnabled = FX_SETTINGS[configKey]
-        local btn = makeBtn(parent, isEnabled and "ON" or "OFF", UDim2.new(1,-70,0,y+4), UDim2.new(0,60,0,24), isEnabled and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50), nil, 10)
+    local function createToggle(parent, yPos, text, settingKey)
+        local btn = makeBtn(parent, text .. ": " .. (FX_SETTINGS[settingKey] and "ON" or "OFF"), UDim2.new(0,8,0,yPos), UDim2.new(1,-16,0,32), FX_SETTINGS[settingKey] and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50))
         btn.MouseButton1Click:Connect(function()
-            FX_SETTINGS[configKey] = not FX_SETTINGS[configKey]
-            isEnabled = FX_SETTINGS[configKey]
-            btn.Text = isEnabled and "ON" or "OFF"
-            btn.BackgroundColor3 = isEnabled and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50)
+            FX_SETTINGS[settingKey] = not FX_SETTINGS[settingKey]
+            btn.Text = text .. ": " .. (FX_SETTINGS[settingKey] and "ON" or "OFF")
+            btn.BackgroundColor3 = FX_SETTINGS[settingKey] and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50)
             SaveData()
-            if callback then callback(isEnabled) end
-            notify(label .. (isEnabled and " Enabled" or " Disabled"), "info")
         end)
+        return btn
     end
 
-    local optY = 70
-    makeToggleRow(pgOpt, optY, "🎛 1 Toggle / Ghost Tapping", "Restricts holding notes. Single press fnf logic only.", "OneToggleEnabled")
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "↕ Middlescroll Mode", "Centers arrows on screen.", "MiddlescrollEnabled", function(v) applyMiddlescrollLayout() end)
+    createToggle(pgOpt, 60, "AFTERIMAGES (TRAILS)", "EnableAfterimages")
+    createToggle(pgOpt, 100, "FLOATING NOTES 🎵", "EnableFloatingNotes")
+    createToggle(pgOpt, 140, "AMBIENT PARTICLES ✨", "EnableAmbientParticles")
+    createToggle(pgOpt, 180, "ARROW GLOW EFFECTS", "EnableArrowGlows")
+    createToggle(pgOpt, 220, "ARROW STROKE ANIMATIONS", "EnableArrowStrokeTweens")
+    createToggle(pgOpt, 260, "EQUALIZER BARS", "EnableEqualizer")
+    createToggle(pgOpt, 300, "WAVEFORM VISUALIZER", "EnableWaveform")
+    createToggle(pgOpt, 340, "BEAT PULSE DOT", "EnableBeatPulse")
+    createToggle(pgOpt, 380, "VINYL SPIN ANIMATION", "EnableVinylSpin")
     
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "👻 Afterimage Clones", "Creates fading clones behind you when doing double-notes.", "EnableAfterimages")
-    
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "✨ Arrow Glow Effects", "Toggles the bloom/glow around arrows on hit.", "EnableArrowGlows")
-    
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "📈 Arrow Stroke Tweens", "Toggles UI Stroke thickness animations.", "EnableArrowStrokeTweens")
-    
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "🎥 Camera Shake", "Toggles screen shake on QTE and hits.", "EnableCameraShake")
-    
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "🎵 Floating Notes", "Toggles random musical note particles in background.", "EnableFloatingNotes")
-    
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "📺 CRT Screen Effect", "Toggles retro scanlines and CRT overlay.", "EnableCRTMode", function(v) if crtOverlay then crtOverlay.Visible = v end end)
+    local crtBtn = createToggle(pgOpt, 420, "CRT MONITOR EFFECT", "EnableCRTMode")
+    crtBtn.MouseButton1Click:Connect(function() if crtOverlay then crtOverlay.Visible = FX_SETTINGS.EnableCRTMode end end)
+    if crtOverlay then crtOverlay.Visible = FX_SETTINGS.EnableCRTMode end
+
+    createToggle(pgOpt, 460, "CAMERA SHAKE (QTE/HIT)", "EnableCameraShake")
+
+    local scrollBtn = createToggle(pgOpt, 500, "MIDDLESCROLL ARROWS", "MiddlescrollEnabled")
+    scrollBtn.MouseButton1Click:Connect(function() applyMiddlescrollLayout(); refreshCustomDecals() end)
+
+    createToggle(pgOpt, 540, "ONE TOGGLE MODE (STOP ON CLICK)", "OneToggleEnabled")
 
     -- ==============================================================================================
-    -- TAB 17 : REPORT
+    -- TAB 17 : REPORT / SUPPORT
     -- ==============================================================================================
-    local pgReport = pages["🚩 REPORT"]
-    makeLabel(pgReport, "🚩 REPORT A PLAYER / EXPLOITER", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,80), Enum.TextXAlignment.Left, 12)
-    makeDivider(pgReport, 30, Color3.fromRGB(255,80,80))
-    makeLabel(pgReport, "Sends a webhook report directly to the script owners (Jayprince0626 & K4riISback). Abuse = Blacklist.", UDim2.new(0,8,0,36), UDim2.new(1,-16,0,28), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
+    local pgRep = pages["🚩 REPORT"]
+    makeLabel(pgRep, "🚩 REPORT BUGS / USERS", UDim2.new(0,8,0,10), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12); regText(makeLabel(pgRep, "🚩 REPORT BUGS / USERS", UDim2.new(0,8,0,10), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12))
+    makeDivider(pgRep, 35, Color3.fromRGB(0,200,255))
+    makeLabel(pgRep, "Abuse of this system will result in a global blacklist.", UDim2.new(0,8,0,45), UDim2.new(1,-16,0,20), Color3.fromRGB(190,50,50), Enum.TextXAlignment.Left, 10)
 
-    local reportUserBox = makeBox(pgReport, UDim2.new(0,8,0,70), UDim2.new(1,-16,0,32), "Target Username...")
-    local reportReasonBox = makeBox(pgReport, UDim2.new(0,8,0,110), UDim2.new(1,-16,0,32), "Reason (e.g., abusing bypasses, stealing anims)")
-    
-    local sendReportBtn = makeBtn(pgReport, "SEND REPORT 🚀", UDim2.new(0,8,0,150), UDim2.new(1,-16,0,32), Color3.fromRGB(190,50,50))
-    sendReportBtn.MouseButton1Click:Connect(function()
-        if reportUserBox.Text == "" or reportReasonBox.Text == "" then notify("Fill out both fields!", "warn") return end
+    local repNameBox = makeBox(pgRep, UDim2.new(0,8,0,80), UDim2.new(1,-16,0,32), "Target Username / Feature Bugged")
+    local repReasonBox = makeBox(pgRep, UDim2.new(0,8,0,120), UDim2.new(1,-16,0,60), "Describe the issue or abuse clearly...")
+    repReasonBox.TextWrapped = true; repReasonBox.TextYAlignment = Enum.TextYAlignment.Top
+
+    local repSubmitBtn = makeBtn(pgRep, "SUBMIT REPORT", UDim2.new(0,8,0,190), UDim2.new(1,-16,0,36), Color3.fromRGB(190,50,50))
+    repSubmitBtn.MouseButton1Click:Connect(function()
+        if repNameBox.Text == "" or repReasonBox.Text == "" then notify("Please fill out all fields.", "warn") return end
         
-        local payload = {
-            ["embeds"] = {{
-                ["title"] = "🚨 NEW PLAYER REPORT",
-                ["description"] = "**Reported by:** " .. LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")\n**Target User:** " .. reportUserBox.Text .. "\n**Reason:** " .. reportReasonBox.Text,
-                ["color"] = 16711680
+        local embedData = {
+            content = nil,
+            embeds = {{
+                title = "🚨 FNF Injector Report",
+                description = "**Target/Bug:** " .. repNameBox.Text .. "\n**Reason:** " .. repReasonBox.Text,
+                color = 16711680,
+                author = { name = "Reported by: " .. LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")" }
             }}
         }
-        SendWebhookData(REPORT_WEBHOOK, payload)
-        notify("Report sent to owners!", "success")
-        reportUserBox.Text = ""
-        reportReasonBox.Text = ""
+        
+        SendWebhookData(REPORT_WEBHOOK, embedData)
+        repNameBox.Text = ""; repReasonBox.Text = ""
+        notify("Report successfully submitted to developers.", "success")
     end)
 
     -- ==============================================================================================
-    -- TAB 18/19 : OWNER TABS (RANKING & MOD)
+    -- TAB 18 : MOD (OWNER ONLY)
     -- ==============================================================================================
     if IS_OWNER then
-        local pgRank = pages["👑 RANKING"]
-        if pgRank then
-            makeLabel(pgRank, "👑 OWNER GLOBAL ANNOUNCEMENTS", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,215,0), Enum.TextXAlignment.Left, 12)
-            makeDivider(pgRank, 30, Color3.fromRGB(255,215,0))
-            
-            local announceBox = makeBox(pgRank, UDim2.new(0,8,0,40), UDim2.new(1,-16,0,32), "Type global announcement...")
-            local announceBtn = makeBtn(pgRank, "BROADCAST TO ALL USERS", UDim2.new(0,8,0,80), UDim2.new(1,-16,0,32), Color3.fromRGB(255,150,0))
-            
-            announceBtn.MouseButton1Click:Connect(function()
-                if announceBox.Text ~= "" then
-                    broadcastNetworkMessage("ANNOUNCE", announceBox.Text)
-                    notify("Announcement sent to all connected hubs!", "success")
-                end
-            end)
-        end
-
         local pgMod = pages["🛡 MOD"]
-        if pgMod then
-            makeLabel(pgMod, "🛡 MODERATION PANEL", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,80), Enum.TextXAlignment.Left, 12)
-            makeDivider(pgMod, 30, Color3.fromRGB(255,80,80))
+        makeLabel(pgMod, "🛡 MODERATION PANEL", UDim2.new(0,8,0,10), UDim2.new(1,-16,0,20), Color3.fromRGB(255,215,0), Enum.TextXAlignment.Left, 12)
+        makeDivider(pgMod, 35, Color3.fromRGB(255,150,0))
+        
+        local bListBox = makeBox(pgMod, UDim2.new(0,8,0,50), UDim2.new(1,-16,0,32), "User ID to Blacklist/Unblacklist")
+        local bListReason = makeBox(pgMod, UDim2.new(0,8,0,90), UDim2.new(1,-16,0,32), "Reason...")
+        
+        local bListBtn = makeBtn(pgMod, "BLACKLIST", UDim2.new(0,8,0,130), UDim2.new(0,150,0,32), Color3.fromRGB(190,50,50))
+        local unbListBtn = makeBtn(pgMod, "UNBLACKLIST", UDim2.new(0,170,0,130), UDim2.new(0,150,0,32), Color3.fromRGB(60,190,120))
+        local annBtn = makeBtn(pgMod, "GLOBAL ANNOUNCE", UDim2.new(0,8,0,170), UDim2.new(1,-16,0,32), Color3.fromRGB(255,150,0))
+        local annBox = makeBox(pgMod, UDim2.new(0,8,0,210), UDim2.new(1,-16,0,32), "Announcement text...")
+
+        bListBtn.MouseButton1Click:Connect(function()
+            if bListBox.Text == "" then return end
+            broadcastNetworkMessage("BLACKLIST", bListBox.Text .. "~" .. bListReason.Text)
             
-            local modTargetBox = makeBox(pgMod, UDim2.new(0,8,0,40), UDim2.new(1,-16,0,32), "Target User ID...")
-            
-            local banBtn = makeBtn(pgMod, "BLACKLIST USER", UDim2.new(0,8,0,80), UDim2.new(0,250,0,32), Color3.fromRGB(190,50,50))
-            banBtn.MouseButton1Click:Connect(function()
-                local id = modTargetBox.Text:gsub("%D", "")
-                if id ~= "" then
-                    broadcastNetworkMessage("BLACKLIST", id .. "~Banned by Owner")
-                    blacklistedUsers[tonumber(id)] = true
-                    
-                    local payload = {
-                        ["embeds"] = {{
-                            ["title"] = "🔨 USER BLACKLISTED",
-                            ["description"] = "**Action by:** " .. LocalPlayer.Name .. "\n**Target User ID:** " .. id,
-                            ["color"] = 16711680
-                        }}
-                    }
-                    SendWebhookData(MOD_WEBHOOK, payload)
-                    notify("User ID " .. id .. " globally blacklisted.", "success")
-                end
-            end)
-        end
+            SendWebhookData(MOD_WEBHOOK, {
+                embeds = {{
+                    title = "🔨 User Blacklisted",
+                    description = "**User ID:** " .. bListBox.Text .. "\n**Reason:** " .. bListReason.Text,
+                    color = 16711680,
+                    author = { name = "Action by: " .. LocalPlayer.Name }
+                }}
+            })
+            notify("Blacklist broadcasted.", "success")
+        end)
+        
+        unbListBtn.MouseButton1Click:Connect(function()
+            if bListBox.Text == "" then return end
+            broadcastNetworkMessage("UNBLACKLIST", bListBox.Text)
+            notify("Unblacklist broadcasted.", "success")
+        end)
+        
+        annBtn.MouseButton1Click:Connect(function()
+            if annBox.Text == "" then return end
+            broadcastNetworkMessage("ANNOUNCE", annBox.Text)
+            annBox.Text = ""
+            notify("Announcement broadcasted.", "success")
+        end)
+        
+        local pgRank = pages["👑 RANKING"]
+        makeLabel(pgRank, "👑 GLOBAL RANKING OVERRIDES", UDim2.new(0,8,0,10), UDim2.new(1,-16,0,20), Color3.fromRGB(255,215,0), Enum.TextXAlignment.Left, 12)
     end
 
     -- ==============================================================================================
-    --  FINALIZE GUI SETUP & HOTKEYS
+    --  VISIBILITY TOGGLE / FINALIZATION
     -- ==============================================================================================
     hideToggleBtn.MouseButton1Click:Connect(function()
         guiVisible = not guiVisible
+        hideToggleBtn.Text = guiVisible and "HIDE" or "SHOW"
         if guiVisible then
-            hideToggleBtn.Text = "HIDE"
-            hideToggleBtn.BackgroundColor3 = THEMES[currentThemeName].accent
-            TweenService:Create(mainGuiFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0,MAIN_W,0,MAIN_H)}):Play()
+            TweenService:Create(mainGuiFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Size = UDim2.new(0, MAIN_W, 0, MAIN_H) }):Play()
+            mainGuiFrame.ClipsDescendants = false
         else
-            hideToggleBtn.Text = "SHOW"
-            hideToggleBtn.BackgroundColor3 = Color3.fromRGB(35,35,55)
-            TweenService:Create(mainGuiFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0,MAIN_W,0,36)}):Play()
+            mainGuiFrame.ClipsDescendants = true
+            TweenService:Create(mainGuiFrame, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), { Size = UDim2.new(0, MAIN_W, 0, 36) }):Play()
         end
     end)
     
-    applyThemeColors(THEMES[currentThemeName].accent)
-end
-
--- ==============================================================================================
---  INITIALIZATION
--- ==============================================================================================
-task.spawn(function()
-    buildArrowHud()
-    buildGUI()
-    startVisualizerLoops()
-    setupMusicRemote()
-    
-    -- Hook to ensure custom GUI resets correctly
-    LocalPlayer.CharacterAdded:Connect(function()
-        task.wait(1)
-        if not UI_CONTAINER:FindFirstChild("FNFInjectorGui") then buildGUI() end
-        if not UI_CONTAINER:FindFirstChild("FNFArrowHud") then buildArrowHud() end
+    UserInputService.InputBegan:Connect(function(input, gp)
+        if gp then return end
+        if input.KeyCode == Enum.KeyCode.RightControl or input.KeyCode == Enum.KeyCode.LeftControl then
+            hideToggleBtn.MouseButton1Click:Fire()
+        end
     end)
-    
-    notify("FNF Injector Omega Loaded Successfully!", "success")
-    
-    if DataStoreConfig.ThemeName then setTheme(DataStoreConfig.ThemeName) end
-end)
 
--- Cleanup function to kill the script dynamically
-shared._FNF_INJECTOR_CLEANUP = function()
-    cleanupAll()
-    cleanupMovement()
-    if UI_CONTAINER:FindFirstChild("FNFInjectorGui") then UI_CONTAINER.FNFInjectorGui:Destroy() end
-    if UI_CONTAINER:FindFirstChild("FNFHealthBar") then UI_CONTAINER.FNFHealthBar:Destroy() end
-    if UI_CONTAINER:FindFirstChild("FNFArrowHud") then UI_CONTAINER.FNFArrowHud:Destroy() end
-    if UI_CONTAINER:FindFirstChild("FNFCinematicBars") then UI_CONTAINER.FNFCinematicBars:Destroy() end
-    if flashGui then flashGui:Destroy() end
-    if globalCinematicUI then globalCinematicUI:Destroy() end
+    setTheme(currentThemeName)
+    buildArrowHud()
+    applyMiddlescrollLayout()
+    startVisualizerLoops()
+    notify("Ultimate Injection Complete. Press LCTRL to Toggle GUI.", "success")
 end
 
-return "FNF Injector Omega Initialized"
+buildGUI()
