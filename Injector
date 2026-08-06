@@ -3736,7 +3736,7 @@ function buildGUI()
         DataStoreConfig.MiscCinematic = not DataStoreConfig.MiscCinematic
         cineBtn.Text = "CINEMATIC BARS: " .. (DataStoreConfig.MiscCinematic and "ON" or "OFF")
         cineBtn.BackgroundColor3 = DataStoreConfig.MiscCinematic and THEMES[currentThemeName].accent or Color3.fromRGB(35,35,55)
-       updateGlobalCinematicBars()
+updateGlobalCinematicBars()
         SaveData()
         if RP_STATE.Host and currentTarget then
             broadcastNetworkMessage("SYNC_MISC", tostring(DataStoreConfig.MiscCinematic) .. "~" .. tostring(DataStoreConfig.MiscFlash))
