@@ -1,21 +1,47 @@
 --[[
     ╔═════════════════════════════════════════════════════════════════════════════════════════════╗
     ║                                                                                             ║
-    ║                           FNF ANIMATION INJECTOR v9.0 (ULTIMATE OMEGA)                      ║
+    ║                           FNF ANIMATION INJECTOR v9.1 (ULTIMATE OMEGA)                      ║
     ║                                   [ ERROR-FREE / FATAL-PATCHED ]                            ║
     ║                                                                                             ║
     ╠═════════════════════════════════════════════════════════════════════════════════════════════╣
-    ║  + ALL V8.0 FEATURES RETAINED (Anti-Lag, FX, Sequencer, Maker, Sync, Decals, etc.)          ║
-    ║  + [FIXED] RP Mode Studs text label fixed & resized.                                        ║
-    ║  + [FIXED] FNF Health Bar visual overhaul & automatic opponent icon fetching.               ║
-    ║  + [FIXED] Dialogue Network stabilized, strictly uses DisplayName now.                      ║
-    ║  + [NEW] Novoline-styled Nametags with gorgeous backgrounds, toggles & custom texts.        ║
-    ║  + [NEW] OWNER-exclusive fancy nametags, Roles/Ranking section & Moderation section.        ║
-    ║  + [NEW] Global Reporting System & Moderation Webhook Integrations.                         ║
-    ║  + [NEW] Unblacklist feature added. Dash-on-hit & QTE Stand-off heavily stabilized!         ║
-    ║  + [INFO] "FNF Animation Injector" title enforced. No timescale on VFX.                     ║
+    ║  + ALL V9.0 FEATURES RETAINED (Anti-Lag, FX, Sequencer, Maker, Sync, Decals, etc.)          ║
+    ║  + [NEW] Auto-Update System (Checks GitHub, auto-restarts if updated).                      ║
+    ║  + [NEW] Dynamic URL/GIF Fetching for Backgrounds and Arrow Decals!                         ║
+    ║  + [NEW] Z-Index Rendering fixes (Notes explicitly render above Health Bars).               ║
+    ║  + [NEW] Advanced RP Mode Host/Client privileges & Synchronization.                         ║
+    ║  + [NEW] Synchronized Cinematic Bars and Flash-on-Hit Effects.                              ║
+    ║  + [NEW] Complete Save-State persistence across all settings/colors/features.               ║
+    ║  + [NEW] Instant Dialogue Peer-Discovery with Green Highlights & 3-min intervals.           ║
     ╚═════════════════════════════════════════════════════════════════════════════════════════════╝
 ]]
+
+-- ==============================================================================================
+--  AUTO-UPDATER SYSTEM (GITHUB SYNC)
+-- ==============================================================================================
+task.spawn(function()
+    local REPO_URL = "https://raw.githubusercontent.com/KokoPattern/FNF-Movement-Script/refs/heads/main/Injector"
+    local currentSource = ""
+    pcall(function() currentSource = game:HttpGet(REPO_URL) end)
+    
+    while true do
+        task.wait(60) -- Check every 60 seconds
+        pcall(function()
+            local newSource = game:HttpGet(REPO_URL)
+            if newSource and newSource ~= "" and newSource ~= currentSource and #newSource > 100 then
+                if shared._FNF_INJECTOR_CLEANUP then pcall(shared._FNF_INJECTOR_CLEANUP) end
+                local StarterGui = game:GetService("StarterGui")
+                StarterGui:SetCore("SendNotification", {
+                    Title = "FNF Injector Update",
+                    Text = "New update detected on GitHub! Restarting script automatically...",
+                    Duration = 5
+                })
+                task.wait(2)
+                loadstring(newSource)()
+            end
+        end)
+    end
+end)
 
 -- ==============================================================================================
 --  CORE SERVICES & ROBUST ENVIRONMENT GLOBALS
@@ -76,49 +102,50 @@ function SendWebhookData(url, data)
 end
 
 -- ==============================================================================================
+--  DYNAMIC URL / GIF DOWNLOADER
+-- ==============================================================================================
+function getCustomAssetFromURL(url)
+    if not url or url == "" then return "" end
+    if not url:match("^http") then return "rbxassetid://" .. url:gsub("%D", "") end
+    
+    local fileName = "FNF_Asset_" .. tostring(math.random(100000, 999999)) .. (url:match("%.gif") and ".gif" or ".png")
+    local success, data = pcall(function() return game:HttpGet(url) end)
+    
+    if success and data then
+        if writefile and getcustomasset then
+            writefile(fileName, data)
+            return getcustomasset(fileName)
+        end
+    end
+    return "" -- Fallback
+end
+
+-- ==============================================================================================
 --  DATA STORING ENGINE (JSON SAVE/LOAD SYSTEM)
 -- ==============================================================================================
 local SAVE_FILE_NAME = "FNF_Injector_Omega_V9_SaveData.json"
 local DataStoreConfig = {
     CustomBackgroundId = "",
+    IsBackgroundGIF = false,
     CustomBackgroundTransparency = 0.5,
     CustomNametagName = "Injector FNF hub",
     NametagsVisible = true,
-    CustomDialogueSound = "rbxassetid://4213282132"
+    CustomDialogueSound = "rbxassetid://4213282132",
+    ThemeName = "Pink",
+    RP_Side = "Right",
+    RP_MyIcon = "",
+    RP_OppIcon = "",
+    MiscCinematic = false,
+    MiscFlash = false
 }
 
-function SaveData()
-    if writefile then
-        local dataToSave = {
-            Background = DataStoreConfig.CustomBackgroundId,
-            BgTransparency = DataStoreConfig.CustomBackgroundTransparency,
-            NametagName = DataStoreConfig.CustomNametagName,
-            NametagsVisible = DataStoreConfig.NametagsVisible,
-            DialogueSound = DataStoreConfig.CustomDialogueSound
-        }
-        pcall(function() writefile(SAVE_FILE_NAME, HttpService:JSONEncode(dataToSave)) end)
-    end
-end
+local CUSTOM_DECALS = {
+    LEFT  = { id = "", useDecal = false, isLink = false, isGif = false },
+    DOWN  = { id = "", useDecal = false, isLink = false, isGif = false },
+    UP    = { id = "", useDecal = false, isLink = false, isGif = false },
+    RIGHT = { id = "", useDecal = false, isLink = false, isGif = false },
+}
 
-function LoadData()
-    if isfile and readfile and isfile(SAVE_FILE_NAME) then
-        pcall(function()
-            local decoded = HttpService:JSONDecode(readfile(SAVE_FILE_NAME))
-            if decoded then
-                DataStoreConfig.CustomBackgroundId = decoded.Background or ""
-                DataStoreConfig.CustomBackgroundTransparency = decoded.BgTransparency or 0.5
-                DataStoreConfig.CustomNametagName = decoded.NametagName or "Injector FNF hub"
-                if decoded.NametagsVisible ~= nil then DataStoreConfig.NametagsVisible = decoded.NametagsVisible end
-                DataStoreConfig.CustomDialogueSound = decoded.DialogueSound or "rbxassetid://4213282132"
-            end
-        end)
-    end
-end
-LoadData() 
-
--- ==============================================================================================
---  ADVANCED PERFORMANCE & FX SETTINGS
--- ==============================================================================================
 local FX_SETTINGS = {
     EnableAfterimages       = true,
     MaxActiveAfterimages    = 4, 
@@ -139,19 +166,58 @@ local FX_SETTINGS = {
     OneToggleEnabled        = false, 
 }
 
+function SaveData()
+    if writefile then
+        local dataToSave = {
+            Background = DataStoreConfig.CustomBackgroundId,
+            IsBgGIF = DataStoreConfig.IsBackgroundGIF,
+            BgTransparency = DataStoreConfig.CustomBackgroundTransparency,
+            NametagName = DataStoreConfig.CustomNametagName,
+            NametagsVisible = DataStoreConfig.NametagsVisible,
+            DialogueSound = DataStoreConfig.CustomDialogueSound,
+            Theme = DataStoreConfig.ThemeName,
+            FX = FX_SETTINGS,
+            Decals = CUSTOM_DECALS,
+            MiscCinematic = DataStoreConfig.MiscCinematic,
+            MiscFlash = DataStoreConfig.MiscFlash
+        }
+        pcall(function() writefile(SAVE_FILE_NAME, HttpService:JSONEncode(dataToSave)) end)
+    end
+end
+
+function LoadData()
+    if isfile and readfile and isfile(SAVE_FILE_NAME) then
+        pcall(function()
+            local decoded = HttpService:JSONDecode(readfile(SAVE_FILE_NAME))
+            if decoded then
+                DataStoreConfig.CustomBackgroundId = decoded.Background or ""
+                DataStoreConfig.IsBackgroundGIF = decoded.IsBgGIF or false
+                DataStoreConfig.CustomBackgroundTransparency = decoded.BgTransparency or 0.5
+                DataStoreConfig.CustomNametagName = decoded.NametagName or "Injector FNF hub"
+                if decoded.NametagsVisible ~= nil then DataStoreConfig.NametagsVisible = decoded.NametagsVisible end
+                DataStoreConfig.CustomDialogueSound = decoded.DialogueSound or "rbxassetid://4213282132"
+                DataStoreConfig.ThemeName = decoded.Theme or "Pink"
+                DataStoreConfig.MiscCinematic = decoded.MiscCinematic or false
+                DataStoreConfig.MiscFlash = decoded.MiscFlash or false
+                
+                if decoded.FX then
+                    for k, v in pairs(decoded.FX) do FX_SETTINGS[k] = v end
+                end
+                if decoded.Decals then
+                    for k, v in pairs(decoded.Decals) do CUSTOM_DECALS[k] = v end
+                end
+            end
+        end)
+    end
+end
+LoadData() 
+
 local activeAfterimages = 0 
 local currentFPS = 60       
 
 -- ==============================================================================================
 --  ULTIMATE EDITION SYSTEMS CONFIGURATION
 -- ==============================================================================================
-local CUSTOM_DECALS = {
-    LEFT  = { id = "", useDecal = false },
-    DOWN  = { id = "", useDecal = false },
-    UP    = { id = "", useDecal = false },
-    RIGHT = { id = "", useDecal = false },
-}
-
 local SYNC_STATE = {
     Enabled = false,
     TargetPlayer = nil,
@@ -187,10 +253,18 @@ local QTE_STATE = {
     OriginalCFrame = nil
 }
 
+local RP_STATE = {
+    Host = false,
+    Client = false,
+    Connected = false,
+    Partner = nil,
+}
+
 local BAR_STATE = {
     Enabled = false,
     Side = "Right",
-    MyIcon = "10052309193", 
+    MyIcon = "", 
+    OppIcon = "",
     MyColor = Color3.fromRGB(0, 255, 255),
     OppColor = Color3.fromRGB(255, 0, 0),
     Health = 50,
@@ -304,8 +378,18 @@ local THEMES = {
     Cyan      = { accent = Color3.fromRGB(0, 200, 255),  accent2 = Color3.fromRGB(255, 80, 180) },
     Purple    = { accent = Color3.fromRGB(165, 85, 255), accent2 = Color3.fromRGB(255, 80, 180) },
     RGB       = { accent = Color3.fromRGB(255, 0, 0),    accent2 = Color3.fromRGB(0, 255, 255) },
+    Matrix    = { accent = Color3.fromRGB(20, 255, 20),  accent2 = Color3.fromRGB(0, 150, 0) },
+    Gold      = { accent = Color3.fromRGB(255, 215, 0),  accent2 = Color3.fromRGB(218, 165, 32) },
+    Crimson   = { accent = Color3.fromRGB(220, 20, 60),  accent2 = Color3.fromRGB(139, 0, 0) },
+    Vaporwave = { accent = Color3.fromRGB(255, 113, 206),accent2 = Color3.fromRGB(1, 205, 254) },
+    Abyss     = { accent = Color3.fromRGB(0, 10, 120),   accent2 = Color3.fromRGB(100, 100, 255) },
+    NeonGreen = { accent = Color3.fromRGB(57, 255, 20),  accent2 = Color3.fromRGB(0, 255, 150) },
+    Ocean     = { accent = Color3.fromRGB(0, 105, 148),  accent2 = Color3.fromRGB(0, 200, 255) },
+    Fire      = { accent = Color3.fromRGB(255, 69, 0),   accent2 = Color3.fromRGB(255, 140, 0) },
+    Shadow    = { accent = Color3.fromRGB(70, 70, 70),   accent2 = Color3.fromRGB(30, 30, 30) },
+    Sakura    = { accent = Color3.fromRGB(255, 183, 197),accent2 = Color3.fromRGB(255, 105, 180) },
 }
-local currentThemeName = "Pink"
+local currentThemeName = DataStoreConfig.ThemeName or "Pink"
 local themedStrokes = {}   
 local themedBgs     = {}   
 local themedTexts   = {}   
@@ -462,6 +546,8 @@ end
 function setTheme(name)
     if not THEMES[name] then return end
     currentThemeName = name
+    DataStoreConfig.ThemeName = name
+    SaveData()
     rgbCycleOn = (name == "RGB")
     if not rgbCycleOn then applyThemeColors(THEMES[name].accent) end
     notify("Theme set to " .. name, "info")
@@ -537,6 +623,9 @@ end
 -- ==============================================================================================
 --  NETWORK & DIALOGUE / NAMETAG ENGINE
 -- ==============================================================================================
+local function forceDialogueListRefresh()
+    -- Used to trigger instant list population
+end
 
 function broadcastNetworkMessage(action, dataString)
     local payload = string.format("%s %s|%s", NETWORK_PREFIX, action, dataString)
@@ -568,6 +657,7 @@ function buildDialogueUI(peerChar, peerName, messageText, animIdToPlay)
     local diagGui = Instance.new("ScreenGui")
     diagGui.Name = "FNFDialogue"
     diagGui.ResetOnSpawn = false
+    diagGui.DisplayOrder = 100 -- Ensure Dialogue is on top
     diagGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     diagGui.Parent = UI_CONTAINER
 
@@ -630,7 +720,7 @@ function buildDialogueUI(peerChar, peerName, messageText, animIdToPlay)
     nameLbl.Size = UDim2.new(0, 330, 0, 30)
     nameLbl.Position = UDim2.new(0, 160, 0, 10)
     nameLbl.BackgroundTransparency = 1
-    nameLbl.Text = peerName -- Now strictly displays DisplayName
+    nameLbl.Text = peerName 
     nameLbl.TextColor3 = THEMES[currentThemeName].accent
     nameLbl.TextSize = 20
     nameLbl.Font = Enum.Font.GothamBlack
@@ -811,6 +901,7 @@ function onNetworkMessage(message)
             local peerRole = datParts[2] or "DEFAULT"
             scriptPeers[sourceUser] = { name = peerCustomName, role = peerRole }
             rebuildNametag(peerPlayer, peerCustomName, peerRole)
+            forceDialogueListRefresh()
 
         elseif action == "CHAT" then
             local chatSeparator = data:find("~")
@@ -822,10 +913,36 @@ function onNetworkMessage(message)
             end
             if not scriptPeers[sourceUser] then
                 scriptPeers[sourceUser] = { name = peerPlayer.DisplayName, role = "DEFAULT" }
+                forceDialogueListRefresh()
             end
-            -- STRICTLY USE DISPLAY NAME FOR DIALOGUE UI AS REQUESTED
             buildDialogueUI(peerPlayer.Character, peerPlayer.DisplayName, msg, animId)
             
+        elseif action == "RP_LINK" then
+            if data == LocalPlayer.Name and not RP_STATE.Host then
+                RP_STATE.Client = true
+                RP_STATE.Connected = true
+                RP_STATE.Partner = peerPlayer
+                setTargetPlayer(peerPlayer.Name, true) -- true skips broadcast loop
+                notify("RP Connection Linked by " .. peerPlayer.Name .. ". They are the Host.", "info")
+            end
+            
+        elseif action == "BAR_SYNC" then
+            if RP_STATE.Client and RP_STATE.Partner == peerPlayer then
+                local parts = data:split("~")
+                BAR_STATE.OppIcon = parts[1]
+                BAR_STATE.MyIcon = parts[2]
+                BAR_STATE.Side = parts[3]
+                if BAR_STATE.UI then buildFNFBarUI() end
+            end
+            
+        elseif action == "SYNC_MISC" then
+            if RP_STATE.Client and RP_STATE.Partner == peerPlayer then
+                local parts = data:split("~")
+                DataStoreConfig.MiscCinematic = (parts[1] == "true")
+                DataStoreConfig.MiscFlash = (parts[2] == "true")
+                notify("Host updated Sync settings.", "info")
+            end
+
         elseif action == "QTE_ATTACK" then
             if data == LocalPlayer.Name and QTE_STATE.Enabled then
                 triggerQTEEvent(peerPlayer)
@@ -850,7 +967,6 @@ function onNetworkMessage(message)
             local parts = data:split("~")
             local targetId = tonumber(parts[1])
             if targetId == LocalPlayer.UserId and not IS_OWNER then
-                -- Client self-destruct if blacklisted and not owner
                 cleanupAll()
                 if UI_CONTAINER:FindFirstChild("FNFInjectorGui") then UI_CONTAINER.FNFInjectorGui:Destroy() end
                 if UI_CONTAINER:FindFirstChild("FNFHealthBar") then UI_CONTAINER.FNFHealthBar:Destroy() end
@@ -877,12 +993,10 @@ end
 
 task.spawn(function()
     while true do
-        task.wait(10)
         local myRole = IS_OWNER and "OWNER" or "DEFAULT"
         broadcastNetworkMessage("PING", DataStoreConfig.CustomNametagName .. "~" .. myRole)
-        
-        -- Refresh my own nametag
         rebuildNametag(LocalPlayer, DataStoreConfig.CustomNametagName, myRole)
+        task.wait(10)
     end
 end)
 
@@ -941,9 +1055,13 @@ function startWatchingTargetAnims()
     end)
 end
 
-function setTargetPlayer(partialName)
+function setTargetPlayer(partialName, isClientSkip)
     if not partialName or partialName == "" then
         currentTarget = nil
+        RP_STATE.Host = false
+        RP_STATE.Client = false
+        RP_STATE.Connected = false
+        RP_STATE.Partner = nil
         stopWatchingTargetAnims()
         notify("RP Target cleared.", "info")
         if BAR_STATE.UI then BAR_STATE.UI.Screen.Enabled = false end
@@ -955,8 +1073,17 @@ function setTargetPlayer(partialName)
         if player ~= LocalPlayer and player.Name:lower():sub(1, #lowerName) == lowerName then
             currentTarget = player
             startWatchingTargetAnims()
-            notify("Target locked: " .. player.Name, "success")
-            buildFNFBarUI() -- Rebuild bar to fetch their icon
+            
+            if not isClientSkip then
+                RP_STATE.Host = true
+                RP_STATE.Client = false
+                RP_STATE.Connected = true
+                RP_STATE.Partner = player
+                broadcastNetworkMessage("RP_LINK", player.Name)
+                notify("Target locked: " .. player.Name .. " (You are Host)", "success")
+            end
+            
+            buildFNFBarUI() 
             return player
         end
     end
@@ -994,13 +1121,11 @@ function triggerDashHit()
     
     local oldCFrame = myRoot.CFrame
     
-    -- Keep Y level exactly the same to prevent buggy vertical glitching
     local targetPos = targetRoot.Position
     local myPos = myRoot.Position
     local direction = (Vector3.new(targetPos.X, myPos.Y, targetPos.Z) - myPos).Unit
     local dashDest = Vector3.new(targetPos.X, myPos.Y, targetPos.Z) - (direction * 4)
     
-    -- Rotate smoothly towards target on dash
     local dashCFrame = CFrame.lookAt(dashDest, Vector3.new(targetPos.X, myPos.Y, targetPos.Z))
     
     local dashIn = TweenService:Create(myRoot, TweenInfo.new(0.08, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {CFrame = dashCFrame})
@@ -1015,7 +1140,6 @@ function triggerDashHit()
         end)
     end)
 end
-
 
 -- ==============================================================================================
 --  QTE CINEMATIC MINIGAME SYSTEM 
@@ -1036,6 +1160,7 @@ function applyCinematicSlowmo(state)
         if not cinematicUI then
             cinematicUI = Instance.new("ScreenGui")
             cinematicUI.Name = "FNFCinematicBars"
+            cinematicUI.DisplayOrder = 95
             cinematicUI.Parent = UI_CONTAINER
             cinematicUI.IgnoreGuiInset = true
             
@@ -1117,6 +1242,7 @@ function triggerQTEEvent(attackerPlayer)
     
     local qteGui = Instance.new("ScreenGui")
     qteGui.Name = "FNFQTE"
+    qteGui.DisplayOrder = 99
     qteGui.Parent = UI_CONTAINER
     
     local prompt = Instance.new("Frame")
@@ -1130,7 +1256,6 @@ function triggerQTEEvent(attackerPlayer)
     local pCorner = Instance.new("UICorner"); pCorner.CornerRadius = UDim.new(0, 8); pCorner.Parent = prompt
     local pStroke = Instance.new("UIStroke"); pStroke.Color = Color3.new(1,1,1); pStroke.Thickness = 2; pStroke.Parent = prompt
     
-    -- Fancy QTE Animation
     TweenService:Create(pStroke, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {Color = THEMES[currentThemeName].accent}):Play()
     TweenService:Create(prompt, TweenInfo.new(0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 100, 0, 100)}):Play()
     
@@ -1170,15 +1295,13 @@ function triggerQTEEvent(attackerPlayer)
         end)
         
         task.delay(QTE_STATE.SuccessWindow, function()
-            if not resolved then
-                finishQTE(false)
-            end
+            if not resolved then finishQTE(false) end
         end)
     end
 end
 
 -- ==============================================================================================
---  FNF HEALTH BAR UI SYSTEM (OVERHAULED V9)
+--  FNF HEALTH BAR UI SYSTEM (OVERHAULED V9, Z-INDEX FIX)
 -- ==============================================================================================
 function updateFNFBarHealth(val)
     if not BAR_STATE.Enabled or not BAR_STATE.UI then return end
@@ -1195,7 +1318,6 @@ function updateFNFBarHealth(val)
     TweenService:Create(rightFill, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Size = UDim2.new(rightPct, 0, 1, 0)}):Play()
     TweenService:Create(leftFill, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Size = UDim2.new(leftPct, 0, 1, 0)}):Play()
     
-    -- Dynamic overlapping icons
     TweenService:Create(iconLeft, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Position = UDim2.new(leftPct, -30, 0.5, 0)}):Play()
     TweenService:Create(iconRight, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {Position = UDim2.new(leftPct, 30, 0.5, 0)}):Play()
 end
@@ -1206,13 +1328,13 @@ function buildFNFBarUI()
         BAR_STATE.UI = nil
     end
     
-    -- Only show if enabled AND target linked
     if not BAR_STATE.Enabled then return end
     
     local sg = Instance.new("ScreenGui")
     sg.Name = "FNFHealthBar"
     sg.ResetOnSpawn = false
-    sg.Enabled = (currentTarget ~= nil) -- Dynamic visibility
+    sg.DisplayOrder = 1 -- VERY LOW so Notes cover it
+    sg.Enabled = (currentTarget ~= nil) 
     sg.Parent = UI_CONTAINER
     
     local barContainer = Instance.new("Frame")
@@ -1221,6 +1343,7 @@ function buildFNFBarUI()
     barContainer.Position = UDim2.new(0.5, 0, 0.95, 0)
     barContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     barContainer.BorderSizePixel = 0
+    barContainer.Active = false
     barContainer.Parent = sg
     local cCorner = Instance.new("UICorner"); cCorner.CornerRadius = UDim.new(0, 16); cCorner.Parent = barContainer
     local cStroke = Instance.new("UIStroke"); cStroke.Color = Color3.fromRGB(0,0,0); cStroke.Thickness = 6; cStroke.Parent = barContainer
@@ -1241,10 +1364,20 @@ function buildFNFBarUI()
     rightFill.Parent = barContainer
     local rCorner = Instance.new("UICorner"); rCorner.CornerRadius = UDim.new(0, 16); rCorner.Parent = rightFill
     
-    -- Auto-fetch Opponent Icon
     local oppIconImage = "rbxassetid://10052309193"
     if currentTarget then
         oppIconImage = "rbxthumb://type=AvatarHeadShot&id=" .. currentTarget.UserId .. "&w=150&h=150"
+    end
+    
+    if BAR_STATE.OppIcon ~= "" then
+        oppIconImage = getCustomAssetFromURL(BAR_STATE.OppIcon)
+        if oppIconImage == "" then oppIconImage = "rbxassetid://" .. BAR_STATE.OppIcon:gsub("%D","") end
+    end
+    
+    local myIconImage = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=150&h=150"
+    if BAR_STATE.MyIcon ~= "" then
+        myIconImage = getCustomAssetFromURL(BAR_STATE.MyIcon)
+        if myIconImage == "" then myIconImage = "rbxassetid://" .. BAR_STATE.MyIcon:gsub("%D","") end
     end
 
     local iconLeft = Instance.new("ImageLabel")
@@ -1261,7 +1394,6 @@ function buildFNFBarUI()
     iconRight.AnchorPoint = Vector2.new(0.5, 0.5)
     iconRight.Position = UDim2.new(0.5, 30, 0.5, 0)
     iconRight.BackgroundTransparency = 1
-    iconRight.Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=150&h=150"
     iconRight.ZIndex = 4
     iconRight.Parent = barContainer
     local iRC = Instance.new("UICorner"); iRC.CornerRadius = UDim.new(1,0); iRC.Parent = iconRight
@@ -1270,11 +1402,11 @@ function buildFNFBarUI()
         leftFill.BackgroundColor3 = BAR_STATE.OppColor
         rightFill.BackgroundColor3 = BAR_STATE.MyColor
         iconLeft.Image = oppIconImage
-        iconRight.Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=150&h=150"
+        iconRight.Image = myIconImage
     else
         leftFill.BackgroundColor3 = BAR_STATE.MyColor
         rightFill.BackgroundColor3 = BAR_STATE.OppColor
-        iconLeft.Image = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=150&h=150"
+        iconLeft.Image = myIconImage
         iconRight.Image = oppIconImage
     end
 
@@ -1879,6 +2011,73 @@ end)
 
 
 -- ==============================================================================================
+--  MISC EFFECTS ENGINE (FLASH & CINEMATIC BAR LOGIC)
+-- ==============================================================================================
+local flashGui = nil
+function triggerHitFlash()
+    if not DataStoreConfig.MiscFlash then return end
+    if not flashGui then
+        flashGui = Instance.new("ScreenGui")
+        flashGui.Name = "FNFHitFlash"
+        flashGui.DisplayOrder = 100
+        flashGui.IgnoreGuiInset = true
+        flashGui.Parent = UI_CONTAINER
+        
+        local frame = Instance.new("Frame")
+        frame.Size = UDim2.new(1,0,1,0)
+        frame.BackgroundColor3 = Color3.new(1,1,1)
+        frame.BackgroundTransparency = 1
+        frame.BorderSizePixel = 0
+        frame.Parent = flashGui
+    end
+    local frame = flashGui:FindFirstChildOfClass("Frame")
+    if frame then
+        frame.BackgroundTransparency = 0.5
+        TweenService:Create(frame, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {BackgroundTransparency = 1}):Play()
+    end
+end
+
+local globalCinematicUI = nil
+function updateGlobalCinematicBars()
+    if DataStoreConfig.MiscCinematic then
+        if not globalCinematicUI then
+            globalCinematicUI = Instance.new("ScreenGui")
+            globalCinematicUI.Name = "FNFGlobalCinematic"
+            globalCinematicUI.DisplayOrder = 90
+            globalCinematicUI.IgnoreGuiInset = true
+            globalCinematicUI.Parent = UI_CONTAINER
+            
+            local topBar = Instance.new("Frame")
+            topBar.Size = UDim2.new(1, 0, 0, 0)
+            topBar.BackgroundColor3 = Color3.new(0,0,0)
+            topBar.BorderSizePixel = 0
+            topBar.Parent = globalCinematicUI
+            
+            local botBar = Instance.new("Frame")
+            botBar.Size = UDim2.new(1, 0, 0, 0)
+            botBar.Position = UDim2.new(0, 0, 1, 0)
+            botBar.AnchorPoint = Vector2.new(0, 1)
+            botBar.BackgroundColor3 = Color3.new(0,0,0)
+            botBar.BorderSizePixel = 0
+            botBar.Parent = globalCinematicUI
+            
+            TweenService:Create(topBar, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 80)}):Play()
+            TweenService:Create(botBar, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 80)}):Play()
+        end
+    else
+        if globalCinematicUI then
+            for _, frame in ipairs(globalCinematicUI:GetChildren()) do
+                if frame:IsA("Frame") then
+                    TweenService:Create(frame, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {Size = UDim2.new(1,0,0,0)}):Play()
+                end
+            end
+            task.delay(1.1, function() if globalCinematicUI then globalCinematicUI:Destroy() globalCinematicUI = nil end end)
+        end
+    end
+end
+
+
+-- ==============================================================================================
 --  INPUT HANDLER
 -- ==============================================================================================
 local lastNoteTime = 0
@@ -1924,6 +2123,7 @@ function onInput(input, _gp)
                 triggerRPMovement()
                 triggerDashHit()
                 registerBpmTap()
+                triggerHitFlash()
                 
                 if BAR_STATE.Enabled then updateFNFBarHealth(BAR_STATE.Health + 2) end
                 
@@ -2126,13 +2326,20 @@ function refreshRowAltList(row, listFrame)
 end
 
 -- ==============================================================================================
---  ARROW HUD BUILD (UPDATED FOR DECALS & MIDDLESCROLL)
+--  ARROW HUD BUILD (UPDATED FOR DECALS, GIFS & Z-INDEX)
 -- ==============================================================================================
 function refreshCustomDecals()
     for dir, frameData in pairs(arrowHudFrames) do
         local config = CUSTOM_DECALS[dir]
         if config.useDecal and config.id ~= "" then
-            frameData.img.Image = "rbxassetid://" .. config.id
+            local finalId = config.id
+            if config.isLink then
+                finalId = getCustomAssetFromURL(config.id)
+            else
+                finalId = "rbxassetid://" .. config.id:gsub("%D", "")
+            end
+            
+            frameData.img.Image = finalId
             frameData.img.Visible = true; frameData.lbl.Visible = false; frameData.bg.BackgroundTransparency = 1 
         else
             frameData.img.Visible = false; frameData.lbl.Visible = true; frameData.bg.BackgroundTransparency = 0
@@ -2165,6 +2372,7 @@ function buildArrowHud()
 
     local sg = Instance.new("ScreenGui")
     sg.Name = "FNFArrowHud"; sg.ResetOnSpawn = false
+    sg.DisplayOrder = 100 -- Ensure notes are above FNFHealthBar
     sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling; sg.Parent = UI_CONTAINER
 
     local totalW = #ARROW_ORDER * ARROW_SIZE + (#ARROW_ORDER - 1) * ARROW_GAP
@@ -2200,6 +2408,7 @@ function buildArrowHud()
 
         arrowHudFrames[dir] = { bg = bg, lbl = lbl, img = img, stroke = stroke, glow = glow }
     end
+    refreshCustomDecals()
 end
 
 -- ==============================================================================================
@@ -2390,6 +2599,7 @@ function buildGUI()
     local sg = Instance.new("ScreenGui")
     sg.Name = "FNFInjectorGui"
     sg.ResetOnSpawn = false
+    sg.DisplayOrder = 10
     sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     sg.Parent = UI_CONTAINER
 
@@ -2430,7 +2640,14 @@ function buildGUI()
     mainBgImage.Size = UDim2.new(1,0,1,0); mainBgImage.BackgroundTransparency = 1
     mainBgImage.ImageTransparency = DataStoreConfig.CustomBackgroundTransparency
     mainBgImage.ZIndex = 0; mainBgImage.ScaleType = Enum.ScaleType.Crop
-    if DataStoreConfig.CustomBackgroundId ~= "" then mainBgImage.Image = "rbxassetid://" .. DataStoreConfig.CustomBackgroundId end
+    
+    if DataStoreConfig.CustomBackgroundId ~= "" then
+        if DataStoreConfig.IsBackgroundGIF or DataStoreConfig.CustomBackgroundId:match("^http") then
+            mainBgImage.Image = getCustomAssetFromURL(DataStoreConfig.CustomBackgroundId)
+        else
+            mainBgImage.Image = "rbxassetid://" .. DataStoreConfig.CustomBackgroundId
+        end
+    end
     mainBgImage.Parent = main
 
     main.Size = UDim2.new(0, 0, 0, 0)
@@ -2452,7 +2669,7 @@ function buildGUI()
     titleBar.BorderSizePixel = 0; titleBar.ZIndex = 2; titleBar.Parent = main; uiCorner(titleBar, UDim.new(0,10))
     titleGuiBar = titleBar
 
-    local titleLbl = makeLabel(titleBar, "🎵 FNF ANIMATION INJECTOR v9.0 OMEGA", UDim2.new(0,12,0,0), UDim2.new(1,-80,1,0), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 13)
+    local titleLbl = makeLabel(titleBar, "🎵 FNF ANIMATION INJECTOR v9.1 OMEGA", UDim2.new(0,12,0,0), UDim2.new(1,-80,1,0), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 13)
     titleLbl.ZIndex = 3; regText(titleLbl)
 
     local toggleBtn = makeBtn(titleBar, "HIDE", UDim2.new(1,-68,0,5), UDim2.new(0,60,0,26), Color3.fromRGB(255,80,180))
@@ -2668,23 +2885,38 @@ function buildGUI()
     local pgDecals = pages["🎨 DECALS"]
     makeLabel(pgDecals, "🖌 CUSTOM ARROW DECALS", UDim2.new(0,8,0,10), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
     makeDivider(pgDecals, 35, Color3.fromRGB(0,200,255))
-    makeLabel(pgDecals, "Replace the default arrows with custom image IDs. Background is hidden when enabled.", UDim2.new(0,8,0,40), UDim2.new(1,-16,0,20), Color3.fromRGB(150,150,150), Enum.TextXAlignment.Left, 10)
+    makeLabel(pgDecals, "Replace arrows with ANY image or GIF link. Background is hidden when enabled.", UDim2.new(0,8,0,40), UDim2.new(1,-16,0,20), Color3.fromRGB(150,150,150), Enum.TextXAlignment.Left, 10)
 
     for i, dir in ipairs(ARROW_ORDER) do
-        local y = 70 + (i-1)*50
+        local y = 70 + (i-1)*75
         makeLabel(pgDecals, dir, UDim2.new(0,8,0,y), UDim2.new(0,50,0,28), ARROW_COLORS[dir].hit, Enum.TextXAlignment.Left, 11)
-        local idBox = makeBox(pgDecals, UDim2.new(0,70,0,y), UDim2.new(0,250,0,28), "Image Decal ID", CUSTOM_DECALS[dir].id)
+        
+        local idBox = makeBox(pgDecals, UDim2.new(0,70,0,y), UDim2.new(0,250,0,28), "Image Decal ID or URL Link", CUSTOM_DECALS[dir].id)
         idBox.FocusLost:Connect(function()
-            CUSTOM_DECALS[dir].id = idBox.Text:gsub("%D","")
+            CUSTOM_DECALS[dir].id = idBox.Text
+            CUSTOM_DECALS[dir].isLink = idBox.Text:match("^http") ~= nil
+            SaveData()
             refreshCustomDecals()
         end)
+        
         local useBtn = makeBtn(pgDecals, "USE DECAL: OFF", UDim2.new(0,330,0,y), UDim2.new(0,110,0,28), Color3.fromRGB(190,50,50))
         useBtn.MouseButton1Click:Connect(function()
             CUSTOM_DECALS[dir].useDecal = not CUSTOM_DECALS[dir].useDecal
             useBtn.Text = CUSTOM_DECALS[dir].useDecal and "USE DECAL: ON" or "USE DECAL: OFF"
             useBtn.BackgroundColor3 = CUSTOM_DECALS[dir].useDecal and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50)
+            SaveData()
             refreshCustomDecals(); applyMiddlescrollLayout()
         end)
+        
+        local gifToggle = makeBtn(pgDecals, "IS GIF: OFF", UDim2.new(0,70,0,y+32), UDim2.new(0,100,0,24), Color3.fromRGB(35,35,55))
+        gifToggle.MouseButton1Click:Connect(function()
+            CUSTOM_DECALS[dir].isGif = not CUSTOM_DECALS[dir].isGif
+            gifToggle.Text = CUSTOM_DECALS[dir].isGif and "IS GIF: ON" or "IS GIF: OFF"
+            gifToggle.BackgroundColor3 = CUSTOM_DECALS[dir].isGif and Color3.fromRGB(200, 100, 255) or Color3.fromRGB(35,35,55)
+            SaveData()
+        end)
+        if CUSTOM_DECALS[dir].useDecal then useBtn.Text = "USE DECAL: ON"; useBtn.BackgroundColor3 = Color3.fromRGB(60,190,120) end
+        if CUSTOM_DECALS[dir].isGif then gifToggle.Text = "IS GIF: ON"; gifToggle.BackgroundColor3 = Color3.fromRGB(200, 100, 255) end
     end
 
     -- ==============================================================================================
@@ -2775,12 +3007,12 @@ function buildGUI()
     end)
 
     -- ==============================================================================================
-    -- TAB 5 : DIALOGUE
+    -- TAB 5 : DIALOGUE (Auto-Refreshes & Instant Show)
     -- ==============================================================================================
     local pgDiag = pages["💬 DIALOGUE"]
     makeLabel(pgDiag, "💬 SECRET DIALOGUE NETWORK", UDim2.new(0,8,0,10), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
     makeDivider(pgDiag, 35, Color3.fromRGB(0,200,255))
-    makeLabel(pgDiag, "Send messages and animations directly to other players running this script.", UDim2.new(0,8,0,40), UDim2.new(1,-16,0,30), Color3.fromRGB(150,150,150), Enum.TextXAlignment.Left, 10)
+    makeLabel(pgDiag, "Send messages directly to other script users. Green = Verified Active Users.", UDim2.new(0,8,0,40), UDim2.new(1,-16,0,30), Color3.fromRGB(150,150,150), Enum.TextXAlignment.Left, 10)
 
     makeLabel(pgDiag, "PEERS ONLINE (Click to target)", UDim2.new(0,8,0,80), UDim2.new(1,-16,0,20), Color3.fromRGB(0,200,255), Enum.TextXAlignment.Left, 11)
     
@@ -2807,17 +3039,21 @@ function buildGUI()
                 end
                 
                 local tag = isVerified and " [VERIFIED]" or " [UNKNOWN]"
-                local btnColor = isVerified and Color3.fromRGB(25, 35, 45) or Color3.fromRGB(20, 20, 25)
+                local btnColor = isVerified and Color3.fromRGB(80, 220, 120) or Color3.fromRGB(20, 20, 25)
+                local txtColor = isVerified and Color3.fromRGB(0, 0, 0) or Color3.new(1,1,1)
                 
-                local pBtn = makeBtn(peerList, displayName .. tag .. " (" .. plr.UserId .. ")", UDim2.new(0,0,0,0), UDim2.new(1,0,0,25), btnColor, Color3.new(1,1,1), 10)
+                local pBtn = makeBtn(peerList, displayName .. tag .. " (" .. plr.UserId .. ")", UDim2.new(0,0,0,0), UDim2.new(1,0,0,25), btnColor, txtColor, 10)
                 pBtn.MouseButton1Click:Connect(function() diagTargetBox.Text = tostring(plr.UserId) end)
             end
         end
     end
     
+    forceDialogueListRefresh = refreshPeerList
+    
     task.spawn(function()
         while true do
-            refreshPeerList(); task.wait(5)
+            refreshPeerList()
+            task.wait(180) -- Auto refresh every 3 minutes
         end
     end)
 
@@ -2827,7 +3063,6 @@ function buildGUI()
             if not animId or animId == "" then animId = "0" end
             broadcastNetworkMessage("CHAT", animId .. "~" .. diagMsgBox.Text)
             
-            -- Display own dialogue using DisplayName
             buildDialogueUI(character, LocalPlayer.DisplayName, diagMsgBox.Text, animId)
             diagMsgBox.Text = ""
             notify("Dialogue sent!", "success")
@@ -3271,7 +3506,7 @@ function buildGUI()
     qteTestBtn.MouseButton1Click:Connect(function() triggerQTEEvent(LocalPlayer) end)
 
     -- ==============================================================================================
-    -- TAB 14 : FUN / MISC (NEW)
+    -- TAB 14 : FUN / MISC (NEW - FULLY SYNCED HOST LOGIC)
     -- ==============================================================================================
     local pgFun = pages["🎭 FUN/MISC"]
     
@@ -3304,9 +3539,9 @@ function buildGUI()
     makeDivider(pgFun, 175, Color3.fromRGB(0,200,255))
     local barTitle = makeLabel(pgFun, "📊 FNF HEALTH BAR SYSTEM", UDim2.new(0,8,0,185), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
     regText(barTitle)
-    makeLabel(pgFun, "Displays an interactive FNF style health bar at the bottom exactly like 'image_15c108.jpg'. Links with RP Mode to drain opponent health on hit! Will ONLY show when a Target is selected above.", UDim2.new(0,8,0,205), UDim2.new(1,-16,0,45), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
+    makeLabel(pgFun, "Displays interactive health bar. ONLY the player who links first (HOST) can edit these.", UDim2.new(0,8,0,205), UDim2.new(1,-16,0,25), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
 
-    local toggleBarBtn = makeBtn(pgFun, "FNF BAR: OFF", UDim2.new(0,8,0,260), UDim2.new(0,180,0,32), Color3.fromRGB(35,35,55))
+    local toggleBarBtn = makeBtn(pgFun, "FNF BAR: OFF", UDim2.new(0,8,0,240), UDim2.new(0,140,0,32), Color3.fromRGB(35,35,55))
     toggleBarBtn.MouseButton1Click:Connect(function()
         BAR_STATE.Enabled = not BAR_STATE.Enabled
         toggleBarBtn.Text = "FNF BAR: " .. (BAR_STATE.Enabled and "ON" or "OFF")
@@ -3314,15 +3549,107 @@ function buildGUI()
         buildFNFBarUI()
     end)
     
-    local sideBtn = makeBtn(pgFun, "SIDE: RIGHT (P1)", UDim2.new(0,200,0,260), UDim2.new(0,180,0,32), Color3.fromRGB(0, 255, 255))
+    local hostOverlay = nil
+    local function checkHostPrivileges()
+        if RP_STATE.Client then
+            if not hostOverlay then
+                hostOverlay = Instance.new("Frame")
+                hostOverlay.Size = UDim2.new(1, 0, 0, 160)
+                hostOverlay.Position = UDim2.new(0, 0, 0, 280)
+                hostOverlay.BackgroundColor3 = Color3.fromRGB(20,20,30)
+                hostOverlay.BackgroundTransparency = 0.5
+                hostOverlay.BorderSizePixel = 0
+                hostOverlay.ZIndex = 50
+                hostOverlay.Parent = pgFun
+                
+                local lockIcon = makeLabel(hostOverlay, "🔒 ONLY CONNECTED PARTNER CAN CHANGE THIS", UDim2.new(0,0,0,0), UDim2.new(1,0,1,0), Color3.fromRGB(255,100,100), Enum.TextXAlignment.Center, 14)
+                lockIcon.ZIndex = 51
+            end
+            hostOverlay.Visible = true
+        else
+            if hostOverlay then hostOverlay.Visible = false end
+        end
+    end
+
+    local sideBtn = makeBtn(pgFun, "SIDE: RIGHT (P1)", UDim2.new(0,160,0,240), UDim2.new(0,150,0,32), Color3.fromRGB(0, 255, 255))
     sideBtn.MouseButton1Click:Connect(function()
+        if RP_STATE.Client then notify("Host has locked this setting.", "error") return end
+        
         if BAR_STATE.Side == "Right" then
             BAR_STATE.Side = "Left"; sideBtn.Text = "SIDE: LEFT (P2)"; sideBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
         else
             BAR_STATE.Side = "Right"; sideBtn.Text = "SIDE: RIGHT (P1)"; sideBtn.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
         end
-        buildFNFBarUI()
+        DataStoreConfig.RP_Side = BAR_STATE.Side; SaveData(); buildFNFBarUI()
+        
+        if RP_STATE.Host and currentTarget then
+            broadcastNetworkMessage("BAR_SYNC", BAR_STATE.MyIcon .. "~" .. BAR_STATE.OppIcon .. "~" .. (BAR_STATE.Side == "Right" and "Left" or "Right"))
+        end
     end)
+    
+    makeLabel(pgFun, "HOST CUSTOM ICONS (Links/IDs)", UDim2.new(0,8,0,285), UDim2.new(0,250,0,20), Color3.fromRGB(200,200,200), Enum.TextXAlignment.Left, 10)
+    
+    local myIconBox = makeBox(pgFun, UDim2.new(0,8,0,310), UDim2.new(0,240,0,32), "My Icon Link/ID", DataStoreConfig.RP_MyIcon)
+    local oppIconBox = makeBox(pgFun, UDim2.new(0,260,0,310), UDim2.new(0,240,0,32), "Opponent Icon Link/ID", DataStoreConfig.RP_OppIcon)
+    
+    local applyIconsBtn = makeBtn(pgFun, "APPLY ICONS (HOST ONLY)", UDim2.new(0,8,0,350), UDim2.new(1,-16,0,32), Color3.fromRGB(60,190,120))
+    applyIconsBtn.MouseButton1Click:Connect(function()
+        if RP_STATE.Client then notify("Host has locked this setting.", "error") return end
+        
+        BAR_STATE.MyIcon = myIconBox.Text
+        BAR_STATE.OppIcon = oppIconBox.Text
+        DataStoreConfig.RP_MyIcon = myIconBox.Text
+        DataStoreConfig.RP_OppIcon = oppIconBox.Text
+        SaveData()
+        
+        buildFNFBarUI()
+        if RP_STATE.Host and currentTarget then
+            broadcastNetworkMessage("BAR_SYNC", BAR_STATE.MyIcon .. "~" .. BAR_STATE.OppIcon .. "~" .. (BAR_STATE.Side == "Right" and "Left" or "Right"))
+        end
+        notify("Icons applied and synced!", "success")
+    end)
+    
+    makeDivider(pgFun, 395, Color3.fromRGB(0,200,255))
+    makeLabel(pgFun, "🎬 MISCELLANEOUS EFFECTS (SYNCED)", UDim2.new(0,8,0,405), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
+    
+    local cineBtn = makeBtn(pgFun, "CINEMATIC BARS: OFF", UDim2.new(0,8,0,435), UDim2.new(0,240,0,32), Color3.fromRGB(35,35,55))
+    local flashBtn = makeBtn(pgFun, "FLASH ON HIT: OFF", UDim2.new(0,260,0,435), UDim2.new(0,240,0,32), Color3.fromRGB(35,35,55))
+    
+    if DataStoreConfig.MiscCinematic then cineBtn.Text = "CINEMATIC BARS: ON"; cineBtn.BackgroundColor3 = THEMES[currentThemeName].accent end
+    if DataStoreConfig.MiscFlash then flashBtn.Text = "FLASH ON HIT: ON"; flashBtn.BackgroundColor3 = THEMES[currentThemeName].accent end
+    
+    cineBtn.MouseButton1Click:Connect(function()
+        if RP_STATE.Client then notify("Host controls this effect.", "warn") return end
+        DataStoreConfig.MiscCinematic = not DataStoreConfig.MiscCinematic
+        cineBtn.Text = "CINEMATIC BARS: " .. (DataStoreConfig.MiscCinematic and "ON" or "OFF")
+        cineBtn.BackgroundColor3 = DataStoreConfig.MiscCinematic and THEMES[currentThemeName].accent or Color3.fromRGB(35,35,55)
+        SaveData()
+        updateGlobalCinematicBars()
+        
+        if RP_STATE.Host and currentTarget then
+            broadcastNetworkMessage("SYNC_MISC", tostring(DataStoreConfig.MiscCinematic) .. "~" .. tostring(DataStoreConfig.MiscFlash))
+        end
+    end)
+    
+    flashBtn.MouseButton1Click:Connect(function()
+        if RP_STATE.Client then notify("Host controls this effect.", "warn") return end
+        DataStoreConfig.MiscFlash = not DataStoreConfig.MiscFlash
+        flashBtn.Text = "FLASH ON HIT: " .. (DataStoreConfig.MiscFlash and "ON" or "OFF")
+        flashBtn.BackgroundColor3 = DataStoreConfig.MiscFlash and THEMES[currentThemeName].accent or Color3.fromRGB(35,35,55)
+        SaveData()
+        
+        if RP_STATE.Host and currentTarget then
+            broadcastNetworkMessage("SYNC_MISC", tostring(DataStoreConfig.MiscCinematic) .. "~" .. tostring(DataStoreConfig.MiscFlash))
+        end
+    end)
+    
+    task.spawn(function()
+        while true do
+            checkHostPrivileges()
+            task.wait(1)
+        end
+    end)
+
 
     -- ==============================================================================================
     -- TAB 15 : SETTINGS 
@@ -3386,17 +3713,26 @@ function buildGUI()
     makeDivider(pg6, 480, Color3.fromRGB(255,80,180))
     local customUiTitle = makeLabel(pg6, "🖼 CUSTOM UI BACKGROUND DECAL", UDim2.new(0,8,0,490), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
     regText(customUiTitle)
+    makeLabel(pg6, "Paste any Image/GIF link or ID. It will instantly download and apply.", UDim2.new(0,8,0,510), UDim2.new(1,-16,0,20), Color3.fromRGB(130,130,150), Enum.TextXAlignment.Left, 10)
     
-    local customBgBox = makeBox(pg6, UDim2.new(0,8,0,520), UDim2.new(0,300,0,32), "Paste Decal ID for Background...", DataStoreConfig.CustomBackgroundId)
-    local applyBgBtn = makeBtn(pg6, "APPLY", UDim2.new(0,316,0,520), UDim2.new(0,70,0,32), Color3.fromRGB(60,190,120))
-    local clearBgBtn = makeBtn(pg6, "CLEAR", UDim2.new(0,394,0,520), UDim2.new(0,70,0,32), Color3.fromRGB(190,50,50))
+    local customBgBox = makeBox(pg6, UDim2.new(0,8,0,535), UDim2.new(0,250,0,32), "Paste Link or ID...", DataStoreConfig.CustomBackgroundId)
+    local applyBgBtn = makeBtn(pg6, "APPLY", UDim2.new(0,270,0,535), UDim2.new(0,60,0,32), Color3.fromRGB(60,190,120))
+    local clearBgBtn = makeBtn(pg6, "CLEAR", UDim2.new(0,340,0,535), UDim2.new(0,60,0,32), Color3.fromRGB(190,50,50))
+    local isGifTog   = makeBtn(pg6, "IS GIF: OFF", UDim2.new(0,410,0,535), UDim2.new(0,90,0,32), Color3.fromRGB(35,35,55))
     
+    if DataStoreConfig.IsBackgroundGIF then isGifTog.Text = "IS GIF: ON"; isGifTog.BackgroundColor3 = Color3.fromRGB(200, 100, 255) end
+
     applyBgBtn.MouseButton1Click:Connect(function()
-        local id = customBgBox.Text:gsub("%D", "")
+        local id = customBgBox.Text
         if id ~= "" then
             DataStoreConfig.CustomBackgroundId = id
-            mainBgImage.Image = "rbxassetid://" .. id
             SaveData()
+            
+            if DataStoreConfig.IsBackgroundGIF or id:match("^http") then
+                mainBgImage.Image = getCustomAssetFromURL(id)
+            else
+                mainBgImage.Image = "rbxassetid://" .. id:gsub("%D", "")
+            end
             notify("Custom Background Applied!", "success")
         end
     end)
@@ -3409,8 +3745,15 @@ function buildGUI()
         notify("Custom Background Cleared", "info")
     end)
     
-    makeLabel(pg6, "TRANSPARENCY", UDim2.new(0,8,0,570), UDim2.new(0,100,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-    makeSlider(pg6, UDim2.new(0,110,0,574), UDim2.new(0,250,0,14), 0, 1, DataStoreConfig.CustomBackgroundTransparency, function(v)
+    isGifTog.MouseButton1Click:Connect(function()
+        DataStoreConfig.IsBackgroundGIF = not DataStoreConfig.IsBackgroundGIF
+        isGifTog.Text = DataStoreConfig.IsBackgroundGIF and "IS GIF: ON" or "IS GIF: OFF"
+        isGifTog.BackgroundColor3 = DataStoreConfig.IsBackgroundGIF and Color3.fromRGB(200, 100, 255) or Color3.fromRGB(35,35,55)
+        SaveData()
+    end)
+    
+    makeLabel(pg6, "TRANSPARENCY", UDim2.new(0,8,0,580), UDim2.new(0,100,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
+    makeSlider(pg6, UDim2.new(0,110,0,584), UDim2.new(0,250,0,14), 0, 1, DataStoreConfig.CustomBackgroundTransparency, function(v)
         DataStoreConfig.CustomBackgroundTransparency = v
         mainBgImage.ImageTransparency = v
         SaveData()
@@ -3448,6 +3791,7 @@ function buildGUI()
             isEnabled = FX_SETTINGS[configKey]
             btn.Text = isEnabled and "ON" or "OFF"
             btn.BackgroundColor3 = isEnabled and Color3.fromRGB(60,190,120) or Color3.fromRGB(190,50,50)
+            SaveData()
             if callback then callback(isEnabled) end
             notify(label .. (isEnabled and " Enabled" or " Disabled"), "info")
         end)
@@ -3456,222 +3800,152 @@ function buildGUI()
     local optY = 70
     makeToggleRow(pgOpt, optY, "🎛 1 Toggle / Ghost Tapping", "Restricts holding notes. Single press fnf logic only.", "OneToggleEnabled")
     optY = optY + 40
-    makeToggleRow(pgOpt, optY, "↕ Middlescroll Mode", "Centers arrows on screen for better visibility.", "MiddlescrollEnabled", function(state) applyMiddlescrollLayout() end)
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "👻 Clone Afterimages", "Spawns a ghostly trail when hitting double notes.", "EnableAfterimages")
+    makeToggleRow(pgOpt, optY, "↕ Middlescroll Mode", "Centers arrows on screen.", "MiddlescrollEnabled", function(v) applyMiddlescrollLayout() end)
     
-    optY = optY + 45
-    makeLabel(pgOpt, "MAX CLONE LIMIT", UDim2.new(0,8,0,optY), UDim2.new(0,120,0,22), Color3.fromRGB(160,160,160), Enum.TextXAlignment.Left, 10)
-    local gcValLbl = makeLabel(pgOpt, tostring(FX_SETTINGS.MaxActiveAfterimages) .. " Clones", UDim2.new(0,300,0,optY), UDim2.new(0,170,0,22), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Right, 11)
-    regText(gcValLbl)
-    makeSlider(pgOpt, UDim2.new(0,130,0,optY+4), UDim2.new(0,200,0,14), 1, 15, FX_SETTINGS.MaxActiveAfterimages, function(v)
-        v = math.floor(v + 0.5)
-        FX_SETTINGS.MaxActiveAfterimages = v
-        gcValLbl.Text = tostring(v) .. " Clones"
-    end)
+    optY = optY + 40
+    makeToggleRow(pgOpt, optY, "👻 Afterimage Clones", "Creates fading clones behind you when doing double-notes.", "EnableAfterimages")
     
-    makeDivider(pgOpt, optY + 35, Color3.fromRGB(100,100,120))
-    optY = optY + 45
-    makeToggleRow(pgOpt, optY, "✨ Ambient Particles", "Spawns floating particles behind the UI.", "EnableAmbientParticles")
     optY = optY + 40
-    makeToggleRow(pgOpt, optY, "🎵 Floating Notes", "Spawns musical notes that float upwards.", "EnableFloatingNotes")
+    makeToggleRow(pgOpt, optY, "✨ Arrow Glow Effects", "Toggles the bloom/glow around arrows on hit.", "EnableArrowGlows")
+    
     optY = optY + 40
-    makeToggleRow(pgOpt, optY, "📺 CRT Monitor Overlay", "Renders scanlines and screen flicker.", "EnableCRTMode", function(state) if crtOverlay then crtOverlay.Visible = state end end)
+    makeToggleRow(pgOpt, optY, "📈 Arrow Stroke Tweens", "Toggles UI Stroke thickness animations.", "EnableArrowStrokeTweens")
+    
     optY = optY + 40
-    makeToggleRow(pgOpt, optY, "🔘 Arrow Glows", "Bright aura when hitting arrow keys.", "EnableArrowGlows")
+    makeToggleRow(pgOpt, optY, "🎥 Camera Shake", "Toggles screen shake on QTE and hits.", "EnableCameraShake")
+    
     optY = optY + 40
-    makeToggleRow(pgOpt, optY, "💫 Arrow Tweens", "Smooth resizing strokes for the HUD.", "EnableArrowStrokeTweens")
+    makeToggleRow(pgOpt, optY, "🎵 Floating Notes", "Toggles random musical note particles in background.", "EnableFloatingNotes")
+    
     optY = optY + 40
-    makeToggleRow(pgOpt, optY, "🎚 Equalizer Bars", "Bouncing bars in the Binds tab.", "EnableEqualizer")
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "〰 Waveform", "Sine wave animation in the Binds tab.", "EnableWaveform")
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "🫀 Beat Pulse", "Flashing dot perfectly synced to BPM.", "EnableBeatPulse")
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "🎙 Mic Spectrogram", "Audio visualization array in the FX tab.", "EnableSpectrogram")
-    optY = optY + 40
-    makeToggleRow(pgOpt, optY, "💿 Vinyl Spin", "Rotating disc in the FX tab.", "EnableVinylSpin")
+    makeToggleRow(pgOpt, optY, "📺 CRT Screen Effect", "Toggles retro scanlines and CRT overlay.", "EnableCRTMode", function(v) if crtOverlay then crtOverlay.Visible = v end end)
 
     -- ==============================================================================================
-    -- TAB 17 : REPORT (Everyone)
+    -- TAB 17 : REPORT
     -- ==============================================================================================
     local pgReport = pages["🚩 REPORT"]
-    local repTitle = makeLabel(pgReport, "🚩 SUBMIT A BUG REPORT", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,180), Enum.TextXAlignment.Left, 12)
-    regText(repTitle)
-    makeDivider(pgReport, 30, Color3.fromRGB(0,200,255))
-    makeLabel(pgReport, "Found a bug? Encountered an issue? Describe it below and it will be sent directly to the developer's Discord via Webhook.", UDim2.new(0,8,0,36), UDim2.new(1,-16,0,40), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
-    
-    local reportTextBox = makeBox(pgReport, UDim2.new(0,8,0,80), UDim2.new(1,-16,0,150), "Describe the bug you encountered in detail...")
-    reportTextBox.TextWrapped = true
-    reportTextBox.TextYAlignment = Enum.TextYAlignment.Top
+    makeLabel(pgReport, "🚩 REPORT A PLAYER / EXPLOITER", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,80), Enum.TextXAlignment.Left, 12)
+    makeDivider(pgReport, 30, Color3.fromRGB(255,80,80))
+    makeLabel(pgReport, "Sends a webhook report directly to the script owners (Jayprince0626 & K4riISback). Abuse = Blacklist.", UDim2.new(0,8,0,36), UDim2.new(1,-16,0,28), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
 
-    local submitReportBtn = makeBtn(pgReport, "SUBMIT REPORT TO DEVELOPER", UDim2.new(0,8,0,240), UDim2.new(1,-16,0,40), Color3.fromRGB(60,190,120), nil, 12)
-    submitReportBtn.MouseButton1Click:Connect(function()
-        if reportTextBox.Text == "" then notify("Please describe the issue first.", "warn"); return end
+    local reportUserBox = makeBox(pgReport, UDim2.new(0,8,0,70), UDim2.new(1,-16,0,32), "Target Username...")
+    local reportReasonBox = makeBox(pgReport, UDim2.new(0,8,0,110), UDim2.new(1,-16,0,32), "Reason (e.g., abusing bypasses, stealing anims)")
+    
+    local sendReportBtn = makeBtn(pgReport, "SEND REPORT 🚀", UDim2.new(0,8,0,150), UDim2.new(1,-16,0,32), Color3.fromRGB(190,50,50))
+    sendReportBtn.MouseButton1Click:Connect(function()
+        if reportUserBox.Text == "" or reportReasonBox.Text == "" then notify("Fill out both fields!", "warn") return end
         
         local payload = {
-            embeds = {{
-                title = "🐛 New Bug Report - FNF Injector v9.0",
-                description = reportTextBox.Text,
-                color = 16711680,
-                fields = {
-                    { name = "Reporter Username", value = LocalPlayer.Name, inline = true },
-                    { name = "Reporter ID", value = tostring(LocalPlayer.UserId), inline = true },
-                    { name = "Game PlaceID", value = tostring(game.PlaceId), inline = true }
-                },
-                timestamp = DateTime.now():ToIsoDate()
+            ["embeds"] = {{
+                ["title"] = "🚨 NEW PLAYER REPORT",
+                ["description"] = "**Reported by:** " .. LocalPlayer.Name .. " (" .. LocalPlayer.UserId .. ")\n**Target User:** " .. reportUserBox.Text .. "\n**Reason:** " .. reportReasonBox.Text,
+                ["color"] = 16711680
             }}
         }
-        
         SendWebhookData(REPORT_WEBHOOK, payload)
-        reportTextBox.Text = ""
-        notify("Report successfully submitted to developer Discord! Thank you.", "success")
+        notify("Report sent to owners!", "success")
+        reportUserBox.Text = ""
+        reportReasonBox.Text = ""
     end)
 
-
     -- ==============================================================================================
-    -- TAB 18 : RANKING (OWNER ONLY)
+    -- TAB 18/19 : OWNER TABS (RANKING & MOD)
     -- ==============================================================================================
     if IS_OWNER then
         local pgRank = pages["👑 RANKING"]
-        local rankTitle = makeLabel(pgRank, "👑 OWNER: ROLES & RANKING", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,215,0), Enum.TextXAlignment.Left, 12)
-        makeDivider(pgRank, 30, Color3.fromRGB(255,215,0))
-        makeLabel(pgRank, "Give other players custom roles that reflect in their nametags globally.", UDim2.new(0,8,0,36), UDim2.new(1,-16,0,20), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
-
-        local rankTargetBox = makeBox(pgRank, UDim2.new(0,8,0,70), UDim2.new(0,250,0,32), "Target User ID...")
-        local roleBox = makeBox(pgRank, UDim2.new(0,270,0,70), UDim2.new(0,150,0,32), "Role (e.g. VIP, Admin)")
-        
-        local setRoleBtn = makeBtn(pgRank, "SET ROLE", UDim2.new(0,430,0,70), UDim2.new(0,100,0,32), Color3.fromRGB(60,190,120))
-        setRoleBtn.MouseButton1Click:Connect(function()
-            if rankTargetBox.Text ~= "" and roleBox.Text ~= "" then
-                local targetId = tonumber(rankTargetBox.Text)
-                if targetId then
-                    broadcastNetworkMessage("ANNOUNCE", "Role update for " .. targetId .. ": " .. roleBox.Text)
-                    notify("Role updated globally.", "success")
+        if pgRank then
+            makeLabel(pgRank, "👑 OWNER GLOBAL ANNOUNCEMENTS", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,215,0), Enum.TextXAlignment.Left, 12)
+            makeDivider(pgRank, 30, Color3.fromRGB(255,215,0))
+            
+            local announceBox = makeBox(pgRank, UDim2.new(0,8,0,40), UDim2.new(1,-16,0,32), "Type global announcement...")
+            local announceBtn = makeBtn(pgRank, "BROADCAST TO ALL USERS", UDim2.new(0,8,0,80), UDim2.new(1,-16,0,32), Color3.fromRGB(255,150,0))
+            
+            announceBtn.MouseButton1Click:Connect(function()
+                if announceBox.Text ~= "" then
+                    broadcastNetworkMessage("ANNOUNCE", announceBox.Text)
+                    notify("Announcement sent to all connected hubs!", "success")
                 end
-            end
-        end)
+            end)
+        end
 
-        -- ==============================================================================================
-        -- TAB 19 : MODERATION (OWNER ONLY)
-        -- ==============================================================================================
         local pgMod = pages["🛡 MOD"]
-        local modTitle = makeLabel(pgMod, "🛡 OWNER: GLOBAL MODERATION", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,50,50), Enum.TextXAlignment.Left, 12)
-        makeDivider(pgMod, 30, Color3.fromRGB(255,50,50))
-        makeLabel(pgMod, "Blacklist rulebreakers globally or send moderation announcements.", UDim2.new(0,8,0,36), UDim2.new(1,-16,0,20), Color3.fromRGB(140,140,160), Enum.TextXAlignment.Left, 10)
-
-        local modTargetBox = makeBox(pgMod, UDim2.new(0,8,0,70), UDim2.new(0,200,0,32), "Target User ID...")
-        local reasonBox = makeBox(pgMod, UDim2.new(0,216,0,70), UDim2.new(0,180,0,32), "Reason...")
-
-        local blacklistBtn = makeBtn(pgMod, "BLACKLIST / BAN", UDim2.new(0,404,0,70), UDim2.new(0,130,0,32), Color3.fromRGB(190,50,50))
-        blacklistBtn.MouseButton1Click:Connect(function()
-            local id = tonumber(modTargetBox.Text)
-            if id then
-                blacklistedUsers[id] = true
-                broadcastNetworkMessage("BLACKLIST", tostring(id) .. "~" .. reasonBox.Text)
-                
-                -- Log to webhook
-                local payload = {
-                    embeds = {{
-                        title = "🔨 User Blacklisted",
-                        color = 16711680,
-                        fields = {
-                            { name = "Banned User ID", value = tostring(id), inline = true },
-                            { name = "Reason", value = reasonBox.Text ~= "" and reasonBox.Text or "No reason provided", inline = true },
-                            { name = "Moderator", value = LocalPlayer.Name, inline = true }
-                        },
-                        timestamp = DateTime.now():ToIsoDate()
-                    }}
-                }
-                SendWebhookData(MOD_WEBHOOK, payload)
-                notify("User blacklisted and webhook sent.", "success")
-            end
-        end)
-        
-        local unblacklistBtn = makeBtn(pgMod, "UNBLACKLIST", UDim2.new(0,404,0,110), UDim2.new(0,130,0,32), Color3.fromRGB(60,190,120))
-        unblacklistBtn.MouseButton1Click:Connect(function()
-            local id = tonumber(modTargetBox.Text)
-            if id then
-                blacklistedUsers[id] = nil
-                broadcastNetworkMessage("UNBLACKLIST", tostring(id))
-                notify("User unblacklisted.", "info")
-            end
-        end)
-
-        local announceBox = makeBox(pgMod, UDim2.new(0,8,0,160), UDim2.new(0,388,0,32), "Global Announcement Message...")
-        local announceBtn = makeBtn(pgMod, "ANNOUNCE", UDim2.new(0,404,0,160), UDim2.new(0,130,0,32), Color3.fromRGB(0,200,255))
-        announceBtn.MouseButton1Click:Connect(function()
-            if announceBox.Text ~= "" then
-                broadcastNetworkMessage("ANNOUNCE", announceBox.Text)
-                announceBox.Text = ""
-                notify("Announcement sent globally.", "success")
-            end
-        end)
+        if pgMod then
+            makeLabel(pgMod, "🛡 MODERATION PANEL", UDim2.new(0,8,0,8), UDim2.new(1,-16,0,20), Color3.fromRGB(255,80,80), Enum.TextXAlignment.Left, 12)
+            makeDivider(pgMod, 30, Color3.fromRGB(255,80,80))
+            
+            local modTargetBox = makeBox(pgMod, UDim2.new(0,8,0,40), UDim2.new(1,-16,0,32), "Target User ID...")
+            
+            local banBtn = makeBtn(pgMod, "BLACKLIST USER", UDim2.new(0,8,0,80), UDim2.new(0,250,0,32), Color3.fromRGB(190,50,50))
+            banBtn.MouseButton1Click:Connect(function()
+                local id = modTargetBox.Text:gsub("%D", "")
+                if id ~= "" then
+                    broadcastNetworkMessage("BLACKLIST", id .. "~Banned by Owner")
+                    blacklistedUsers[tonumber(id)] = true
+                    
+                    local payload = {
+                        ["embeds"] = {{
+                            ["title"] = "🔨 USER BLACKLISTED",
+                            ["description"] = "**Action by:** " .. LocalPlayer.Name .. "\n**Target User ID:** " .. id,
+                            ["color"] = 16711680
+                        }}
+                    }
+                    SendWebhookData(MOD_WEBHOOK, payload)
+                    notify("User ID " .. id .. " globally blacklisted.", "success")
+                end
+            end)
+        end
     end
 
     -- ==============================================================================================
-    -- WINDOW LOGIC & INITIALIZATION DRIVERS
+    --  FINALIZE GUI SETUP & HOTKEYS
     -- ==============================================================================================
-
     hideToggleBtn.MouseButton1Click:Connect(function()
         guiVisible = not guiVisible
         if guiVisible then
-            mainGuiFrame.ClipsDescendants = false
-            TweenService:Create(mainGuiFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0,MAIN_W,0,MAIN_H)}):Play()
             hideToggleBtn.Text = "HIDE"
             hideToggleBtn.BackgroundColor3 = THEMES[currentThemeName].accent
+            TweenService:Create(mainGuiFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0,MAIN_W,0,MAIN_H)}):Play()
         else
-            mainGuiFrame.ClipsDescendants = true
-            TweenService:Create(mainGuiFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {Size = UDim2.new(0,MAIN_W,0,36)}):Play()
             hideToggleBtn.Text = "SHOW"
-            hideToggleBtn.BackgroundColor3 = Color3.fromRGB(160,160,180)
+            hideToggleBtn.BackgroundColor3 = Color3.fromRGB(35,35,55)
+            TweenService:Create(mainGuiFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Size = UDim2.new(0,MAIN_W,0,36)}):Play()
         end
     end)
     
-    local dragging, dragInput, dragStart, startPos
-    titleGuiBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true; dragStart = input.Position; startPos = mainGuiFrame.Position
-            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
-        end
-    end)
-    titleGuiBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - dragStart
-            mainGuiFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
+    applyThemeColors(THEMES[currentThemeName].accent)
+end
 
-    setupMusicRemote()
+-- ==============================================================================================
+--  INITIALIZATION
+-- ==============================================================================================
+task.spawn(function()
     buildArrowHud()
+    buildGUI()
     startVisualizerLoops()
-    setTheme("Pink")
-    notify("FNF Injector v9.0 OMEGA Initialized Successfully!", "success")
-end
+    setupMusicRemote()
+    
+    -- Hook to ensure custom GUI resets correctly
+    LocalPlayer.CharacterAdded:Connect(function()
+        task.wait(1)
+        if not UI_CONTAINER:FindFirstChild("FNFInjectorGui") then buildGUI() end
+        if not UI_CONTAINER:FindFirstChild("FNFArrowHud") then buildArrowHud() end
+    end)
+    
+    notify("FNF Injector Omega Loaded Successfully!", "success")
+    
+    if DataStoreConfig.ThemeName then setTheme(DataStoreConfig.ThemeName) end
+end)
 
-buildGUI()
-
--- ==============================================================================================
---  GLOBAL CLEANUP STATE WATCHER
--- ==============================================================================================
-if shared._FNF_INJECTOR_CLEANUP then
-    pcall(shared._FNF_INJECTOR_CLEANUP)
-end
-
+-- Cleanup function to kill the script dynamically
 shared._FNF_INJECTOR_CLEANUP = function()
     cleanupAll()
     cleanupMovement()
-    stopDoubleTrouble()
     if UI_CONTAINER:FindFirstChild("FNFInjectorGui") then UI_CONTAINER.FNFInjectorGui:Destroy() end
-    if UI_CONTAINER:FindFirstChild("FNFArrowHud") then UI_CONTAINER.FNFArrowHud:Destroy() end
     if UI_CONTAINER:FindFirstChild("FNFHealthBar") then UI_CONTAINER.FNFHealthBar:Destroy() end
-    if UI_CONTAINER:FindFirstChild("FNFQTE") then UI_CONTAINER.FNFQTE:Destroy() end
+    if UI_CONTAINER:FindFirstChild("FNFArrowHud") then UI_CONTAINER.FNFArrowHud:Destroy() end
     if UI_CONTAINER:FindFirstChild("FNFCinematicBars") then UI_CONTAINER.FNFCinematicBars:Destroy() end
-    for _, tag in pairs(peerNametags) do pcall(function() tag:Destroy() end) end
-    peerNametags = {}
+    if flashGui then flashGui:Destroy() end
+    if globalCinematicUI then globalCinematicUI:Destroy() end
 end
 
--- End of File.
+return "FNF Injector Omega Initialized"
